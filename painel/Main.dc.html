@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<title>Painel de aprovação NEXUS</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f3f5f2}
+a{color:#0a6e31}a:hover{color:#064d22}
+textarea{font:inherit}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #f3f5f2; color: #142019; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 15px">
+
+  <header style="background: #0b1710; color: #ffffff; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 24px">
+    <div style="display: flex; align-items: baseline; gap: 14px">
+      <span style="font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 28px; letter-spacing: 4px; color: #3ddc78">NEXUS</span>
+      <span style="font-size: 14px; color: #b9cbbf; letter-spacing: 1px">Redes sociais</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 10px; font-size: 14px; color: #dfe9e2">
+      <span style="width: 34px; height: 34px; border-radius: 50%; background: #1d3a27; color: #3ddc78; display: flex; align-items: center; justify-content: center; font-weight: 600">A</span>
+      <span>Aprovador</span>
+    </div>
+  </header>
+
+  <div style="max-width: 1400px; margin: 0 auto; padding: 24px; box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+
+    <nav aria-label="Secções" style="flex: 1 1 190px; max-width: 230px; display: flex; flex-direction: column; gap: 4px">
+      <a href="#fila" style="display: flex; justify-content: space-between; align-items: center; padding: 11px 14px; border-radius: 8px; background: #dcefe2; color: #0b3d1d; font-weight: 600; text-decoration: none; min-height: 44px; box-sizing: border-box">Para aprovar <span style="background: #0a6e31; color: #fff; border-radius: 10px; padding: 1px 9px; font-size: 13px">{{pendingCount}}</span></a>
+      <a href="#agenda" style="display: flex; align-items: center; padding: 11px 14px; border-radius: 8px; color: #33443a; text-decoration: none; min-height: 44px; box-sizing: border-box">Agendados</a>
+      <a href="#agenda" style="display: flex; align-items: center; padding: 11px 14px; border-radius: 8px; color: #33443a; text-decoration: none; min-height: 44px; box-sizing: border-box">Calendário</a>
+      <a href="#agenda" style="display: flex; align-items: center; padding: 11px 14px; border-radius: 8px; color: #33443a; text-decoration: none; min-height: 44px; box-sizing: border-box">Publicados</a>
+      <a href="#agenda" style="display: flex; align-items: center; padding: 11px 14px; border-radius: 8px; color: #33443a; text-decoration: none; min-height: 44px; box-sizing: border-box">Ideias e temas</a>
+      <a href="#agenda" style="display: flex; align-items: center; padding: 11px 14px; border-radius: 8px; color: #33443a; text-decoration: none; min-height: 44px; box-sizing: border-box">Marca e modelos</a>
+    </nav>
+
+    <main id="fila" style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+      <div>
+        <h1 style="margin: 0; font-family: 'Rajdhani', sans-serif; font-size: 34px; font-weight: 700; letter-spacing: .5px">Para aprovar</h1>
+        <p style="margin: 4px 0 0; color: #4f6157">Posts criados pelo Claude. Nada é publicado sem a sua aprovação.</p>
+      </div>
+
+      <sc-for list="{{posts}}" as="post" hint-placeholder-count="2">
+        <article style="background: #ffffff; border: 1px solid #dde4de; border-radius: 14px; padding: 20px; display: flex; flex-wrap: wrap; gap: 22px">
+          <img src="{{post.img}}" alt="{{post.alt}}" style="flex: 0 1 300px; width: 300px; max-width: 100%; height: auto; border-radius: 10px; align-self: flex-start; border: 1px solid #e3e8e4">
+          <div style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+            <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; align-items: center">
+              <h2 style="margin: 0; font-size: 20px; font-weight: 600">{{post.title}}</h2>
+              <span style="{{post.badgeStyle}}">{{post.statusLabel}}</span>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 14px; color: #33443a">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0a6e31" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M16 3v4M8 3v4M3 10h18"></path></svg>
+              <span>{{post.when}}</span>
+              <span style="color: #9aa79f">·</span>
+              <sc-for list="{{post.networks}}" as="net" hint-placeholder-count="2">
+                <span style="border: 1px solid #c9d6cd; border-radius: 999px; padding: 2px 10px; font-size: 13px; color: #24382b">{{net}}</span>
+              </sc-for>
+            </div>
+            <div style="background: #f6f8f6; border-radius: 10px; padding: 14px 16px; white-space: pre-line; line-height: 1.5; color: #1d2b22">{{post.caption}}</div>
+            <p style="margin: 0; font-size: 13px; color: #56675d">{{post.source}}</p>
+
+            <sc-if value="{{post.isPending}}" hint-placeholder-val="{{ true }}">
+              <div style="display: flex; flex-wrap: wrap; gap: 10px">
+                <button type="button" onClick="{{post.approve}}" style="min-height: 44px; padding: 0 20px; border: 0; border-radius: 8px; background: #0a6e31; color: #ffffff; font: inherit; font-weight: 600; cursor: pointer">Aprovar e agendar</button>
+                <button type="button" onClick="{{post.change}}" style="min-height: 44px; padding: 0 18px; border: 1px solid #0a6e31; border-radius: 8px; background: #ffffff; color: #0a6e31; font: inherit; font-weight: 600; cursor: pointer">Pedir alteração</button>
+                <button type="button" onClick="{{post.reject}}" style="min-height: 44px; padding: 0 18px; border: 1px solid #c8cfca; border-radius: 8px; background: #ffffff; color: #8a2a1f; font: inherit; font-weight: 600; cursor: pointer">Rejeitar</button>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{post.isChanging}}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; flex-direction: column; gap: 8px">
+                <label for="{{post.inputId}}" style="font-weight: 600; font-size: 14px">O que quer mudar?</label>
+                <textarea id="{{post.inputId}}" rows="3" placeholder="Ex.: muda o título para algo mais direto e usa um fundo mais claro" style="border: 1px solid #b9c6bd; border-radius: 8px; padding: 10px 12px; resize: vertical"></textarea>
+                <div style="display: flex; flex-wrap: wrap; gap: 10px">
+                  <button type="button" onClick="{{post.sendChange}}" style="min-height: 44px; padding: 0 20px; border: 0; border-radius: 8px; background: #0a6e31; color: #ffffff; font: inherit; font-weight: 600; cursor: pointer">Enviar ao Claude</button>
+                  <button type="button" onClick="{{post.undo}}" style="min-height: 44px; padding: 0 18px; border: 1px solid #c8cfca; border-radius: 8px; background: #ffffff; color: #33443a; font: inherit; cursor: pointer">Cancelar</button>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{post.isDone}}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; font-size: 14px; color: #33443a">
+                <span>{{post.doneText}}</span>
+                <button type="button" onClick="{{post.undo}}" style="min-height: 44px; padding: 0 14px; border: 0; background: transparent; color: #0a6e31; font: inherit; font-weight: 600; text-decoration: underline; cursor: pointer">Desfazer</button>
+              </div>
+            </sc-if>
+          </div>
+        </article>
+      </sc-for>
+    </main>
+
+    <aside id="agenda" style="flex: 1 1 290px; max-width: 100%; display: flex; flex-direction: column; gap: 16px">
+      <section style="background: #ffffff; border: 1px solid #dde4de; border-radius: 14px; padding: 18px">
+        <h2 style="margin: 0 0 12px; font-family: 'Rajdhani', sans-serif; font-size: 22px; font-weight: 700">Próximos posts</h2>
+        <div style="display: flex; flex-direction: column; gap: 12px">
+          <div style="display: flex; gap: 12px">
+            <div style="flex: 0 0 52px; text-align: center; background: #eef4ef; border-radius: 8px; padding: 6px 0"><div style="font-size: 12px; color: #4f6157">SEG</div><div style="font-size: 20px; font-weight: 600">26</div></div>
+            <div><div style="font-weight: 600">Como escolher uma workstation para CAD</div><div style="font-size: 13px; color: #56675d">Ideia proposta · Instagram, LinkedIn</div></div>
+          </div>
+          <div style="display: flex; gap: 12px">
+            <div style="flex: 0 0 52px; text-align: center; background: #eef4ef; border-radius: 8px; padding: 6px 0"><div style="font-size: 12px; color: #4f6157">QUA</div><div style="font-size: 20px; font-weight: 600">28</div></div>
+            <div><div style="font-weight: 600">Supermicro e NVIDIA Vera Rubin</div><div style="font-size: 13px; color: #56675d">Em criação · Instagram, Facebook</div></div>
+          </div>
+          <div style="display: flex; gap: 12px">
+            <div style="flex: 0 0 52px; text-align: center; background: #eef4ef; border-radius: 8px; padding: 6px 0"><div style="font-size: 12px; color: #4f6157">SEX</div><div style="font-size: 20px; font-weight: 600">30</div></div>
+            <div><div style="font-weight: 600">Reel: a regra 3-2-1 em 15 segundos</div><div style="font-size: 13px; color: #56675d">Ideia proposta · Instagram</div></div>
+          </div>
+        </div>
+      </section>
+
+      <section style="background: #0b1710; color: #e6efe8; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 10px">
+        <h2 style="margin: 0; font-family: 'Rajdhani', sans-serif; font-size: 22px; font-weight: 700; color: #ffffff">Pedir um post</h2>
+        <label for="pedido" style="font-size: 14px; color: #b9cbbf">Escreva o tema e o Claude prepara o rascunho.</label>
+        <textarea id="pedido" rows="3" placeholder="Ex.: aviso de fecho no feriado de 1 de dezembro" style="border: 1px solid #2f4a38; background: #12241a; color: #ffffff; border-radius: 8px; padding: 10px 12px; resize: vertical"></textarea>
+        <button type="button" style="min-height: 44px; border: 0; border-radius: 8px; background: #3ddc78; color: #0b1710; font: inherit; font-weight: 600; cursor: pointer">Criar rascunho</button>
+      </section>
+    </aside>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1180}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { status: { backup: 'pending', fecho: 'pending' } };
+  }
+  setStatus(id, value) {
+    const status = Object.assign({}, this.state.status);
+    status[id] = value;
+    this.setState({ status: status });
+  }
+  renderVals() {
+    const base = [
+      {
+        id: 'fecho',
+        img: '/_blob/1caf1703d7c0a4a1612c9756e4e5efb0',
+        alt: 'Post verde com o texto Amanhã estamos fechados, sexta-feira 23 de outubro',
+        title: 'Aviso: encerrados amanhã',
+        when: 'Hoje, 18:00',
+        networks: ['Instagram', 'Facebook'],
+        caption: 'Aviso: amanhã, sexta-feira, 23 de outubro, a NEXUS estará encerrada.\nRetomamos o funcionamento normal na segunda-feira. Obrigado pela compreensão!\n#Nexus #Aviso',
+        source: 'Pedido por si: "post a dizer que a empresa está fechada amanhã"'
+      },
+      {
+        id: 'backup',
+        img: '/_blob/7414cee3003092f20689bb16c7557666',
+        alt: 'Post da NEXUS sobre backup com escudo e cadeado e a regra 3-2-1',
+        title: 'Dica: o seu backup está mesmo seguro?',
+        when: 'Seg, 26 out, 10:00',
+        networks: ['Instagram', 'Facebook', 'LinkedIn'],
+        caption: 'Se amanhã perdesse todos os dados da sua empresa, conseguia recuperá-los?\nA regra 3-2-1 é a base de qualquer estratégia de backup: 3 cópias, 2 suportes diferentes, 1 fora da empresa.\nNa NEXUS ajudamos a desenhar a solução certa para o seu negócio: nexus-solutions.pt\n#backup #cibersegurança #disasterrecovery #empresas',
+        source: 'Tema escolhido pelo Claude a partir dos serviços NEXUS (Backup e Disaster Recovery)'
+      }
+    ];
+    const labels = {
+      pending: ['À espera de aprovação', 'background: #fff4d6; color: #6b4a00'],
+      changing: ['A pedir alteração', 'background: #e6eefc; color: #1f3f86'],
+      revising: ['Claude a refazer', 'background: #e6eefc; color: #1f3f86'],
+      approved: ['Aprovado e agendado', 'background: #dcefe2; color: #0b3d1d'],
+      rejected: ['Rejeitado', 'background: #fbe4e1; color: #7a2016']
+    };
+    const doneTexts = {
+      approved: 'Vai ser publicado automaticamente à hora marcada.',
+      rejected: 'Este rascunho não vai ser publicado.',
+      revising: 'O Claude está a preparar uma nova versão com as suas indicações.'
+    };
+    const posts = base.map((p) => {
+      const s = this.state.status[p.id];
+      return Object.assign({}, p, {
+        inputId: 'alt-' + p.id,
+        statusLabel: labels[s][0],
+        badgeStyle: 'font-size: 13px; font-weight: 600; border-radius: 999px; padding: 4px 12px; ' + labels[s][1],
+        isPending: s === 'pending',
+        isChanging: s === 'changing',
+        isDone: s === 'approved' || s === 'rejected' || s === 'revising',
+        doneText: doneTexts[s] || '',
+        approve: () => this.setStatus(p.id, 'approved'),
+        reject: () => this.setStatus(p.id, 'rejected'),
+        change: () => this.setStatus(p.id, 'changing'),
+        sendChange: () => this.setStatus(p.id, 'revising'),
+        undo: () => this.setStatus(p.id, 'pending')
+      });
+    });
+    const pendingCount = posts.filter((p) => p.isPending || p.isChanging).length;
+    return { posts: posts, pendingCount: pendingCount };
+  }
+}
+</script>
+</body>
+</html>

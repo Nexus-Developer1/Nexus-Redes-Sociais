@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&display=block" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; background: #000; }
+  body { width: 1080px; height: 1350px; overflow: hidden; font-family: "Rajdhani", "Segoe UI", sans-serif; color: #fff; }
+  .post { position: relative; width: 1080px; height: 1350px; overflow: hidden; }
+  .bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: saturate(1.1) contrast(1.05); }
+  .shade { position: absolute; inset: 0;
+    background:
+      linear-gradient(180deg, rgba(0,0,0,.75) 0%, rgba(0,0,0,0) 22%),
+      linear-gradient(0deg, rgba(0,12,4,.95) 0%, rgba(0,12,4,.55) 38%, rgba(0,0,0,0) 60%); }
+
+  .logo { position: absolute; top: 70px; left: 0; right: 0; text-align: center; }
+  .logo img { width: 330px; filter: brightness(0) invert(1) drop-shadow(0 0 14px rgba(80,255,140,.55)); }
+  .logo .sub { margin-top: 8px; font-size: 24px; letter-spacing: 12px; font-weight: 600; color: #7dff9e; padding-left: 12px; }
+
+  .shield { position: absolute; top: 290px; left: 50%; transform: translateX(-50%); width: 300px; height: 340px;
+    filter: drop-shadow(0 0 22px rgba(60,255,120,.9)) drop-shadow(0 0 60px rgba(60,255,120,.5)); }
+
+  .content { position: absolute; left: 70px; right: 70px; bottom: 175px; }
+  .box { display: inline-block; background: rgba(4,40,16,.82); border-left: 8px solid #3dff7a;
+    padding: 6px 26px 2px; font-size: 92px; line-height: 1.05; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+  .box + .box { margin-top: 14px; }
+  .lead { margin-top: 30px; font-size: 38px; font-weight: 600; letter-spacing: 1px; color: #d8ffe3; }
+  .rules { margin-top: 26px; display: flex; gap: 18px; }
+  .rule { flex: 1; background: rgba(0,0,0,.55); border: 2px solid rgba(61,255,122,.55); border-radius: 14px; padding: 16px 20px; }
+  .rule b { display: block; font-size: 72px; line-height: 1; color: #3dff7a; text-shadow: 0 0 18px rgba(61,255,122,.6); }
+  .rule span { font-size: 28px; font-weight: 600; line-height: 1.15; }
+
+  .bar { position: absolute; left: 0; right: 0; bottom: 0; height: 120px; background: #021a0a;
+    border-top: 3px solid #3dff7a; display: flex; align-items: center; justify-content: space-between; padding: 0 70px; box-sizing: border-box;
+    font-size: 30px; font-weight: 600; letter-spacing: 1px; }
+  .bar .tag { color: #7dff9e; text-transform: uppercase; letter-spacing: 4px; font-size: 26px; }
+</style>
+</head>
+<body>
+<div class="post">
+  <img class="bg" src="fundo2.jpg" alt="">
+  <div class="shade"></div>
+
+  <div class="logo">
+    <img src="logo-nexus.png" alt="NEXUS">
+    <div class="sub">IT SOLUTIONS</div>
+  </div>
+
+  <!-- escudo com cadeado -->
+  <svg class="shield" viewBox="0 0 300 340" fill="none">
+    <path d="M150 12 L272 58 V160 C272 240 216 298 150 326 C84 298 28 240 28 160 V58 Z"
+          fill="rgba(20,120,50,.28)" stroke="#5dff8f" stroke-width="7" stroke-linejoin="round"/>
+    <path d="M150 40 L248 77 V160 C248 225 204 272 150 297 C96 272 52 225 52 160 V77 Z"
+          stroke="#5dff8f" stroke-opacity=".45" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M112 160 V132 a38 38 0 0 1 76 0 V160" stroke="#eafff0" stroke-width="12" stroke-linecap="round"/>
+    <rect x="96" y="158" width="108" height="88" rx="14" fill="#eafff0"/>
+    <circle cx="150" cy="194" r="12" fill="#0b5d2a"/>
+    <rect x="145" y="198" width="10" height="26" rx="4" fill="#0b5d2a"/>
+  </svg>
+
+  <div class="content">
+    <div class="box">O seu backup está</div><br>
+    <div class="box">mesmo seguro?</div>
+    <div class="lead">Siga a regra 3-2-1 e proteja os dados da sua empresa:</div>
+    <div class="rules">
+      <div class="rule"><b>3</b><span>cópias dos seus dados</span></div>
+      <div class="rule"><b>2</b><span>suportes diferentes</span></div>
+      <div class="rule"><b>1</b><span>cópia fora da empresa</span></div>
+    </div>
+  </div>
+
+  <div class="bar">
+    <span class="tag">Backup &amp; Disaster Recovery</span>
+    <span>nexus-solutions.pt</span>
+  </div>
+</div>
+</body>
+</html>

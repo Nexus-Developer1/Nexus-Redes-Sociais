@@ -1,0 +1,24 @@
+<?php
+
+use App\Http\Controllers\LoginController;
+use App\Http\Controllers\PainelController;
+use App\Http\Controllers\PostDecisionController;
+use App\Http\Controllers\PostRequestController;
+use Illuminate\Support\Facades\Route;
+
+Route::middleware('guest')->group(function () {
+    Route::get('/entrar', [LoginController::class, 'show'])->name('login');
+    Route::post('/entrar', [LoginController::class, 'login'])->middleware('throttle:10,1');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('/', [PainelController::class, 'index'])->name('painel');
+    Route::post('/sair', [LoginController::class, 'logout'])->name('logout');
+
+    Route::post('/posts/{post}/aprovar', [PostDecisionController::class, 'approve'])->name('posts.approve');
+    Route::post('/posts/{post}/rejeitar', [PostDecisionController::class, 'reject'])->name('posts.reject');
+    Route::post('/posts/{post}/alterar', [PostDecisionController::class, 'requestChange'])->name('posts.change');
+    Route::post('/posts/{post}/desfazer', [PostDecisionController::class, 'undo'])->name('posts.undo');
+
+    Route::post('/pedidos', [PostRequestController::class, 'store'])->name('requests.store');
+});

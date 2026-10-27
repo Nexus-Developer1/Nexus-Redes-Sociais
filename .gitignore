@@ -1,0 +1,16 @@
+# Sistema / editores
+Thumbs.db
+.DS_Store
+desktop.ini
+.vscode/
+.idea/
+
+# Segredos (nunca no Git)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Definições locais do Claude Code
+.claude/settings.local.json
