@@ -62,4 +62,4 @@ Sistema que cria posts para as redes sociais da NEXUS de forma autónoma.
 - Definir quantos posts por semana (sugestão: 3 a 4) e criar modelos fixos por tipo (aviso, dica, produto, evento, Reel).
 - Fase seguinte: app na Meta for Developers e API do Instagram/Facebook. Depois o LinkedIn (Community Management API).
 - O Claude Motion (animações em MP4, planos Team/Enterprise) pode servir para Reels.
-- Ainda não há repositório Git.
+- Repositório Git: https://github.com/Rui-Moreira06/Nexus-Redes-Sociais (privado, ramo `main`). Nunca enviar `.env`, bases de dados nem palavras-passe.
