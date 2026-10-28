@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\Models\Post;
 use App\Models\PostRequest;
 use App\Models\User;
+use App\Notifications\PostParaAprovar;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -108,5 +110,22 @@ class PainelTest extends TestCase
         // Um post aprovado não pode ser substituído pelo comando.
         $post->update(['status' => Post::APPROVED]);
         $this->artisan('post:submeter', ['--post' => $post->id, '--legenda' => 'x'])->assertFailed();
+    }
+
+    public function test_submeter_avisa_o_aprovador_por_email(): void
+    {
+        Notification::fake();
+        $aprovador = User::factory()->create();
+
+        $this->artisan('post:submeter', ['--titulo' => 'Dica de redes', '--legenda' => "Linha 1\nLinha 2"])
+            ->assertSuccessful();
+
+        Notification::assertSentTo($aprovador, PostParaAprovar::class, function ($n) use ($aprovador) {
+            $mail = $n->toMail($aprovador);
+
+            return $mail->subject === 'Post para aprovar: Dica de redes'
+                && in_array('Linha 2', $mail->introLines, true)
+                && str_ends_with($mail->actionUrl, '#post-'.$n->post->id);
+        });
     }
 }

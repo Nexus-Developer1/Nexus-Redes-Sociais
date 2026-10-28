@@ -19,6 +19,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/posts/{post}/rejeitar', [PostDecisionController::class, 'reject'])->name('posts.reject');
     Route::post('/posts/{post}/alterar', [PostDecisionController::class, 'requestChange'])->name('posts.change');
     Route::post('/posts/{post}/desfazer', [PostDecisionController::class, 'undo'])->name('posts.undo');
+    Route::post('/posts/{post}/trocar-ideia', [PostDecisionController::class, 'swapIdea'])->name('posts.swap');
+    Route::post('/posts/{post}/descartar', [PostDecisionController::class, 'discard'])->name('posts.discard');
 
     Route::post('/pedidos', [PostRequestController::class, 'store'])->name('requests.store');
 });

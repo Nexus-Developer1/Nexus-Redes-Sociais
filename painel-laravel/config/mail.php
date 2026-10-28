@@ -37,6 +37,15 @@ return [
 
     'mailers' => [
 
+        // Microsoft 365 pela API Graph (app no Entra ID com Mail.Send). Ver App\Mail\MicrosoftGraphTransport.
+        'msgraph' => [
+            'transport' => 'msgraph',
+            'tenant_id' => env('MSGRAPH_TENANT_ID'),
+            'client_id' => env('MSGRAPH_CLIENT_ID'),
+            'client_secret' => env('MSGRAPH_CLIENT_SECRET'),
+            'sender' => env('MSGRAPH_SENDER', env('MAIL_FROM_ADDRESS')),
+        ],
+
         'smtp' => [
             'transport' => 'smtp',
             'scheme' => env('MAIL_SCHEME'),

@@ -48,6 +48,29 @@ class PostDecisionController extends Controller
         return back()->with('ok', "“{$post->title}” voltou à fila para aprovar.");
     }
 
+    /** O aprovador pede outro tema para esta data. O Claude troca a ideia (post:ideia --post=ID). */
+    public function swapIdea(Request $request, Post $post): RedirectResponse
+    {
+        $this->mustBe($post, [Post::IDEA, Post::CREATING]);
+        $data = $request->validate([
+            'comment' => ['required', 'string', 'max:2000'],
+        ], [
+            'comment.required' => 'Escreva que tema prefere (ou porque quer trocar).',
+        ]);
+
+        $post->decide('idea_swap', Post::IDEA, $request->user(), $data['comment']);
+
+        return back()->with('ok', 'Pedido de troca de tema enviado ao Claude.');
+    }
+
+    public function discard(Request $request, Post $post): RedirectResponse
+    {
+        $this->mustBe($post, [Post::IDEA, Post::CREATING]);
+        $post->decide('discarded', Post::REJECTED, $request->user());
+
+        return back()->with('ok', "A ideia “{$post->title}” foi descartada.");
+    }
+
     private function mustBe(Post $post, array $statuses): void
     {
         abort_unless(in_array($post->status, $statuses, true), 409,

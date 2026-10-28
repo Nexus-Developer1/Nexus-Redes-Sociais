@@ -14,8 +14,9 @@ class DatabaseSeeder extends Seeder
     {
         // Primeiro aprovador. A palavra-passe vem do .env (APROVADOR_PASSWORD);
         // se estiver vazia, é gerada uma e mostrada aqui uma única vez.
+        // Só na primeira instalação: se já há contas (mesmo com outro email), não cria nenhuma.
         $email = env('APROVADOR_EMAIL', 'aprovador@nexus-solutions.pt');
-        if (! User::where('email', $email)->exists()) {
+        if (! User::exists()) {
             $password = env('APROVADOR_PASSWORD') ?: Str::password(14, symbols: false);
             User::create([
                 'name' => env('APROVADOR_NOME', 'Aprovador'),

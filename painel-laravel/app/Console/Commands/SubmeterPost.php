@@ -4,7 +4,11 @@ namespace App\Console\Commands;
 
 use App\Models\Post;
 use App\Models\PostRequest;
+use App\Models\User;
+use App\Notifications\PostParaAprovar;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Notification;
+use Throwable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
@@ -97,6 +101,7 @@ class SubmeterPost extends Command
             $post->scheduled_at = Carbon::parse($when);
         }
         $post->status = Post::PENDING;
+        $post->change_request = null;
         $post->save();
 
         if ($id = $this->option('pedido')) {
@@ -104,6 +109,15 @@ class SubmeterPost extends Command
         }
 
         $this->info("Post #{$post->id} enviado para aprovação: {$post->title}");
+
+        // Avisa o(s) aprovador(es). Se o email falhar, o post fica na fila na mesma.
+        try {
+            Notification::send(User::all(), new PostParaAprovar($post));
+            $this->info('Aviso enviado por email.');
+        } catch (Throwable $e) {
+            report($e);
+            $this->warn('O post está na fila, mas o email de aviso falhou: '.$e->getMessage());
+        }
 
         return self::SUCCESS;
     }

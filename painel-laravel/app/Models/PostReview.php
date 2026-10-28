@@ -14,6 +14,10 @@ class PostReview extends Model
         'rejected' => 'rejeitou',
         'change_requested' => 'pediu alteração',
         'undone' => 'desfez a decisão',
+        'idea_swap' => 'pediu outro tema',
+        'discarded' => 'descartou a ideia',
+        'published' => 'publicou',
+        'publish_failed' => 'falhou a publicação',
     ];
 
     protected $fillable = ['user_id', 'action', 'comment'];

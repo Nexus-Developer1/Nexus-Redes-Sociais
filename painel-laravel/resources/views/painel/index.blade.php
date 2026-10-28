@@ -29,6 +29,8 @@
             <h1>{{ $sections[$ver]['title'] }}</h1>
             @if ($ver === 'fila')
                 <p class="sub">Posts criados pelo Claude. Nada é publicado sem a sua aprovação.</p>
+            @elseif ($ver === 'ideias')
+                <p class="sub">Calendário de temas (1 post por semana). Cada ideia vira um post que chega à fila para aprovar. Pode trocar o tema ou descartar.</p>
             @endif
         </div>
 

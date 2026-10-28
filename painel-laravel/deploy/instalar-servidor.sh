@@ -79,6 +79,13 @@ as_app env APROVADOR_PASSWORD="${APROVADOR_PASSWORD:-}" php artisan db:seed --fo
 
 as_app php artisan optimize -n
 
+echo "== agendador (publica os posts aprovados à hora marcada; sem chave da Meta não faz nada)"
+cat > /etc/cron.d/$APP <<EOF
+# NEXUS Redes Sociais: tarefas agendadas do Laravel (post:publicar a cada 5 min).
+* * * * * $USR cd $DIR && php artisan schedule:run >> /dev/null 2>&1
+EOF
+chmod 644 /etc/cron.d/$APP
+
 echo "== PHP-FPM"
 cat > /etc/php/8.3/fpm/pool.d/$APP.conf <<EOF
 [$APP]

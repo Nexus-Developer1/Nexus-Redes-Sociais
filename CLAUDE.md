@@ -45,7 +45,10 @@ Sistema que cria posts para as redes sociais da NEXUS de forma autónoma.
   - `php artisan post:pendentes` (ou `--json`): pedidos novos, alterações pedidas e ideias por criar.
   - `php artisan post:submeter --titulo= --imagem= --legenda-ficheiro= --redes=Instagram,Facebook --quando="AAAA-MM-DD HH:MM" [--post=ID] [--pedido=ID]`:
     põe o post na fila como "À espera de aprovação". **Nunca aprova nem publica**; recusa alterar posts já aprovados.
-  Ainda não publica na Meta (fica para a fase da API).
+  - `php artisan post:ideia --titulo= --quando= --tipo= [--post=ID]`: põe uma ideia no calendário (o painel permite "Trocar tema" e "Descartar").
+  - `php artisan post:publicar [--simular]`: publica na Meta os posts aprovados cuja hora chegou (cron a cada 5 min no servidor). Sem `META_PAGE_TOKEN` no `.env` não publica nada.
+  Email ao aprovador quando há post para aprovar: Microsoft 365 pela API Graph (`MSGRAPH_*` no `.env`).
+  Estas funcionalidades foram feitas diretamente no servidor a 28 out 2026 e depois trazidas para o Git: **alterações ao código devem passar sempre pelo repositório**.
 - **Servidor (instalado a 27 out 2026):** http://192.168.1.69:8091 (só rede interna). Ubuntu 24.04, servidor partilhado com
   outras apps (nexus-ops, nexus-tempos, portal, advocacia): **não mexer nelas**.
   Pasta `/var/www/nexus-redes-sociais`, utilizador `app-social`, pool PHP-FPM próprio, PostgreSQL (base `nexus_social`),

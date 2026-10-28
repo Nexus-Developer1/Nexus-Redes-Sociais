@@ -39,8 +39,15 @@ class Post extends Model
             'networks' => 'array',
             'scheduled_at' => 'datetime',
             'decided_at' => 'datetime',
+            'published_at' => 'datetime',
         ];
     }
+
+    /** Máximo de tentativas de publicação antes de desistir (o erro fica no painel). */
+    public const MAX_PUBLISH_ATTEMPTS = 3;
+
+    /** Redes que a publicação automática já cobre. O LinkedIn fica para depois. */
+    public const AUTO_NETWORKS = ['Facebook', 'Instagram'];
 
     public function reviews(): HasMany
     {
@@ -85,7 +92,7 @@ class Post extends Model
         $this->status = $newStatus;
         $this->decided_by = $user?->id;
         $this->decided_at = now();
-        if ($action === 'change_requested') {
+        if (in_array($action, ['change_requested', 'idea_swap'], true)) {
             $this->change_request = $comment;
         }
         $this->save();

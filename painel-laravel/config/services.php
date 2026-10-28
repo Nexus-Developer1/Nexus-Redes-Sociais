@@ -28,6 +28,14 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    // Publicação no Facebook e Instagram (API Graph da Meta). Sem token, nada é publicado.
+    'meta' => [
+        'graph_version' => env('META_GRAPH_VERSION', 'v23.0'),
+        'page_id' => env('META_PAGE_ID'),
+        'instagram_user_id' => env('META_IG_USER_ID'),
+        'page_token' => env('META_PAGE_TOKEN'),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

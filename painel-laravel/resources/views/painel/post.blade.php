@@ -28,6 +28,14 @@
             <p class="origem">{{ $post->source }}</p>
         @endif
 
+        @if ($post->status === \App\Models\Post::APPROVED && $post->publish_error)
+            <div class="pedido-alteracao" style="background:#fbe4e1;color:#7a2016">
+                <strong>A publicação falhou</strong>
+                ({{ $post->publish_attempts }} de {{ \App\Models\Post::MAX_PUBLISH_ATTEMPTS }} tentativas{{ $post->publish_attempts >= \App\Models\Post::MAX_PUBLISH_ATTEMPTS ? '; parou de tentar' : '; vai tentar de novo' }}):
+                {{ $post->publish_error }}
+            </div>
+        @endif
+
         @if ($post->status === \App\Models\Post::REVISING && $post->change_request)
             <div class="pedido-alteracao"><strong>Alteração pedida:</strong> {{ $post->change_request }}</div>
         @endif
@@ -57,6 +65,31 @@
                     <button type="submit" class="btn btn-perigo">Rejeitar</button>
                 </form>
             </div>
+        @elseif (in_array($post->status, [\App\Models\Post::IDEA, \App\Models\Post::CREATING], true))
+            @if ($post->change_request)
+                <div class="pedido-alteracao"><strong>Pediu outro tema:</strong> {{ $post->change_request }}</div>
+            @else
+                <div class="acoes">
+                    <details class="alterar">
+                        <summary class="btn btn-contorno">Trocar tema</summary>
+                        <form class="form-alterar" method="POST" action="{{ route('posts.swap', $post) }}">
+                            @csrf
+                            <label for="troca-{{ $post->id }}">Que tema prefere para esta data?</label>
+                            <textarea id="troca-{{ $post->id }}" name="comment" rows="3" required maxlength="2000"
+                                      placeholder="Ex.: em vez disto, um post sobre as UPS Riello"></textarea>
+                            <div class="acoes">
+                                <button type="submit" class="btn btn-principal">Enviar ao Claude</button>
+                                <button type="button" class="btn" onclick="this.closest('details').open = false">Cancelar</button>
+                            </div>
+                        </form>
+                    </details>
+                    <form method="POST" action="{{ route('posts.discard', $post) }}"
+                          onsubmit="return confirm('Descartar esta ideia?')">
+                        @csrf
+                        <button type="submit" class="btn btn-perigo">Descartar</button>
+                    </form>
+                </div>
+            @endif
         @elseif (in_array($post->status, [\App\Models\Post::APPROVED, \App\Models\Post::REJECTED, \App\Models\Post::REVISING], true))
             <div class="acoes" style="align-items:center;font-size:14px;color:#33443a">
                 <span>
