@@ -129,11 +129,17 @@ class TratarPedidos extends Command
         }
 
         try {
-            $fotos = $pexels->procurar($pesquisa, $design['formato'] ?? '4:5', 5);
-            if (! $fotos) {
+            // A IA vê as candidatas e escolhe a que serve (ou nenhuma): nunca fica a primeira à sorte.
+            $fotos = $pexels->procurar($pesquisa, $design['formato'] ?? '4:5', 12);
+            $tema = trim($post->title.' — '.str_replace(['*', "
+"], ['', ' '], (string) ($design['titulo'] ?? '')));
+            $escolhida = app(PostWriter::class)->escolherFoto($tema, $fotos);
+            if (! $escolhida) {
+                $this->line("Post #{$post->id}: nenhuma foto servia para \"{$pesquisa}\"; fica o fundo verde.");
+
                 return $design;
             }
-            $foto = $pexels->descarregar($fotos[0]['id'], $post);
+            $foto = $pexels->descarregar($escolhida, $post);
             $design['foto'] = $foto['nome'];
             $design['tom'] = 'suave';
             unset($design['icone']); // o ícone tapava a foto

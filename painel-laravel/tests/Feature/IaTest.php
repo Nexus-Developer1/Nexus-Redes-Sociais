@@ -91,7 +91,9 @@ class IaTest extends TestCase
     {
         config(['services.pexels.key' => 'pexels-teste']);
         Http::fake([
-            'ia.teste/*' => Http::response($this->respostaIa(['pesquisa_imagem' => 'server room'])),
+            // 1.º a IA escreve o post; 2.º escolhe a foto entre as candidatas
+            'ia.teste/*' => Http::sequence()->push($this->respostaIa(['pesquisa_imagem' => 'server room']))
+                ->push(['choices' => [['message' => ['content' => '123']]]]),
             'api.pexels.com/v1/search*' => Http::response(['photos' => [
                 ['id' => 123, 'alt' => 'Servidores', 'photographer' => 'Ana Silva', 'src' => ['medium' => 'https://images.pexels.com/m.jpg']],
             ]]),
@@ -137,7 +139,8 @@ class IaTest extends TestCase
         $hit = ['id' => 77, 'tags' => 'server, rack', 'user' => 'Rui', 'webformatURL' => 'https://pixabay.com/get/w.jpg',
             'largeImageURL' => 'https://pixabay.com/get/large.jpg'];
         Http::fake([
-            'ia.teste/*' => Http::response($this->respostaIa(['pesquisa_imagem' => 'server room'])),
+            'ia.teste/*' => Http::sequence()->push($this->respostaIa(['pesquisa_imagem' => 'server room']))
+                ->push(['choices' => [['message' => ['content' => '77']]]]),
             'pixabay.com/api/*' => Http::response(['hits' => [$hit]]),
             'pixabay.com/get/*' => Http::response('JPEGDATA', 200, ['Content-Type' => 'image/jpeg']),
         ]);
@@ -149,6 +152,25 @@ class IaTest extends TestCase
         $this->assertSame('pixabay-77.jpg', $post->design['foto']);
         $this->assertStringContainsString('Foto: Rui (Pixabay)', $post->source);
         Http::assertSent(fn ($r) => str_contains($r->url(), 'pixabay.com/api/') && $r['key'] === 'pixabay-teste');
+    }
+
+    public function test_se_nenhuma_foto_serve_fica_sem_foto(): void
+    {
+        config(['services.pexels.key' => null, 'services.pixabay.key' => 'pixabay-teste']);
+        Http::fake([
+            'ia.teste/*' => Http::sequence()->push($this->respostaIa(['pesquisa_imagem' => 'office ups']))
+                ->push(['choices' => [['message' => ['content' => '0']]]]),
+            'pixabay.com/api/*' => Http::response(['hits' => [['id' => 5, 'tags' => 'ribs, barbecue', 'user' => 'x',
+                'webformatURL' => 'https://pixabay.com/get/w.jpg', 'largeImageURL' => 'https://pixabay.com/get/l.jpg']]]),
+        ]);
+        PostRequest::create(['topic' => 'UPS']);
+
+        $this->artisan('post:tratar-pedidos')->assertSuccessful();
+
+        $post = PostRequest::first()->post;
+        $this->assertSame(Post::PENDING, $post->status);
+        $this->assertArrayNotHasKey('foto', $post->design);
+        Http::assertNotSent(fn ($r) => str_contains($r->url(), 'pixabay.com/get/'));
     }
 
     public function test_data_escolhida_no_pedido_manda_sobre_a_da_ia(): void

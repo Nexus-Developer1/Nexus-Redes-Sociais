@@ -52,6 +52,40 @@ class PostWriter
         );
     }
 
+    /**
+     * Entre as fotos encontradas no banco de fotos, escolhe a que serve de fundo para o post
+     * (pela descrição de cada uma). Devolve null se nenhuma servir: mais vale sem foto do que errada.
+     *
+     * @param  list<array{id: int, alt: string}>  $fotos
+     */
+    public function escolherFoto(string $tema, array $fotos): ?int
+    {
+        if (! $fotos) {
+            return null;
+        }
+        $lista = collect($fotos)->map(fn ($f) => $f['id'].': '.mb_substr($f['alt'], 0, 150))->implode("\n");
+        $resposta = Http::withToken(config('ia.chave'))->timeout(30)->acceptJson()
+            ->post(rtrim(config('ia.endereco'), '/').'/chat/completions', [
+                'model' => config('ia.modelo'),
+                'messages' => [
+                    ['role' => 'system', 'content' => 'Escolhes a fotografia de fundo para um post de uma empresa portuguesa de informática '
+                        .'(servidores, computadores, redes, energia/UPS, cibersegurança, escritórios). Cada linha é "id: palavras que descrevem a foto". '
+                        .'Escolhe a que melhor combina com o tema e que mostre claramente tecnologia, equipamento, escritórios ou pessoas a trabalhar. '
+                        .'Comida, animais, paisagens, desporto ou qualquer coisa sem relação NÃO servem. Se nenhuma servir, responde 0. '
+                        .'Responde só com o número.'],
+                    ['role' => 'user', 'content' => "Tema do post: {$tema}\n\nFotos:\n{$lista}"],
+                ],
+                'temperature' => 0,
+            ]);
+        if ($resposta->failed()) {
+            return null;
+        }
+        preg_match('/\d+/', (string) $resposta->json('choices.0.message.content'), $m);
+        $id = (int) ($m[0] ?? 0);
+
+        return in_array($id, array_column($fotos, 'id'), true) ? $id : null;
+    }
+
     /** Passa uma pesquisa de fotos escrita em português para palavras-chave em inglês (os bancos de fotos funcionam melhor). */
     public function pesquisaEmIngles(string $pesquisa): string
     {
@@ -218,7 +252,8 @@ class PostWriter
         - Sem emojis no texto da imagem.
         - "pesquisa_imagem": 2 a 4 palavras EM INGLÊS para procurar uma foto de fundo num banco de fotos
           (ex.: "server room", "it technician laptop", "office team meeting", "data center cables").
-          Foto realista, sem texto, a combinar com o tema. Num aviso de fecho ou feriado pode ser algo como "closed office door".
+          Foto realista, sem texto, a combinar com o tema. NÃO uses siglas nem marcas (UPS, NVIDIA, Riello, Supermicro):
+          descreve o que se vê (ex.: UPS → "office computers power backup", NVIDIA → "graphics card computer"). Num aviso de fecho ou feriado pode ser algo como "closed office door".
 
         A LEGENDA
         - 300 a 900 caracteres, em parágrafos curtos, a explicar o tema e porque interessa a uma empresa.
