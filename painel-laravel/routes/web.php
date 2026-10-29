@@ -37,6 +37,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/posts/{post}/data', [PostEditorController::class, 'reschedule'])->name('posts.date');
     Route::get('/imagens/procurar', [PostEditorController::class, 'searchImages'])->name('images.search')->middleware('throttle:60,1');
     Route::post('/posts/{post}/imagens/pexels', [PostEditorController::class, 'useStockImage'])->name('posts.stock');
+    Route::post('/posts/{post}/outra-foto', [PostEditorController::class, 'otherPhoto'])->name('posts.otherPhoto')->middleware('throttle:20,1');
 
     Route::post('/pedidos', [PostRequestController::class, 'store'])->name('requests.store');
     Route::post('/pedidos/{pedido}/repetir', [PostRequestController::class, 'retry'])->name('requests.retry');

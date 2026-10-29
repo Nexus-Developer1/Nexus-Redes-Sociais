@@ -157,6 +157,13 @@ class PostRenderer
                 }
             }
         }
+        // Para o botão "Outra foto": a pesquisa usada e as fotos do banco já usadas neste post.
+        if (isset($d['pesquisa']) && ($v = $texto($d['pesquisa'], 80)) !== '') {
+            $limpo['pesquisa'] = $v;
+        }
+        if (! empty($d['fotos_usadas']) && is_array($d['fotos_usadas'])) {
+            $limpo['fotos_usadas'] = array_values(array_slice(array_unique(array_filter(array_map('intval', $d['fotos_usadas']))), -50));
+        }
         // Imagens: só ficheiros que existem na pasta do post.
         foreach (['foto', 'fundo', 'produto', 'parceiro'] as $campo) {
             $nome = (string) ($d[$campo] ?? '');

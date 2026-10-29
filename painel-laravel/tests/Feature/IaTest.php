@@ -173,6 +173,40 @@ class IaTest extends TestCase
         Http::assertNotSent(fn ($r) => str_contains($r->url(), 'pixabay.com/get/'));
     }
 
+    public function test_outra_foto_escolhe_uma_ainda_nao_usada(): void
+    {
+        config(['services.pexels.key' => null, 'services.pixabay.key' => 'pixabay-teste']);
+        $hits = [
+            ['id' => 77, 'tags' => 'server', 'user' => 'Rui', 'webformatURL' => 'https://pixabay.com/get/w77.jpg', 'largeImageURL' => 'https://pixabay.com/get/l77.jpg'],
+            ['id' => 88, 'tags' => 'data center', 'user' => 'Ana', 'webformatURL' => 'https://pixabay.com/get/w88.jpg', 'largeImageURL' => 'https://pixabay.com/get/l88.jpg'],
+        ];
+        Http::fake([
+            // a IA só vê a 88 (a 77 já foi usada) e escolhe-a
+            'ia.teste/*' => Http::response(['choices' => [['message' => ['content' => '88']]]]),
+            'pixabay.com/api/*' => function ($r) use ($hits) {
+                return Http::response(['hits' => isset($r['id']) ? array_values(array_filter($hits, fn ($h) => $h['id'] == $r['id'])) : $hits]);
+            },
+            'pixabay.com/get/*' => Http::response('JPEGDATA', 200, ['Content-Type' => 'image/jpeg']),
+        ]);
+        $user = User::factory()->create();
+        $post = Post::create(['title' => 'Backup', 'networks' => ['Instagram'], 'status' => Post::PENDING,
+            'design' => ['modelo' => 'dica', 'titulo' => 'Backup', 'pesquisa' => 'server room', 'fotos_usadas' => [77], 'foto' => 'pixabay-77.jpg']]);
+        File::ensureDirectoryExists(PostRenderer::pasta($post));
+        File::put(PostRenderer::pasta($post).'/pixabay-77.jpg', 'x');
+
+        $this->actingAs($user)->get('/')->assertSee('Outra foto');
+        $this->actingAs($user)->post(route('posts.otherPhoto', $post))->assertSessionHas('ok');
+
+        $post->refresh();
+        $this->assertSame('pixabay-88.jpg', $post->design['foto']);
+        $this->assertSame([77, 88], $post->design['fotos_usadas']);
+        $this->assertSame(Post::PENDING, $post->status);
+        $this->assertFileDoesNotExist(PostRenderer::pasta($post).'/pixabay-77.jpg'); // a antiga sai
+        $this->assertSame('photo_changed', $post->reviews()->first()->action);
+        Http::assertSent(fn ($r) => str_contains($r->url(), 'ia.teste') && str_contains($r['messages'][1]['content'] ?? '', '88:')
+            && ! str_contains($r['messages'][1]['content'] ?? '', '77:'));
+    }
+
     public function test_data_escolhida_no_pedido_manda_sobre_a_da_ia(): void
     {
         // A IA sugere outra data; a escolhida por quem pediu é a que fica.

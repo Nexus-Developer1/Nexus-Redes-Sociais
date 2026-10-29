@@ -7,6 +7,14 @@
         @else
             <div class="sem-imagem">Sem imagem</div>
         @endif
+        @if ($post->isEditable() && $post->design && app(\App\Services\BancoFotos::class)->configurado())
+            {{-- A IA escolhe outra foto do banco de fotos e a imagem é refeita --}}
+            <form method="POST" action="{{ route('posts.otherPhoto', $post) }}" class="outra-foto"
+                  onsubmit="var b = this.querySelector('button'); b.disabled = true; b.textContent = 'A trocar…';">
+                @csrf
+                <button type="submit" class="btn" title="Trocar a foto de fundo por outra escolhida pela IA">↻ Outra foto</button>
+            </form>
+        @endif
     </div>
 
     <div class="corpo">

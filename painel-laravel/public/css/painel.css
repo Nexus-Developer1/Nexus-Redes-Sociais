@@ -298,3 +298,10 @@ body.ecra-editor { height: 100vh; height: 100dvh; display: flex; flex-direction:
 .procura-foto:hover, .procura-foto:focus-visible { border-color: var(--verde); }
 .procura-foto.a-carregar { opacity: .5; cursor: wait; }
 .procura-nota { grid-column: 1 / -1; margin: 0; }
+/* Botão "Outra foto" por cima da imagem do post */
+.post-imagem { position: relative; }
+.outra-foto { position: absolute; left: 8px; right: 8px; bottom: 8px; margin: 0; }
+.outra-foto .btn { width: 100%; min-height: 32px; padding: 0 8px; font-size: 13px; justify-content: center; display: flex; align-items: center;
+  background: rgba(255,255,255,.92); border-color: transparent; color: #24382b; box-shadow: 0 2px 8px rgba(0,0,0,.25); }
+.outra-foto .btn:hover { background: #fff; color: var(--verde); }
+.outra-foto .btn:disabled { cursor: wait; opacity: .85; }

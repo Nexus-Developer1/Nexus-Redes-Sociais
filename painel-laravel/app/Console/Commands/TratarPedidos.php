@@ -141,6 +141,8 @@ class TratarPedidos extends Command
             }
             $foto = $pexels->descarregar($escolhida, $post);
             $design['foto'] = $foto['nome'];
+            $design['pesquisa'] = $pesquisa; // para o botão "Outra foto"
+            $design['fotos_usadas'] = [$escolhida];
             $design['tom'] = 'suave';
             unset($design['icone']); // o ícone tapava a foto
             $post->source = trim($post->source.' · Foto: '.$foto['fotografo'].' ('.$pexels->nome().')');

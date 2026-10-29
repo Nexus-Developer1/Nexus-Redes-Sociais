@@ -102,7 +102,10 @@ class PostEditorController extends Controller
             'scheduled_at' => $data['scheduled_at'] ?? null,
         ]);
         if (! empty($data['design'])) {
+            $antigo = $post->design ?? [];
             $post->design = PostRenderer::limparDesign(json_decode($data['design'], true) ?: [], $post);
+            // O editor não mostra estes campos: guardam-se para o botão "Outra foto".
+            $post->design = $post->design + array_intersect_key($antigo, array_flip(['pesquisa', 'fotos_usadas']));
             $post->image_alt = trim(str_replace(['*', "\n"], ['', ' '], $post->design['titulo'] ?? $post->title));
         }
         $post->save();
@@ -183,6 +186,61 @@ class PostEditorController extends Controller
         } catch (RuntimeException $e) {
             return response()->json(['message' => $e->getMessage()], 502);
         }
+    }
+
+    /**
+     * "Outra foto" no cartão do post: procura fotos para o tema, a IA escolhe uma ainda não usada
+     * neste post, e a imagem é refeita. O resto do post não muda.
+     */
+    public function otherPhoto(Request $request, Post $post, BancoFotos $banco, PostWriter $escritor, PostRenderer $renderer): RedirectResponse
+    {
+        $this->mustBeEditable($post);
+        abort_unless($post->design && $banco->configurado(), 409, 'Este post não usa os modelos ou não há banco de fotos.');
+
+        $design = $post->design;
+        $pesquisa = $design['pesquisa'] ?? '';
+        $tema = trim($post->title.' — '.str_replace(['*', "\n"], ['', ' '], (string) ($design['titulo'] ?? '')));
+        try {
+            if ($pesquisa === '') {
+                // Post sem pesquisa guardada (feito à mão): a IA tira as palavras do tema.
+                $pesquisa = $escritor->configurado() ? $escritor->pesquisaEmIngles($tema) : $post->title;
+            }
+            $usadas = $design['fotos_usadas'] ?? [];
+            $candidatas = array_values(array_filter(
+                $banco->procurar($pesquisa, $design['formato'] ?? '4:5', 24),
+                fn ($f) => ! in_array($f['id'], $usadas, true)
+            ));
+            $id = $escritor->configurado() ? $escritor->escolherFoto($tema, array_slice($candidatas, 0, 12)) : ($candidatas[0]['id'] ?? null);
+            if (! $id) {
+                return back()->with('erro', 'Não encontrei outra foto adequada para “'.$post->title.'”. Experimente “Procurar imagem” no Editar.');
+            }
+
+            $foto = $banco->descarregar($id, $post);
+            $anterior = $design['foto'] ?? null;
+            $design['foto'] = $foto['nome'];
+            $design['tom'] = $design['tom'] ?? 'suave';
+            $design['pesquisa'] = $pesquisa;
+            $design['fotos_usadas'] = array_merge($usadas, [$id]);
+            unset($design['icone'], $design['fundo']);
+            $post->design = PostRenderer::limparDesign($design, $post);
+            $post->save();
+
+            $imagem = $renderer->render($post);
+            $post->update(['image_path' => $imagem['path']]);
+            // A foto do banco que saiu já não faz falta.
+            if ($anterior && $anterior !== $foto['nome'] && preg_match('/^(pixabay|pexels)-\d+\.jpg$/', $anterior)) {
+                File::delete(PostRenderer::pasta($post).'/'.$anterior);
+            }
+        } catch (RuntimeException $e) {
+            report($e);
+
+            return back()->with('erro', 'Não foi possível trocar a foto: '.$e->getMessage());
+        }
+
+        $post->reviews()->create(['user_id' => $request->user()->id, 'action' => 'photo_changed',
+            'comment' => 'Foto: '.$foto['fotografo'].' ('.$banco->nome().')']);
+
+        return back()->with('ok', 'Foto trocada em “'.$post->title.'”.');
     }
 
     /** Mudar só a data de publicação, a partir da lista de posts. */
