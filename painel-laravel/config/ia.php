@@ -13,6 +13,7 @@
 return [
     'endereco' => env('IA_ENDERECO', 'https://api.groq.com/openai/v1'),
     'chave' => env('IA_CHAVE'),
-    'modelo' => env('IA_MODELO', 'openai/gpt-oss-120b'),
+    // qwen/qwen3.8-27b escreve melhor português de Portugal do que o gpt-oss (testado a 29/10/2026)
+    'modelo' => env('IA_MODELO', 'qwen/qwen3.8-27b'),
     'timeout' => (int) env('IA_TIMEOUT', 90),
 ];

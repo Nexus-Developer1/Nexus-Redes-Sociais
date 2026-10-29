@@ -55,9 +55,10 @@ Sistema que cria posts para as redes sociais da NEXUS de forma autónoma.
   - `php artisan post:publicar [--simular]`: publica na Meta os posts aprovados cuja hora chegou (cron a cada 5 min no servidor). Sem `META_PAGE_TOKEN` no `.env` não publica nada.
   - `php artisan post:tratar-pedidos` (cron a cada minuto): a **IA automática** cria os posts de "Pedir um post" e refaz os que têm
     "Pedir alteração" (só posts com modelo; o pedido pode trazer a data de publicação, que a IA não muda), gera a imagem com os modelos e põe-nos "À espera de aprovação". Nunca aprova nem publica.
-    Fornecedor com API formato OpenAI em `config/ia.php` (`IA_ENDERECO`, `IA_CHAVE`, `IA_MODELO`); para testes: **Groq** (grátis),
+    Fornecedor com API formato OpenAI em `config/ia.php` (`IA_ENDERECO`, `IA_CHAVE`, `IA_MODELO`=qwen/qwen3.8-27b, o melhor em PT-PT); para testes: **Groq** (grátis),
     conta própria da NEXUS (não usar a chave da conta partilhada da advocacia). Sem `IA_CHAVE` não faz nada. Produção: talvez API do Claude (~1 €/mês).
   - Fotos de fundo grátis: **Pixabay** (`PIXABAY_CHAVE`; o Pexels suspendeu chaves novas, mas `PEXELS_CHAVE` também funciona e tem prioridade): botão "Procurar imagem" no editor e foto automática nos posts da IA (a IA dá as palavras em inglês).
+  **PT-PT obrigatório e sem falhas**: todos os textos da IA passam por um revisor de português europeu (2.ª chamada) e pela lista fixa `PostWriter::PT_BR_PT`.
   Email ao aprovador quando há post para aprovar: Microsoft 365 pela API Graph (`MSGRAPH_*` no `.env`).
   Estas funcionalidades foram feitas diretamente no servidor a 28 out 2026 e depois trazidas para o Git: **alterações ao código devem passar sempre pelo repositório**.
 - **Servidor (instalado a 27 out 2026):** http://192.168.1.69:8091 (só rede interna). Ubuntu 24.04, servidor partilhado com

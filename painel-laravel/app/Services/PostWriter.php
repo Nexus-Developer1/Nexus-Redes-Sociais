@@ -127,6 +127,9 @@ class PostWriter
             throw new RuntimeException('A IA não devolveu nenhuma legenda.');
         }
 
+        // Segunda passagem: revisor de português europeu.
+        $nova = $this->revisorPt(['legenda' => $nova])['legenda'] ?? $nova;
+
         return mb_substr($nova, 0, 2200);
     }
 
@@ -179,7 +182,7 @@ class PostWriter
 
             $dados = json_decode((string) $resposta->json('choices.0.message.content'), true);
             if (is_array($dados) && ! empty($dados['titulo']) && ! empty($dados['legenda'])) {
-                return $this->normalizar($dados);
+                return $this->revisto($this->normalizar($dados));
             }
             $erro = 'A IA não devolveu um post válido.';
         }
@@ -200,10 +203,165 @@ class PostWriter
             return $v;
         }
 
-        return strtr(str_replace(['\r\n', '\n'], "\n", $v), [
+        return self::ptpt(strtr(str_replace(['\r\n', '\n'], "\n", $v), [
             "\u{2010}" => '-', "\u{2011}" => '-', "\u{2012}" => '-', "\u{00AD}" => '',
             "\u{00A0}" => ' ', "\u{202F}" => ' ', "\u{2009}" => ' ', "\u{200B}" => '',
-        ]);
+        ]));
+    }
+
+    /** Brasileirismos que se corrigem sempre (palavra inteira; a maiúscula inicial mantém-se). */
+    public const PT_BR_PT = [
+        'detectar' => 'detetar', 'detecta' => 'deteta', 'detecte' => 'detete', 'detectam' => 'detetam',
+        'detectado' => 'detetado', 'detectada' => 'detetada', 'detectados' => 'detetados', 'detectadas' => 'detetadas',
+        'detecção' => 'deteção', 'detecções' => 'deteções',
+        'equipe' => 'equipa', 'equipes' => 'equipas',
+        'usuário' => 'utilizador', 'usuários' => 'utilizadores', 'usuária' => 'utilizadora',
+        'tela' => 'ecrã', 'telas' => 'ecrãs', 'celular' => 'telemóvel', 'celulares' => 'telemóveis',
+        'arquivo' => 'ficheiro', 'arquivos' => 'ficheiros',
+        'contato' => 'contacto', 'contatos' => 'contactos', 'contate' => 'contacte', 'contate-nos' => 'contacte-nos',
+        'registro' => 'registo', 'registros' => 'registos', 'cadastro' => 'registo', 'cadastre-se' => 'registe-se',
+        'aplicativo' => 'aplicação', 'aplicativos' => 'aplicações',
+        'gerenciar' => 'gerir', 'gerencie' => 'gira', 'gerenciamento' => 'gestão',
+        'treinamento' => 'formação', 'treinamentos' => 'formações',
+        'planilha' => 'folha de cálculo', 'planilhas' => 'folhas de cálculo',
+        'ônibus' => 'autocarro', 'trem' => 'comboio', 'xícara' => 'chávena',
+        'esporte' => 'desporto',
+    ];
+
+    /** Expressões em que a palavra muda de género ("na tela" → "no ecrã"); aplicam-se antes das palavras soltas. */
+    public const PT_BR_PT_EXPRESSOES = [
+        'na tela' => 'no ecrã', 'da tela' => 'do ecrã', 'a tela' => 'o ecrã', 'uma tela' => 'um ecrã', 'pela tela' => 'pelo ecrã',
+        'nas telas' => 'nos ecrãs', 'das telas' => 'dos ecrãs', 'as telas' => 'os ecrãs',
+        'o aplicativo' => 'a aplicação', 'do aplicativo' => 'da aplicação', 'no aplicativo' => 'na aplicação',
+        'um aplicativo' => 'uma aplicação', 'pelo aplicativo' => 'pela aplicação', 'os aplicativos' => 'as aplicações',
+        'dos aplicativos' => 'das aplicações', 'nos aplicativos' => 'nas aplicações',
+        'o treinamento' => 'a formação', 'do treinamento' => 'da formação', 'no treinamento' => 'na formação',
+        'um treinamento' => 'uma formação', 'o gerenciamento' => 'a gestão', 'do gerenciamento' => 'da gestão',
+        'no gerenciamento' => 'na gestão', 'um gerenciamento' => 'uma gestão',
+    ];
+
+    /**
+     * Rede de segurança para o português de Portugal: troca os brasileirismos mais comuns
+     * e os acentos fechados do Brasil (eletrônico → eletrónico, gênero → género).
+     */
+    public static function ptpt(string $texto): string
+    {
+        foreach (self::PT_BR_PT_EXPRESSOES as $br => $pt) {
+            $texto = preg_replace_callback('/(?<![\p{L}#@])'.preg_quote($br, '/').'(?![\p{L}])/iu', function ($m) use ($pt) {
+                return mb_substr($m[0], 0, 1) !== mb_strtolower(mb_substr($m[0], 0, 1))
+                    ? mb_strtoupper(mb_substr($pt, 0, 1)).mb_substr($pt, 1)
+                    : $pt;
+            }, $texto);
+        }
+        $texto = preg_replace_callback('/(?<![\p{L}#@])(\p{L}[\p{L}-]*)(?![\p{L}])/u', function ($m) {
+            $palavra = $m[1];
+            $minuscula = mb_strtolower($palavra);
+            if (! isset(self::PT_BR_PT[$minuscula])) {
+                return $palavra;
+            }
+            $nova = self::PT_BR_PT[$minuscula];
+            if ($palavra === mb_strtoupper($palavra) && mb_strlen($palavra) > 1) {
+                return mb_strtoupper($nova);
+            }
+
+            return mb_substr($palavra, 0, 1) !== mb_substr($minuscula, 0, 1)
+                ? mb_strtoupper(mb_substr($nova, 0, 1)).mb_substr($nova, 1)
+                : $nova;
+        }, $texto);
+
+        // ô/ê antes de m/n + vogal: eletrônico, econômico, gênero, acadêmico (não toca em "têm", "vêm").
+        return preg_replace(['/ô(?=[mn][aeiouáéíóú])/u', '/ê(?=[mn][aeiouáéíóú])/u', '/Ô(?=[MN][AEIOU])/u', '/Ê(?=[MN][AEIOU])/u'],
+            ['ó', 'é', 'Ó', 'É'], $texto);
+    }
+
+    /**
+     * Revisor de português europeu: uma segunda passagem da IA que só corrige brasileirismos,
+     * ortografia e pontuação, sem mudar o conteúdo. Se falhar, ficam os textos originais.
+     *
+     * @param  array<string, string>  $textos
+     * @return array<string, string>
+     */
+    private function revisorPt(array $textos): array
+    {
+        $textos = array_filter($textos, fn ($t) => is_string($t) && trim($t) !== '');
+        if (! $textos) {
+            return [];
+        }
+        try {
+            $resposta = Http::withToken(config('ia.chave'))->timeout(60)->acceptJson()
+                ->post(rtrim(config('ia.endereco'), '/').'/chat/completions', [
+                    'model' => config('ia.modelo'),
+                    'messages' => [
+                        ['role' => 'system', 'content' => 'És revisor de português europeu (de Portugal) de uma empresa portuguesa. '
+                            .'Recebes um objeto JSON com textos. Devolve o MESMO objeto JSON, com as mesmas chaves, corrigindo só: '
+                            .'brasileirismos de vocabulário (equipe→equipa, tela→ecrã, usuário→utilizador, arquivo→ficheiro, contato→contacto, '
+                            .'celular→telemóvel, time→equipa), de ortografia (detectar→detetar, fato→facto, econômico→económico) e de construção '
+                            .'(gerúndio "estou fazendo"→"estou a fazer", "segue sendo"/"segue como"→"continua a ser", "você pode estar"→"pode estar"), '
+                            .'mistura de "tu" e "você" (usa sempre "você"/"a sua empresa", sem "tu", "teu", "fica atento"), '
+                            .'e erros de ortografia, acentuação e pontuação. '
+                            .'NÃO acrescentes nem tires informação, não mudes o sentido, o tom, os emojis, as mudanças de linha, os asteriscos, '
+                            .'os endereços nem as hashtags (nas hashtags só corriges a grafia). Se um texto já estiver certo, devolve-o igual.'],
+                        ['role' => 'user', 'content' => json_encode($textos, JSON_UNESCAPED_UNICODE)],
+                    ],
+                    'response_format' => ['type' => 'json_object'],
+                    'temperature' => 0,
+                ]);
+            $revistos = json_decode((string) $resposta->json('choices.0.message.content'), true);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return $textos;
+        }
+        if (! is_array($revistos)) {
+            return $textos;
+        }
+        // Só aceita a revisão de cada texto se veio como texto e não ficou muito diferente em tamanho.
+        foreach ($textos as $chave => $original) {
+            $novo = $revistos[$chave] ?? null;
+            if (is_string($novo) && trim($novo) !== '' && mb_strlen($novo) <= mb_strlen($original) * 1.3 + 20) {
+                $textos[$chave] = $this->limparTexto($novo);
+            }
+        }
+
+        return $textos;
+    }
+
+    /** Passa pelo revisor todos os textos que vão ser publicados (legenda e textos da imagem). */
+    private function revisto(array $r): array
+    {
+        $textos = ['legenda' => $r['legenda'], 'titulo_interno' => $r['titulo_interno']];
+        foreach (['titulo', 'texto', 'cta', 'rodape', 'etiqueta', 'data', 'hora'] as $c) {
+            if (isset($r['design'][$c]) && is_string($r['design'][$c])) {
+                $textos['design.'.$c] = $r['design'][$c];
+            }
+        }
+        foreach ((array) ($r['design']['pontos'] ?? []) as $i => $p) {
+            if (is_array($p)) {
+                $textos["ponto.$i.texto"] = (string) ($p['texto'] ?? '');
+                $textos["ponto.$i.destaque"] = (string) ($p['destaque'] ?? '');
+            } elseif (is_string($p)) {
+                $textos["ponto.$i"] = $p;
+            }
+        }
+        if (! empty($r['design']['evento']['local'])) {
+            $textos['evento.local'] = $r['design']['evento']['local'];
+        }
+
+        foreach ($this->revisorPt($textos) as $chave => $t) {
+            if ($chave === 'legenda' || $chave === 'titulo_interno') {
+                $r[$chave] = $t;
+            } elseif (str_starts_with($chave, 'design.')) {
+                $r['design'][substr($chave, 7)] = $t;
+            } elseif (preg_match('/^ponto\.(\d+)\.(texto|destaque)$/', $chave, $m)) {
+                $r['design']['pontos'][(int) $m[1]][$m[2]] = $t;
+            } elseif (preg_match('/^ponto\.(\d+)$/', $chave, $m)) {
+                $r['design']['pontos'][(int) $m[1]] = $t;
+            } elseif ($chave === 'evento.local') {
+                $r['design']['evento']['local'] = $t;
+            }
+        }
+
+        return $r;
     }
 
     private function normalizar(array $d): array

@@ -93,6 +93,7 @@ class IaTest extends TestCase
         Http::fake([
             // 1.º a IA escreve o post; 2.º escolhe a foto entre as candidatas
             'ia.teste/*' => Http::sequence()->push($this->respostaIa(['pesquisa_imagem' => 'server room']))
+                ->push(['choices' => [['message' => ['content' => '{}']]]]) // revisor PT-PT: nada a mudar
                 ->push(['choices' => [['message' => ['content' => '123']]]]),
             'api.pexels.com/v1/search*' => Http::response(['photos' => [
                 ['id' => 123, 'alt' => 'Servidores', 'photographer' => 'Ana Silva', 'src' => ['medium' => 'https://images.pexels.com/m.jpg']],
@@ -140,6 +141,7 @@ class IaTest extends TestCase
             'largeImageURL' => 'https://pixabay.com/get/large.jpg'];
         Http::fake([
             'ia.teste/*' => Http::sequence()->push($this->respostaIa(['pesquisa_imagem' => 'server room']))
+                ->push(['choices' => [['message' => ['content' => '{}']]]]) // revisor PT-PT: nada a mudar
                 ->push(['choices' => [['message' => ['content' => '77']]]]),
             'pixabay.com/api/*' => Http::response(['hits' => [$hit]]),
             'pixabay.com/get/*' => Http::response('JPEGDATA', 200, ['Content-Type' => 'image/jpeg']),
@@ -159,6 +161,7 @@ class IaTest extends TestCase
         config(['services.pexels.key' => null, 'services.pixabay.key' => 'pixabay-teste']);
         Http::fake([
             'ia.teste/*' => Http::sequence()->push($this->respostaIa(['pesquisa_imagem' => 'office ups']))
+                ->push(['choices' => [['message' => ['content' => '{}']]]])
                 ->push(['choices' => [['message' => ['content' => '0']]]]),
             'pixabay.com/api/*' => Http::response(['hits' => [['id' => 5, 'tags' => 'ribs, barbecue', 'user' => 'x',
                 'webformatURL' => 'https://pixabay.com/get/w.jpg', 'largeImageURL' => 'https://pixabay.com/get/l.jpg']]]),
@@ -224,6 +227,32 @@ class IaTest extends TestCase
             && str_contains($r['messages'][1]['content'], 'O seu backup'));
 
         $this->actingAs($user)->postJson(route('posts.captionAi', $post), ['acao' => 'apagar-tudo'])->assertStatus(422);
+    }
+
+    public function test_revisor_pt_corrige_os_textos_do_post(): void
+    {
+        Http::fake(['ia.teste/*' => Http::sequence()
+            ->push($this->respostaIa(['texto' => 'Proteja a sua equipe.', 'legenda' => 'Fica atento!
+#NEXUS']))
+            ->push(['choices' => [['message' => ['content' => json_encode(['legenda' => "Esteja atento!
+#NEXUS", 'design.texto' => 'Proteja a sua equipa.'])]]]]),
+        ]);
+        PostRequest::create(['topic' => 'tema']);
+
+        $this->artisan('post:tratar-pedidos')->assertSuccessful();
+
+        $post = PostRequest::first()->post;
+        $this->assertSame("Esteja atento!
+#NEXUS", $post->caption);
+        $this->assertSame('Proteja a sua equipa.', $post->design['texto']);
+    }
+
+    public function test_correcoes_fixas_de_brasileirismos(): void
+    {
+        $this->assertSame(
+            'A sua Equipa deve detetar o ficheiro no ecrã do telemóvel. Contacte-nos. Eletrónico, económico, género. Eles têm. #equipe',
+            \App\Services\PostWriter::ptpt('A sua Equipe deve detectar o arquivo na tela do celular. Contate-nos. Eletrônico, econômico, gênero. Eles têm. #equipe')
+        );
     }
 
     public function test_data_escolhida_no_pedido_manda_sobre_a_da_ia(): void
