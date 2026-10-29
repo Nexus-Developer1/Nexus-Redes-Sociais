@@ -1,0 +1,14 @@
+{
+  "modelo": "dica",
+  "formato": "4:5",
+  "fundo": "../../../posts/dica-backup/fundo2.jpg",
+  "icone": "escudo",
+  "titulo": "O seu backup está\nmesmo *seguro*?",
+  "texto": "Siga a regra 3-2-1 e proteja os dados da sua empresa:",
+  "pontos": [
+    { "destaque": "3", "texto": "cópias dos seus dados" },
+    { "destaque": "2", "texto": "suportes diferentes" },
+    { "destaque": "1", "texto": "cópia fora da empresa" }
+  ],
+  "rodape": "Backup & Disaster Recovery"
+}

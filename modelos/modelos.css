@@ -1,0 +1,102 @@
+/* Modelos de posts NEXUS: estilos comuns a todos os tipos (dica, produto, aviso, evento). */
+:root {
+  --verde: #3dff7a;
+  --verde-claro: #7dff9e;
+  --verde-escuro: #021a0a;
+  --caixa: rgba(4, 40, 16, .86);
+  --suave: #d8ffe3;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: #000; }
+body { font-family: "Rajdhani", "Segoe UI", sans-serif; color: #fff; overflow: hidden; }
+
+.post {
+  position: relative; width: 1080px; height: var(--h); overflow: hidden;
+  display: flex; flex-direction: column; padding: 64px 70px 0; background: #03140a;
+}
+.f-4x5 { --h: 1350px; }
+.f-1x1 { --h: 1080px; padding-top: 54px; }
+.f-9x16 { --h: 1920px; padding-top: 150px; } /* Stories: o topo fica tapado pela barra do Instagram */
+
+/* ---------- fundo ---------- */
+.fundo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: saturate(1.1) contrast(1.05); }
+.sombra { position: absolute; inset: 0;
+  background:
+    linear-gradient(180deg, rgba(0,0,0,.72) 0%, rgba(0,0,0,0) 22%),
+    linear-gradient(0deg, rgba(0,12,4,.96) 0%, rgba(0,12,4,.6) 42%, rgba(0,0,0,0) 66%); }
+.fundo-gerado { position: absolute; inset: 0;
+  background:
+    radial-gradient(circle at 88% 6%, rgba(61,255,122,.30), transparent 40%),
+    radial-gradient(circle at 0% 100%, rgba(0,177,71,.24), transparent 52%),
+    linear-gradient(160deg, #06331b 0%, #03180c 58%, #010d06 100%); }
+.fundo-gerado::before { content: ""; position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(125,255,158,.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(125,255,158,.055) 1px, transparent 1px);
+  background-size: 54px 54px; }
+.fundo-gerado svg { position: absolute; right: -60px; top: 110px; width: 640px; opacity: .2; }
+
+.post > header, .post > main, .post > footer { position: relative; }
+
+/* ---------- topo: logótipo + etiqueta ou parceiro ---------- */
+header { display: flex; align-items: center; justify-content: space-between; gap: 30px; flex: none; }
+.logo img { width: 250px; display: block; filter: brightness(0) invert(1) drop-shadow(0 0 12px rgba(80,255,140,.5)); }
+.logo .sub { margin-top: 6px; font-size: 19px; letter-spacing: 9.6px; font-weight: 600; color: var(--verde-claro); }
+.etiqueta { display: inline-block; padding: 8px 24px 6px; border-radius: 999px; border: 2px solid rgba(61,255,122,.7);
+  background: rgba(0,0,0,.45); color: var(--verde-claro); font-size: 26px; font-weight: 700; letter-spacing: 4px; text-transform: uppercase; }
+main .etiqueta { align-self: flex-start; margin-bottom: 22px; }
+.parceiro { background: #fff; border-radius: 14px; padding: 14px 22px; }
+.parceiro img { height: 56px; max-width: 300px; object-fit: contain; display: block; }
+
+/* ---------- conteúdo ---------- */
+main { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: flex-end; padding: 36px 0 54px; }
+em { font-style: normal; color: var(--verde); text-shadow: 0 0 18px rgba(61,255,122,.45); }
+
+.titulo { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+.caixa { max-width: 100%; background: var(--caixa); border-left: 8px solid var(--verde); padding: 4px 24px 0;
+  font-size: var(--t); line-height: 1.06; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+
+.texto { margin-top: 26px; font-size: var(--x); font-weight: 600; line-height: 1.2; letter-spacing: .5px; color: var(--suave); }
+
+.pontos { margin-top: 26px; display: flex; gap: 18px; }
+.ponto { flex: 1; min-width: 0; background: rgba(0,0,0,.55); border: 2px solid rgba(61,255,122,.55); border-radius: 14px; padding: 16px 20px; }
+.ponto b { display: block; font-size: calc(var(--t) * .8); line-height: 1; color: var(--verde); text-shadow: 0 0 18px rgba(61,255,122,.6); }
+.ponto span { display: block; margin-top: 4px; font-size: 28px; font-weight: 600; line-height: 1.15; }
+
+.lista { list-style: none; margin: 24px 0 0; padding: 0; }
+.lista li { display: flex; gap: 16px; align-items: flex-start; font-size: var(--x); font-weight: 600; line-height: 1.2; margin-top: 10px; }
+.lista .ico { flex: none; width: 1.05em; height: 1.05em; margin-top: .05em; }
+
+.cta { margin-top: 30px; align-self: flex-start; background: var(--verde); color: var(--verde-escuro); font-size: 32px; font-weight: 700;
+  letter-spacing: 1px; padding: 12px 30px 9px; border-radius: 12px; box-shadow: 0 0 28px rgba(61,255,122,.35); }
+
+/* ilustração: foto oficial do produto ou ícone desenhado em código */
+.ilustracao { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 10px 0 34px; overflow: hidden; }
+.ilustracao .foto { max-width: 100%; max-height: 100%; object-fit: contain; filter: drop-shadow(0 0 40px rgba(61,255,122,.35)); }
+.ilustracao .ico { height: 100%; max-height: 380px; aspect-ratio: 1; filter: drop-shadow(0 0 22px rgba(60,255,120,.9)) drop-shadow(0 0 60px rgba(60,255,120,.45)); }
+
+.ico { display: inline-block; }
+.ico svg { width: 100%; height: 100%; display: block; fill: none; stroke: #5dff8f; stroke-linejoin: round; stroke-linecap: round; }
+
+/* ---------- aviso ---------- */
+.m-aviso main { justify-content: center; }
+.grande { margin: 0; font-size: var(--t); line-height: 1; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+.linhas { margin-top: 26px; }
+.m-aviso .linhas { margin-top: 44px; }
+.linha { display: flex; align-items: center; gap: 18px; margin-top: 12px; font-size: calc(var(--x) * 1.15); font-weight: 600; }
+.linha .ico { flex: none; width: 1.15em; height: 1.15em; }
+
+/* ---------- evento ---------- */
+.evento-topo { display: flex; gap: 28px; align-items: flex-end; }
+.data-card { flex: none; text-align: center; background: rgba(0,0,0,.6); border: 3px solid var(--verde); border-radius: 18px;
+  padding: 14px 26px 10px; box-shadow: 0 0 30px rgba(61,255,122,.3); }
+.data-card .dia { font-size: calc(var(--t) * 1.45); line-height: .95; font-weight: 700; color: var(--verde); }
+.data-card .mes { font-size: 36px; font-weight: 700; letter-spacing: 6px; text-transform: uppercase; }
+.m-evento .titulo { min-width: 0; }
+
+/* ---------- rodapé ---------- */
+footer { flex: none; margin: 0 -70px; height: 110px; background: var(--verde-escuro); border-top: 3px solid var(--verde);
+  display: flex; align-items: center; justify-content: space-between; gap: 30px; padding: 0 70px;
+  font-size: 30px; font-weight: 600; letter-spacing: 1px; }
+footer .tema { color: var(--verde-claro); text-transform: uppercase; letter-spacing: 4px; font-size: 25px; }
+.f-9x16 footer { height: 230px; padding-bottom: 110px; } /* Stories: o fundo fica tapado pela caixa de resposta */

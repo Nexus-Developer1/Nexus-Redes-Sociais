@@ -1,0 +1,15 @@
+{
+  "modelo": "produto",
+  "formato": "4:5",
+  "icone": "chip",
+  "etiqueta": "Workstations",
+  "titulo": "Workstations\npara *CAD e 3D*",
+  "texto": "Configuradas à medida do seu software e do seu orçamento.",
+  "pontos": [
+    "Placas gráficas NVIDIA profissionais",
+    "Montagem e testes feitos pela NEXUS",
+    "Suporte técnico em Portugal"
+  ],
+  "cta": "Peça a sua proposta",
+  "rodape": "Workstations 3D · CAD · Render"
+}
