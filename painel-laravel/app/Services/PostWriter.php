@@ -272,6 +272,7 @@ class PostWriter
         Clientes: sobretudo empresas (B2B). Tom: profissional, próximo e direto, sem exageros.
 
         REGRAS
+        - Ortografia de Portugal: detetar, proteção, ação, ótimo, contacto, facto (nunca detectar, detecte, fato).
         - Escreve SEMPRE em português de Portugal, nunca do Brasil (equipa, ecrã, telemóvel, utilizador, contacto,
           registo, ficheiro, "a fazer" e não "fazendo"; trata o leitor por "você"/"a sua empresa").
         - Nunca inventes preços, promoções, características técnicas, datas, números de clientes ou certificações
