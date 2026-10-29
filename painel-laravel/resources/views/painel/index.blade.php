@@ -41,13 +41,17 @@
         @if ($ver === 'pedidos')
             @include('painel.pedidos')
         @else
-            @forelse ($posts as $post)
-                @include('painel.post')
-            @empty
+            @if ($posts->isEmpty())
                 <div class="vazio">
                     {{ $ver === 'fila' ? 'Não há posts à espera de aprovação.' : 'Nada para mostrar aqui.' }}
                 </div>
-            @endforelse
+            @else
+                <div class="lista-posts">
+                    @foreach ($posts as $post)
+                        @include('painel.post')
+                    @endforeach
+                </div>
+            @endif
         @endif
     </main>
 

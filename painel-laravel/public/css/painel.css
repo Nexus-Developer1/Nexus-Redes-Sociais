@@ -28,16 +28,20 @@ h1, h2.titulo { font-family: 'Rajdhani', sans-serif; font-weight: 700; }
 .utilizador .sair { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px 0 10px; margin-left: 4px; background: transparent; border: 1px solid #2f4a38; border-radius: 8px; color: #dfe9e2; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
 .utilizador .sair:hover { border-color: var(--verde-neon); color: var(--verde-neon); background: rgba(61,220,120,.08); }
 
-.grelha { max-width: 1400px; margin: 0 auto; padding: 24px 16px; display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
-.menu { flex: 1 1 190px; max-width: 230px; display: flex; flex-direction: column; gap: 4px; }
+.grelha { padding: 24px; display: grid; grid-template-columns: 220px minmax(0, 1fr) 320px; gap: 24px; align-items: start; }
+.menu { display: flex; flex-direction: column; gap: 4px; position: sticky; top: 16px; }
 .menu a { display: flex; justify-content: space-between; align-items: center; padding: 11px 14px; border-radius: 8px; color: #33443a; text-decoration: none; min-height: 44px; }
 .menu a:hover { background: #e8efe9; }
 .menu a.ativo { background: var(--verde-claro); color: #0b3d1d; font-weight: 600; }
 .menu .num { background: var(--verde); color: #fff; border-radius: 10px; padding: 1px 9px; font-size: 13px; }
 .menu a:not(.ativo) .num { background: #c9d6cd; color: #24382b; }
-@media (max-width: 700px) { .menu { max-width: none; flex-direction: row; flex-wrap: wrap; } }
+/* Ecrãs médios: a coluna da direita passa para baixo. Pequenos: menu em cima, tudo numa coluna. */
+@media (max-width: 1180px) { .grelha { grid-template-columns: 200px minmax(0, 1fr); } .grelha > .lateral { grid-column: 2; } }
+@media (max-width: 760px) { .grelha { grid-template-columns: minmax(0, 1fr); padding: 16px; } .grelha > .lateral { grid-column: auto; } .grelha > .menu { position: static; flex-direction: row; flex-wrap: wrap; } }
 
-.principal { flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 20px; }
+.principal { min-width: 0; display: flex; flex-direction: column; gap: 20px; }
+/* Posts em 2 colunas quando há largura (ecrãs grandes). */
+.lista-posts { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 560px), 1fr)); gap: 20px; align-items: start; }
 .principal h1 { margin: 0; font-size: 34px; letter-spacing: .5px; }
 .principal .sub { margin: 4px 0 0; color: var(--texto-2); }
 
@@ -46,9 +50,9 @@ h1, h2.titulo { font-family: 'Rajdhani', sans-serif; font-weight: 700; }
 .vazio { background: #fff; border: 1px dashed #c9d6cd; border-radius: 14px; padding: 28px; color: var(--texto-2); text-align: center; }
 
 .post { background: #fff; border: 1px solid var(--borda); border-radius: 14px; padding: 20px; display: flex; flex-wrap: wrap; gap: 22px; }
-.post > img, .post > .sem-imagem { flex: 0 1 300px; width: 300px; max-width: 100%; height: auto; border-radius: 10px; align-self: flex-start; border: 1px solid #e3e8e4; }
+.post > img, .post > .sem-imagem { flex: 0 1 240px; width: 240px; max-width: 100%; height: auto; border-radius: 10px; align-self: flex-start; border: 1px solid #e3e8e4; }
 .sem-imagem { aspect-ratio: 4/5; display: flex; align-items: center; justify-content: center; background: #eef4ef; color: var(--texto-2); }
-.post .corpo { flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+.post .corpo { flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
 .post .cabeca { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; align-items: center; }
 .post h2 { margin: 0; font-size: 20px; font-weight: 600; }
 .estado { font-size: 13px; font-weight: 600; border-radius: 999px; padding: 4px 12px; }
@@ -82,7 +86,7 @@ details.alterar[open] > summary { display: none; }
 .form-alterar label { font-weight: 600; font-size: 14px; }
 .form-alterar textarea { border: 1px solid #b9c6bd; border-radius: 8px; padding: 10px 12px; resize: vertical; }
 
-.lateral { flex: 1 1 290px; max-width: 100%; display: flex; flex-direction: column; gap: 16px; }
+.lateral { display: flex; flex-direction: column; gap: 16px; }
 .caixa { background: #fff; border: 1px solid var(--borda); border-radius: 14px; padding: 18px; }
 .caixa h2 { margin: 0 0 12px; font-family: 'Rajdhani', sans-serif; font-size: 22px; }
 .proximos { display: flex; flex-direction: column; gap: 12px; }
