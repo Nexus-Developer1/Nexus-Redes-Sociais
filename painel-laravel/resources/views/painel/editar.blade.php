@@ -100,7 +100,7 @@
                             Escolha um para fazer a imagem aqui:</p>
                         <div class="dupla">
                             <select name="modelo" aria-label="Modelo">
-                                @foreach ($modelos as $m)<option value="{{ $m }}">{{ ucfirst($m) }}</option>@endforeach
+                                @foreach ($modelos as $m)<option value="{{ $m }}">{{ \App\Services\PostRenderer::NOMES[$m] ?? ucfirst($m) }}</option>@endforeach
                             </select>
                             <button type="submit" class="btn btn-contorno" formaction="{{ route('posts.template', $post) }}" formnovalidate>Usar este modelo</button>
                         </div>
@@ -109,7 +109,7 @@
                         <div class="dupla">
                             <label>Tipo
                                 <select data-campo="modelo" id="f-modelo">
-                                    @foreach ($modelos as $m)<option value="{{ $m }}">{{ ucfirst($m) }}</option>@endforeach
+                                    @foreach ($modelos as $m)<option value="{{ $m }}">{{ \App\Services\PostRenderer::NOMES[$m] ?? ucfirst($m) }}</option>@endforeach
                                 </select>
                             </label>
                             <label>Formato
@@ -160,6 +160,9 @@
                             </div>
                         </div>
 
+                        <label data-modelos="numero">Número <small>só o algarismo, ex.: 5</small>
+                            <input data-campo="numero" maxlength="4" placeholder="5">
+                        </label>
                         <label>Título na imagem <small>Enter muda de linha · <code>*palavra*</code> fica a verde</small>
                             <textarea data-campo="titulo" rows="2"></textarea>
                         </label>
@@ -179,7 +182,7 @@
                             <label>Local <input data-evento="local" placeholder="Porto"></label>
                         </div>
                         <div class="dupla">
-                            <label data-modelos="dica produto evento">Ícone
+                            <label data-modelos="dica produto evento montra">Ícone
                                 <select data-campo="icone">
                                     <option value="">(nenhum)</option>
                                     @foreach ($icones as $i)<option value="{{ $i }}">{{ $i }}</option>@endforeach
@@ -189,15 +192,15 @@
                                 <input data-campo="cta" placeholder="ex.: Peça a sua proposta">
                             </label>
                         </div>
-                        <div class="dupla">
+                        <div class="dupla" data-modelos="dica produto aviso evento montra">
                             <label>Etiqueta <input data-campo="etiqueta" placeholder="(a do tipo de post)"></label>
                             <label>Rodapé <input data-campo="rodape" placeholder="tema do post"></label>
                         </div>
 
-                        <div class="imagens" data-modelos="produto">
+                        <div class="imagens" data-modelos="produto montra">
                             @foreach ([
-                                'produto' => ['Foto do produto', 'oficial; substitui o ícone', 'produto'],
-                                'parceiro' => ['Logótipo do parceiro', 'oficial: Supermicro, NVIDIA, Riello…', 'produto'],
+                                'produto' => ['Foto do produto', 'oficial, de preferência PNG sem fundo; substitui o ícone', 'produto montra'],
+                                'parceiro' => ['Logótipo do parceiro', 'oficial: Supermicro, NVIDIA, Riello…', 'produto montra'],
                             ] as $campo => [$rotulo, $ajuda, $so])
                                 <div class="imagem-campo" data-imagem="{{ $campo }}" @if ($so) data-modelos="{{ $so }}" @endif>
                                     <span class="rotulo">{{ $rotulo }} <small>({{ $ajuda }})</small></span>

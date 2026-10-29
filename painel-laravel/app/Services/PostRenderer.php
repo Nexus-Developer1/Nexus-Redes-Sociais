@@ -13,7 +13,13 @@ use RuntimeException;
  */
 class PostRenderer
 {
-    public const MODELOS = ['dica', 'produto', 'aviso', 'evento'];
+    public const MODELOS = ['dica', 'produto', 'aviso', 'evento', 'numero', 'frase', 'montra'];
+
+    /** Nomes dos tipos de post como aparecem no painel. */
+    public const NOMES = [
+        'dica' => 'Dica', 'produto' => 'Produto', 'aviso' => 'Aviso', 'evento' => 'Evento',
+        'numero' => 'Número em destaque', 'frase' => 'Frase', 'montra' => 'Produto em destaque',
+    ];
 
     public const FORMATOS = ['4:5' => [1080, 1350], '1:1' => [1080, 1080], '9:16' => [1080, 1920]];
 
@@ -123,7 +129,7 @@ class PostRenderer
             'modelo' => in_array($d['modelo'] ?? '', self::MODELOS, true) ? $d['modelo'] : 'dica',
             'formato' => isset(self::FORMATOS[$d['formato'] ?? '']) ? $d['formato'] : '4:5',
         ];
-        foreach (['titulo' => 300, 'texto' => 600, 'etiqueta' => 40, 'rodape' => 80, 'site' => 60,
+        foreach (['numero' => 4, 'titulo' => 300, 'texto' => 600, 'etiqueta' => 40, 'rodape' => 80, 'site' => 60,
             'cta' => 80, 'data' => 80, 'hora' => 40] as $campo => $max) {
             if (isset($d[$campo]) && ($v = $texto($d[$campo], $max)) !== '') {
                 $limpo[$campo] = $v;

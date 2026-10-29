@@ -375,10 +375,10 @@ class PostWriter
     {
         $d = $this->limparTexto($d);
         $design = array_intersect_key($d, array_flip([
-            'modelo', 'formato', 'titulo', 'texto', 'etiqueta', 'rodape', 'icone', 'cta', 'pontos', 'data', 'hora', 'evento',
+            'modelo', 'formato', 'numero', 'titulo', 'texto', 'etiqueta', 'rodape', 'icone', 'cta', 'pontos', 'data', 'hora', 'evento',
         ]));
-        if (! in_array($design['modelo'] ?? '', ['dica', 'produto', 'aviso', 'evento'], true)) {
-            $design['modelo'] = 'dica'; // o modelo "foto" precisa de uma foto, que a IA não tem
+        if (! in_array($design['modelo'] ?? '', ['dica', 'produto', 'aviso', 'evento', 'numero', 'frase'], true)) {
+            $design['modelo'] = 'dica'; // "montra" precisa da foto oficial do produto, que a IA não tem
         }
         if (($design['etiqueta'] ?? null) === '') {
             unset($design['etiqueta']); // vazio = a etiqueta do tipo de post
@@ -451,6 +451,12 @@ class PostWriter
         - "produto": produto ou serviço. "pontos" = 2 a 4 vantagens curtas (deixa "destaque" vazio). Usa "cta".
         - "aviso": fecho, feriado, horário, mudança. Usa "data" (ex.: "Sexta-feira, 8 de dezembro") e "hora" se fizer sentido.
         - "evento": workshop, feira, webinar. Preenche "evento" (dia, mês abreviado, hora, local). Usa "cta".
+        - "numero": quando o tema é uma lista com um número ("5 sinais de que…", "3 erros a evitar…"). Põe o número em "numero"
+          (só o algarismo, ex.: "5") e o resto do título em "titulo", SEM o número, em 2 a 4 linhas curtas. Sem "pontos".
+          "texto" = uma frase curta por baixo. Os pontos explicam-se na legenda.
+        - "frase": mensagem institucional curta e forte (valores, slogan, frase de marca). "titulo" = a frase (máx. ~40 caracteres,
+          2 a 3 linhas); "texto" = um complemento curto (máx. ~40 caracteres). Sem pontos nem ícone.
+        - Varia os modelos: não uses sempre "dica".
         - "titulo": 2 a 3 linhas curtas separadas por \\n, no máximo ~22 caracteres por linha.
           Põe UMA ou duas palavras importantes entre asteriscos para ficarem a verde, ex.: "O seu backup está\\nmesmo *seguro*?".
         - "texto": uma frase curta (máx. ~90 caracteres) por baixo do título.
@@ -481,7 +487,8 @@ class PostWriter
         RESPONDE SÓ com um objeto JSON, sem mais nada, exatamente com estes campos:
         {
           "titulo_interno": "nome curto do post para o painel",
-          "modelo": "dica|produto|aviso|evento",
+          "modelo": "dica|produto|aviso|evento|numero|frase",
+          "numero": "",
           "formato": "4:5|1:1",
           "titulo": "...",
           "texto": "...",

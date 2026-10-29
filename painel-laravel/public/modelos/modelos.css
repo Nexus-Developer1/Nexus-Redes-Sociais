@@ -113,3 +113,37 @@ footer .tema { color: var(--verde-claro); text-transform: uppercase; letter-spac
 .tom-forte { background: linear-gradient(180deg, rgba(0,0,0,.25) 0%, rgba(2,22,10,.8) 100%), rgba(30,170,80,.42); }
 .tom-forte::before { content: ""; position: absolute; inset: 0; background: #1aa64b; mix-blend-mode: color; opacity: .85; }
 .tom-nenhum { background: linear-gradient(180deg, rgba(0,0,0,.4) 0%, rgba(0,0,0,0) 20%, rgba(0,0,0,0) 50%, rgba(0,0,0,.7) 100%); }
+
+/* ---------- layouts do feed: número em destaque, frase, produto em destaque ---------- */
+.m-numero, .m-frase { padding-bottom: 0; }
+.cabeca-centro { justify-content: center; }
+.logo-centro { text-align: center; }
+.logo-centro img { width: 250px; display: block; margin: 0 auto; filter: brightness(0) invert(1) drop-shadow(0 0 12px rgba(80,255,140,.45)); }
+.logo-centro .sub { margin-top: 6px; font-size: 18px; letter-spacing: 9.4px; padding-left: 9px; font-weight: 600; color: #d8ffe3; }
+
+/* número em destaque: número gigante com contorno verde + faixa verde com o título */
+.m-numero main { padding-bottom: 80px; }
+.bloco-numero { display: flex; align-items: center; gap: 34px; margin: 0 -70px; padding: 34px 70px; border-top: 3px solid var(--verde);
+  background: linear-gradient(90deg, rgba(8,64,28,.94), rgba(8,64,28,.8)); }
+.numero-grande { flex: none; font-size: calc(var(--t) * 4.6); line-height: .8; font-weight: 700; color: transparent;
+  -webkit-text-stroke: 7px var(--verde); filter: drop-shadow(0 0 16px rgba(61,255,122,.55)); }
+.numero-titulo { min-width: 0; font-size: var(--t); line-height: 1.08; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+.m-numero .texto { margin-top: 24px; color: #fff; text-shadow: 0 1px 8px rgba(0,0,0,.6); }
+
+/* frase: frase grande ao centro, logótipo em baixo */
+.m-frase main.centro { justify-content: center; align-items: center; text-align: center; padding: 40px 10px; }
+.frase-titulo { margin: 0; font-size: var(--t); line-height: 1.02; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+  text-shadow: 0 4px 24px rgba(0,0,0,.45); }
+.frase-sub { margin-top: 22px; font-size: calc(var(--x) * 1.05); font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: #eafff0; }
+footer.rodape-logo { background: transparent; border-top: 0; justify-content: center; height: auto; padding: 0 0 72px; }
+
+/* produto em destaque: produto grande sobre fundo escuro, "Powered by" em baixo */
+.fundo-gerado.escuro { background: radial-gradient(circle at 50% 42%, rgba(40,130,75,.38), transparent 55%), linear-gradient(180deg, #0b1511 0%, #040907 100%); }
+.m-montra main { justify-content: flex-end; }
+.montra-foto { padding-bottom: 20px; }
+.montra-foto .foto { filter: drop-shadow(0 30px 40px rgba(0,0,0,.65)); }
+.montra-titulo { text-align: center; font-size: var(--t); line-height: 1.1; font-weight: 700; text-transform: uppercase; letter-spacing: 5px; color: #eafff0; }
+.m-montra .texto { text-align: center; margin-top: 12px; }
+footer.rodape-parceiro { background: transparent; border-top: 1px solid rgba(255,255,255,.14); }
+.powered { display: flex; align-items: center; gap: 14px; font-size: 18px; letter-spacing: 3px; text-transform: uppercase; color: #b9cbbf; }
+.powered img { height: 46px; max-width: 220px; object-fit: contain; background: #fff; border-radius: 8px; padding: 6px 10px; }

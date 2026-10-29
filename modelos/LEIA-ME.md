@@ -1,6 +1,6 @@
 # Modelos de posts NEXUS
 
-Quatro modelos: **dica**, **produto**, **aviso** e **evento**. Qualquer um pode levar uma **foto de fundo** (equipa, instalação, produto ou IA de imagens), com tom verde por cima.
+Sete modelos: **dica**, **produto**, **aviso**, **evento** e, no estilo do feed da NEXUS, **numero** (número gigante + faixa verde), **frase** (frase ao centro, foto verde) e **montra** (produto em destaque, "Powered by"). Qualquer um pode levar uma **foto de fundo** (equipa, instalação, produto ou IA de imagens), com tom verde por cima.
 Exemplos prontos em `exemplos/` (com o `post.png` de cada um).
 
 ## Onde estão as coisas
@@ -30,7 +30,8 @@ Mudar o aspeto de todos os posts = mudar `painel-laravel/public/modelos/modelos.
 ## Campos do dados.json
 | Campo | Modelos | O que é |
 |---|---|---|
-| `modelo` | todos | `dica`, `produto`, `aviso` ou `evento` |
+| `modelo` | todos | `dica`, `produto`, `aviso`, `evento`, `numero`, `frase` ou `montra` |
+| `numero` | numero | só o algarismo (ex.: `5`); o título vai sem o número |
 | `foto` | todos | foto de fundo (equipa, instalação, produto, IA de imagens); `fundo` também funciona |
 | `enquadramento` | todos | com foto: `centro`, `topo` ou `baixo` (para não cortar caras) |
 | `tom` | todos | com foto: tom verde `suave` (por defeito), `forte` ou `nenhum` |

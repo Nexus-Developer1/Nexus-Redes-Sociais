@@ -14,8 +14,8 @@
 
   var FORMATOS = { '4:5': 'f-4x5', '1:1': 'f-1x1', '9:16': 'f-9x16' };
   var ESCALA = { '4:5': 1, '1:1': 0.86, '9:16': 1.1 };
-  var TITULO = { dica: 88, produto: 80, aviso: 124, evento: 80 };
-  var ETIQUETA = { dica: 'Dica', aviso: 'Aviso', evento: 'Evento', produto: '' };
+  var TITULO = { dica: 88, produto: 80, aviso: 124, evento: 80, numero: 60, frase: 100, montra: 46 };
+  var ETIQUETA = { dica: 'Dica', aviso: 'Aviso', evento: 'Evento', produto: '', numero: '', frase: '', montra: '' };
 
   var I = 'stroke-width="7"';
   var ICONES = {
@@ -103,7 +103,7 @@
 
   // ---------- montagem ----------
   var modelo = P.modelo === 'foto' ? 'dica' : P.modelo; // "foto" chegou a ser um tipo; agora é uma opção de todos
-  if (!TITULO[modelo]) { avisos.push('modelo desconhecido: "' + modelo + '" (use dica, produto, aviso ou evento)'); modelo = 'aviso'; }
+  if (!TITULO[modelo]) { avisos.push('modelo desconhecido: "' + modelo + '" (use dica, produto, aviso, evento, numero, frase ou montra)'); modelo = 'aviso'; }
   var formato = P.formato || '4:5';
   if (!FORMATOS[formato]) { avisos.push('formato desconhecido: "' + formato + '"'); formato = '4:5'; }
   var etiqueta = P.etiqueta !== undefined ? P.etiqueta : ETIQUETA[modelo];
@@ -111,19 +111,54 @@
   var post = h('div', 'post ' + FORMATOS[formato] + ' m-' + modelo);
 
   // Foto de fundo (equipa, instalação, produto ou da IA de imagens), em qualquer tipo de post.
+  // Na "frase" o tom verde forte é o habitual (foto toda verde, como no feed da NEXUS).
   var foto = P.foto || P.fundo;
   if (foto) {
     var img = imagem(foto, 'fundo', 'foto');
     img.style.objectPosition = { topo: 'center 15%', baixo: 'center 85%' }[P.enquadramento] || 'center center';
     post.appendChild(img);
-    post.appendChild(h('div', 'tom tom-' + (['nenhum', 'suave', 'forte'].indexOf(P.tom) >= 0 ? P.tom : 'suave')));
+    var tomPorDefeito = modelo === 'frase' ? 'forte' : 'suave';
+    post.appendChild(h('div', 'tom tom-' + (['nenhum', 'suave', 'forte'].indexOf(P.tom) >= 0 ? P.tom : tomPorDefeito)));
   } else {
-    var fg = h('div', 'fundo-gerado');
+    var fg = h('div', 'fundo-gerado' + (modelo === 'montra' ? ' escuro' : ''));
     fg.innerHTML = REDE_FUNDO;
     post.appendChild(fg);
   }
 
   var logo = h('div', 'logo', [imagem(BASE + 'logo-nexus.png', '', 'logótipo'), h('div', 'sub', ['IT SOLUTIONS'])]);
+
+  // ---------- layouts do feed da NEXUS: número em destaque, frase, produto em destaque ----------
+  if (modelo === 'numero' || modelo === 'frase' || modelo === 'montra') {
+    var logoCentro = h('div', 'logo-centro', [imagem(BASE + 'logo-nexus.png', '', 'logótipo'), h('div', 'sub', ['IT SOLUTIONS'])]);
+    if (modelo === 'numero') {
+      if (!P.numero) avisos.push('falta o número (ex.: 5)');
+      if (!P.titulo) avisos.push('falta o título');
+      post.appendChild(h('header', 'cabeca-centro', [logoCentro]));
+      post.appendChild(h('main', null, [
+        h('div', 'bloco-numero', [h('div', 'numero-grande', [P.numero || '?']), h('div', 'numero-titulo', [rico(P.titulo)])]),
+        texto(),
+      ]));
+    } else if (modelo === 'frase') {
+      if (!P.titulo) avisos.push('falta a frase');
+      post.appendChild(h('main', 'centro', [
+        h('h1', 'frase-titulo', [rico(P.titulo)]),
+        P.texto ? h('div', 'frase-sub', [rico(P.texto)]) : null,
+      ]));
+      post.appendChild(h('footer', 'rodape-logo', [logoCentro]));
+    } else { // montra: produto em destaque
+      if (!P.produto) avisos.push('falta a foto do produto (de preferência PNG com fundo transparente)');
+      post.appendChild(h('header', null, [logo, etiqueta ? h('div', 'etiqueta', [etiqueta]) : null]));
+      var produto = P.produto
+        ? h('div', 'ilustracao montra-foto', [imagem(P.produto, 'foto', 'foto do produto')])
+        : h('div', 'ilustracao', [icone(P.icone || 'monitor')]);
+      post.appendChild(h('main', null, [produto, h('div', 'montra-titulo', [rico(P.titulo)]), texto()]));
+      post.appendChild(h('footer', 'rodape-parceiro', [
+        P.parceiro ? h('div', 'powered', [h('span', null, ['Powered by']), imagem(P.parceiro, '', 'logótipo do parceiro')]) : h('span'),
+        h('span', 'site', [P.site || 'nexus-solutions.pt']),
+      ]));
+    }
+    document.body.appendChild(post);
+  } else {
   var parceiroNoTopo = modelo === 'produto' && P.parceiro;
   var direita = parceiroNoTopo ? h('div', 'parceiro', [imagem(P.parceiro, '', 'logótipo do parceiro')])
     : (etiqueta ? h('div', 'etiqueta', [etiqueta]) : null);
@@ -148,6 +183,7 @@
   post.appendChild(h('main', null, conteudo));
   post.appendChild(h('footer', null, [h('span', 'tema', [P.rodape || '']), h('span', 'site', [P.site || 'nexus-solutions.pt'])]));
   document.body.appendChild(post);
+  } // fim dos modelos dica / produto / aviso / evento
 
   // ---------- ajustar o texto ao espaço ----------
   var t0 = TITULO[modelo] * ESCALA[formato];
@@ -171,7 +207,7 @@
     }
     var il = post.querySelector('.ilustracao');
     if (il && il.clientHeight < 200) return false;
-    var largos = post.querySelectorAll('.caixa, .grande, .ponto, .linha, .lista li');
+    var largos = post.querySelectorAll('.caixa, .grande, .ponto, .linha, .lista li, .numero-titulo, .frase-titulo, .montra-titulo');
     for (var i = 0; i < largos.length; i++) if (largos[i].scrollWidth > largos[i].clientWidth + 1) return false;
     if (inteiro) {
       var caixas = post.querySelectorAll('.caixa');

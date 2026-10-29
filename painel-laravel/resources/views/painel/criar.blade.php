@@ -22,11 +22,14 @@
                 'produto' => 'Produto ou serviço, com foto oficial, vantagens e botão.',
                 'aviso' => 'Fecho, horário, mudança. Título grande e data.',
                 'evento' => 'Workshop, feira, webinar. Dia em destaque, hora e local.',
+                'numero' => 'Número gigante e título numa faixa verde (ex.: “5 sinais de que…”).',
+                'frase' => 'Frase forte ao centro, foto em tom verde (ex.: “Não entregamos o que existe!”).',
+                'montra' => 'Foto do produto em grande, fundo escuro e “Powered by” do parceiro.',
             ])
             @foreach ($modelos as $m)
                 <label class="tipo">
                     <input type="radio" name="modelo" value="{{ $m }}" @checked(old('modelo', 'dica') === $m)>
-                    <span><b>{{ ucfirst($m) }}</b><small>{{ $descricoes[$m] }}</small></span>
+                    <span><b>{{ \App\Services\PostRenderer::NOMES[$m] ?? ucfirst($m) }}</b><small>{{ $descricoes[$m] }}</small></span>
                 </label>
             @endforeach
         </fieldset>

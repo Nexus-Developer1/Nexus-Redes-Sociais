@@ -265,6 +265,21 @@ class IaTest extends TestCase
         $this->assertSame(0, Post::count());
     }
 
+    public function test_ia_pode_escolher_numero_em_destaque(): void
+    {
+        Http::fake(['ia.teste/*' => Http::sequence()
+            ->push($this->respostaIa(['modelo' => 'numero', 'numero' => '5', 'titulo' => 'sinais de que
+precisa de *renovar*', 'pontos' => []]))
+            ->push(['choices' => [['message' => ['content' => '{}']]]]),
+        ]);
+        PostRequest::create(['topic' => '5 sinais']);
+
+        $this->artisan('post:tratar-pedidos')->assertSuccessful();
+
+        $d = PostRequest::first()->post->design;
+        $this->assertSame(['numero', '5'], [$d['modelo'], $d['numero']]);
+    }
+
     public function test_correcoes_fixas_de_brasileirismos(): void
     {
         $this->assertSame(

@@ -193,6 +193,19 @@ class EditorTest extends TestCase
         $this->assertSame(['equipa-nexus.jpg', 'topo', 'forte'], [$d['foto'], $d['enquadramento'], $d['tom']]);
     }
 
+    public function test_layouts_do_feed(): void
+    {
+        $this->actingAs($this->user)->get('/posts/novo')->assertSee('Número em destaque')->assertSee('Frase')->assertSee('Produto em destaque');
+
+        foreach (['numero', 'frase', 'montra'] as $m) {
+            $this->actingAs($this->user)->post('/posts', ['modelo' => $m, 'title' => "Teste $m"]);
+            $post = Post::firstWhere('title', "Teste $m");
+            $this->assertSame($m, $post->design['modelo']);
+            $this->actingAs($this->user)->get(route('posts.edit', $post))->assertOk();
+        }
+        $this->assertSame('5', Post::firstWhere('title', 'Teste numero')->design['numero']);
+    }
+
     public function test_visitante_nao_edita(): void
     {
         $post = $this->postComModelo();
