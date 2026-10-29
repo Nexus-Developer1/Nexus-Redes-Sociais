@@ -86,22 +86,36 @@
 
   // ---------- pré-visualização ----------
   var temporizador = null;
+  var formato = '4:5';
+
+  // O post (1080 px de largura) é encolhido para caber no espaço livre, sem obrigar a fazer scroll.
+  function ajustaEscala() {
+    var area = $('#area-previa');
+    var altura = ALTURA[formato] || 1350;
+    var estreito = window.matchMedia('(max-width: 960px)').matches;
+    var w = estreito ? Math.min(area.clientWidth, 520) : area.clientWidth;
+    var h = estreito ? window.innerHeight * 0.75 : area.clientHeight;
+    var escala = Math.min(w / 1080, h / altura);
+    if (!(escala > 0)) escala = 0.4;
+    var f = $('#previa');
+    f.style.height = altura + 'px';
+    f.style.transform = 'scale(' + escala + ')';
+    $('#moldura').style.width = Math.floor(1080 * escala) + 'px';
+    $('#moldura').style.height = Math.floor(altura * escala) + 'px';
+  }
+  if (window.ResizeObserver) new ResizeObserver(ajustaEscala).observe($('#area-previa'));
+  window.addEventListener('resize', ajustaEscala);
+
   function previa() {
     var d = ler();
+    formato = d.formato;
     var json = JSON.stringify(d).replace(/</g, '\\u003c');
     var html = '<!doctype html><html lang="pt"><head><meta charset="utf-8">'
       + '<base href="' + E.pasta + '">'
       + '<link href="' + E.modelos + 'modelos.css" rel="stylesheet"></head><body>'
       + '<script>window.POST = ' + json + ';<\/script><script src="' + E.modelos + 'modelos.js"><\/script></body></html>';
-    var altura = ALTURA[d.formato] || 1350;
-    var largura = Math.min(520, $('.editor-lado').clientWidth || 520);
-    var escala = largura / 1080;
-    var f = $('#previa');
-    f.style.height = altura + 'px';
-    f.style.transform = 'scale(' + escala + ')';
-    $('#moldura').style.width = largura + 'px';
-    $('#moldura').style.height = Math.round(altura * escala) + 'px';
-    f.srcdoc = html;
+    ajustaEscala();
+    $('#previa').srcdoc = html;
   }
   function previaDepois() { clearTimeout(temporizador); temporizador = setTimeout(previa, 350); }
 
@@ -122,7 +136,6 @@
     if (e.target.id === 'f-modelo') mostrarCampos();
     previaDepois();
   });
-  window.addEventListener('resize', previaDepois);
 
   // ---------- enviar imagens ----------
   $$('[data-imagem]').forEach(function (bloco) {

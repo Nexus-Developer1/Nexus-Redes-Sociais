@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/painel.css') }}?v={{ filemtime(public_path('css/painel.css')) }}">
 </head>
-<body>
+<body class="@yield('body_class')">
 @yield('body')
 </body>
 </html>
