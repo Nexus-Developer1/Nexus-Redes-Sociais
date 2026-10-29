@@ -244,7 +244,8 @@ class PostWriter
         - "titulo": 2 a 3 linhas curtas separadas por \\n, no máximo ~22 caracteres por linha.
           Põe UMA ou duas palavras importantes entre asteriscos para ficarem a verde, ex.: "O seu backup está\\nmesmo *seguro*?".
         - "texto": uma frase curta (máx. ~90 caracteres) por baixo do título.
-        - "pontos": cada texto com no máximo ~35 caracteres.
+        - "pontos": cada texto com no máximo ~35 caracteres. O "destaque" também em português (ex.: "Lítio", nunca "Lithium").
+        - Todo o texto da imagem em português de Portugal; só "pesquisa_imagem" é em inglês.
         - "icone": um destes: {$icones} (ou "" para nenhum). Escolhe o que combina com o tema.
         - "rodape": tema do post em 2 a 4 palavras (ex.: "Backup & Disaster Recovery").
         - "etiqueta": deixa "" (usa a do tipo de post), a não ser que outra palavra seja claramente melhor.
