@@ -6,6 +6,7 @@ use App\Models\Post;
 use App\Models\PostRequest;
 use App\Models\User;
 use App\Notifications\PostParaAprovar;
+use App\Services\Pexels;
 use App\Services\PostRenderer;
 use App\Services\PostWriter;
 use Illuminate\Console\Command;
@@ -67,8 +68,10 @@ class TratarPedidos extends Command
                 'scheduled_at' => $r['publicar_em'],
                 'status' => Post::CREATING,
                 'source' => 'Pedido de '.($pedido->user?->name ?? 'alguém').': “'.$pedido->topic.'”',
+                'design' => ['formato' => $r['design']['formato'] ?? '4:5'],
             ]);
-            $this->montar($post, $r['design'], $renderer);
+            $design = $this->comFoto($post, $r['design'], $r['pesquisa_imagem'] ?? '');
+            $this->montar($post, $design, $renderer);
             $this->paraAprovacao($post, 'auto_created');
 
             $pedido->update(['status' => 'done', 'post_id' => $post->id]);
@@ -112,6 +115,35 @@ class TratarPedidos extends Command
             Cache::put($chave, true, now()->addHour());
             $this->error("Post #{$post->id}: a alteração falhou: {$e->getMessage()}");
         }
+    }
+
+    /**
+     * Com o Pexels ligado, procura uma foto de fundo para o tema. Se falhar, o post segue sem foto
+     * (fundo verde da marca); nunca impede o post de chegar à fila.
+     */
+    private function comFoto(Post $post, array $design, string $pesquisa): array
+    {
+        $pexels = app(Pexels::class);
+        if ($pesquisa === '' || ! $pexels->configurado()) {
+            return $design;
+        }
+
+        try {
+            $fotos = $pexels->procurar($pesquisa, $design['formato'] ?? '4:5', 5);
+            if (! $fotos) {
+                return $design;
+            }
+            $foto = $pexels->descarregar($fotos[0]['id'], $post);
+            $design['foto'] = $foto['nome'];
+            $design['tom'] = 'suave';
+            unset($design['icone']); // o ícone tapava a foto
+            $post->source = trim($post->source.' · Foto: '.$foto['fotografo'].' (Pexels)');
+        } catch (Throwable $e) {
+            report($e);
+            $this->warn("Post #{$post->id}: sem foto do Pexels ({$e->getMessage()}).");
+        }
+
+        return $design;
     }
 
     private function montar(Post $post, array $design, PostRenderer $renderer): void

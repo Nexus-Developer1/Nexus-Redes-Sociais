@@ -87,6 +87,50 @@ class IaTest extends TestCase
             && str_contains($r['messages'][1]['content'], 'post sobre UPS Riello'));
     }
 
+    private function fingirPexels(): void
+    {
+        config(['services.pexels.key' => 'pexels-teste']);
+        Http::fake([
+            'ia.teste/*' => Http::response($this->respostaIa(['pesquisa_imagem' => 'server room'])),
+            'api.pexels.com/v1/search*' => Http::response(['photos' => [
+                ['id' => 123, 'alt' => 'Servidores', 'photographer' => 'Ana Silva', 'src' => ['medium' => 'https://images.pexels.com/m.jpg']],
+            ]]),
+            'api.pexels.com/v1/photos/123' => Http::response(['id' => 123, 'photographer' => 'Ana Silva',
+                'src' => ['original' => 'https://images.pexels.com/photos/123/original.jpeg']]),
+            'images.pexels.com/*' => Http::response('JPEGDATA', 200, ['Content-Type' => 'image/jpeg']),
+        ]);
+    }
+
+    public function test_post_da_ia_leva_foto_do_pexels(): void
+    {
+        $this->fingirPexels();
+        PostRequest::create(['topic' => 'UPS Riello']);
+
+        $this->artisan('post:tratar-pedidos')->assertSuccessful();
+
+        $post = PostRequest::first()->post;
+        $this->assertSame('pexels-123.jpg', $post->design['foto']);
+        $this->assertArrayNotHasKey('icone', $post->design);
+        $this->assertFileExists(PostRenderer::pasta($post).'/pexels-123.jpg');
+        $this->assertStringContainsString('Foto: Ana Silva (Pexels)', $post->source);
+        Http::assertSent(fn ($r) => str_contains($r->url(), 'images.pexels.com/photos/123/original.jpeg?')
+            && str_contains($r->url(), 'w=1080&h=1350'));
+    }
+
+    public function test_procurar_e_usar_foto_no_editor(): void
+    {
+        $this->fingirPexels();
+        $user = User::factory()->create();
+        $post = Post::create(['title' => 'x', 'networks' => ['Instagram'], 'status' => Post::CREATING,
+            'design' => PostRenderer::exemplo('dica')]);
+
+        $this->actingAs($user)->getJson(route('images.search', ['q' => 'server room']))
+            ->assertOk()->assertJsonPath('fotos.0.id', 123);
+        $this->actingAs($user)->postJson(route('posts.stock', $post), ['id' => 123])
+            ->assertOk()->assertJson(['nome' => 'pexels-123.jpg', 'fotografo' => 'Ana Silva']);
+        $this->actingAs($user)->get(route('posts.edit', $post))->assertSee('Procurar imagem grátis');
+    }
+
     public function test_data_escolhida_no_pedido_manda_sobre_a_da_ia(): void
     {
         // A IA sugere outra data; a escolhida por quem pediu é a que fica.

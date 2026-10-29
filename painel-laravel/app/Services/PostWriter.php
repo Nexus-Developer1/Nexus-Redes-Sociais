@@ -145,6 +145,7 @@ class PostWriter
             'legenda' => mb_substr(trim((string) $d['legenda']), 0, 2200),
             'redes' => $redes ?: ['Instagram', 'Facebook'],
             'publicar_em' => $quando,
+            'pesquisa_imagem' => mb_substr(trim((string) ($d['pesquisa_imagem'] ?? '')), 0, 80),
         ];
     }
 
@@ -198,6 +199,9 @@ class PostWriter
         - "etiqueta": deixa "" (usa a do tipo de post), a não ser que outra palavra seja claramente melhor.
         - "formato": "4:5" (normal) ou "1:1" (avisos curtos).
         - Sem emojis no texto da imagem.
+        - "pesquisa_imagem": 2 a 4 palavras EM INGLÊS para procurar uma foto de fundo num banco de fotos
+          (ex.: "server room", "it technician laptop", "office team meeting", "data center cables").
+          Foto realista, sem texto, a combinar com o tema. Num aviso de fecho ou feriado pode ser algo como "closed office door".
 
         A LEGENDA
         - 300 a 900 caracteres, em parágrafos curtos, a explicar o tema e porque interessa a uma empresa.
@@ -228,7 +232,8 @@ class PostWriter
           "evento": {"dia": "", "mes": "", "hora": "", "local": ""},
           "legenda": "...",
           "redes": ["Instagram", "Facebook"],
-          "publicar_em": "AAAA-MM-DD HH:MM"
+          "publicar_em": "AAAA-MM-DD HH:MM",
+          "pesquisa_imagem": "..."
         }
         Campos que não se aplicam ao modelo escolhido ficam vazios ("" ou []).
         TXT;

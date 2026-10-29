@@ -167,5 +167,73 @@
     $('.tirar', bloco).addEventListener('click', function () { imagens[k] = ''; alterado = true; mostrarImagens(); previa(); });
   });
 
+  // ---------- procurar imagem no Pexels ----------
+  var grelha = $('#pexels-grelha');
+  function lerJson(r) {
+    return r.json().catch(function () { return {}; }).then(function (j) {
+      if (!r.ok) throw new Error(j.message || ('Erro ' + r.status));
+      return j;
+    });
+  }
+  function aviso(texto) {
+    grelha.innerHTML = '';
+    var p = document.createElement('p');
+    p.className = 'origem';
+    p.textContent = texto;
+    grelha.appendChild(p);
+  }
+  function procurarPexels() {
+    var q = $('#pexels-q').value.trim();
+    if (!q) return;
+    aviso('A procurar…');
+    fetch(E.pexels.procurar + '?q=' + encodeURIComponent(q) + '&formato=' + encodeURIComponent($('#f-formato').value),
+      { headers: { 'Accept': 'application/json' } })
+      .then(lerJson)
+      .then(function (j) {
+        if (!j.fotos.length) return aviso('Sem resultados. Experimente outras palavras (em inglês dá mais resultados).');
+        grelha.innerHTML = '';
+        j.fotos.forEach(function (f) {
+          var b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'procura-foto';
+          b.title = (f.alt ? f.alt + ' · ' : '') + 'Foto: ' + f.fotografo;
+          var img = new Image();
+          img.src = f.miniatura;
+          img.alt = f.alt;
+          img.loading = 'lazy';
+          b.appendChild(img);
+          b.addEventListener('click', function () { usarPexels(f.id, b); });
+          grelha.appendChild(b);
+        });
+      })
+      .catch(function (err) { aviso('Não foi possível procurar: ' + err.message); });
+  }
+  function usarPexels(id, botao) {
+    botao.classList.add('a-carregar');
+    fetch(E.pexels.usar, {
+      method: 'POST',
+      headers: { 'X-CSRF-TOKEN': E.csrf, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: id }),
+    })
+      .then(lerJson)
+      .then(function (j) {
+        imagens.foto = j.nome;
+        alterado = true;
+        var icone = $('#design [data-campo=icone]');
+        if (icone && icone.value) icone.value = '';
+        $('.procurar-imagem').open = false;
+        mostrarImagens();
+        previa();
+      })
+      .catch(function (err) { alert('A foto não foi usada: ' + err.message); })
+      .then(function () { botao.classList.remove('a-carregar'); });
+  }
+  if (grelha && E.pexels) {
+    $('#pexels-ir').addEventListener('click', procurarPexels);
+    $('#pexels-q').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); procurarPexels(); } // não submete o formulário do post
+    });
+  }
+
   previa();
 })();

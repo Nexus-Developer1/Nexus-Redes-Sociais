@@ -35,6 +35,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/posts/{post}/imagens', [PostEditorController::class, 'upload'])->name('posts.upload');
     Route::post('/posts/{post}/enviar', [PostEditorController::class, 'submit'])->name('posts.submit');
     Route::post('/posts/{post}/data', [PostEditorController::class, 'reschedule'])->name('posts.date');
+    Route::get('/imagens/procurar', [PostEditorController::class, 'searchImages'])->name('images.search')->middleware('throttle:60,1');
+    Route::post('/posts/{post}/imagens/pexels', [PostEditorController::class, 'useStockImage'])->name('posts.stock');
 
     Route::post('/pedidos', [PostRequestController::class, 'store'])->name('requests.store');
     Route::post('/pedidos/{pedido}/repetir', [PostRequestController::class, 'retry'])->name('requests.retry');

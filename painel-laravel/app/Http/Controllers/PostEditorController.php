@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Post;
 use App\Models\User;
 use App\Notifications\PostParaAprovar;
+use App\Services\Pexels;
 use App\Services\PostRenderer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -58,6 +59,7 @@ class PostEditorController extends Controller
             'modelos' => PostRenderer::MODELOS,
             'icones' => PostRenderer::ICONES,
             'pastaUrl' => PostRenderer::url($post),
+            'pexels' => app(Pexels::class)->configurado(),
         ]);
     }
 
@@ -147,6 +149,29 @@ class PostEditorController extends Controller
         $ficheiro->move(PostRenderer::pasta($post), $nome);
 
         return response()->json(['nome' => $nome]);
+    }
+
+    /** Procurar fotos no Pexels (editor: "Procurar imagem"). */
+    public function searchImages(Request $request, Pexels $pexels): JsonResponse
+    {
+        $data = $request->validate(['q' => ['required', 'string', 'max:100'], 'formato' => ['nullable', 'string']]);
+        try {
+            return response()->json(['fotos' => $pexels->procurar($data['q'], $data['formato'] ?? '4:5')]);
+        } catch (RuntimeException $e) {
+            return response()->json(['message' => $e->getMessage()], 502);
+        }
+    }
+
+    /** Usar uma foto do Pexels como imagem de fundo do post. */
+    public function useStockImage(Request $request, Post $post, Pexels $pexels): JsonResponse
+    {
+        $this->mustBeEditable($post);
+        $data = $request->validate(['id' => ['required', 'integer', 'min:1']]);
+        try {
+            return response()->json($pexels->descarregar($data['id'], $post));
+        } catch (RuntimeException $e) {
+            return response()->json(['message' => $e->getMessage()], 502);
+        }
     }
 
     /** Mudar só a data de publicação, a partir da lista de posts. */

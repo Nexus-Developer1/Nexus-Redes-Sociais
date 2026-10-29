@@ -36,6 +36,11 @@ return [
         'page_token' => env('META_PAGE_TOKEN'),
     ],
 
+    // Fotos gratuitas para a imagem de fundo dos posts (pexels.com/api). Vazio = desligado.
+    'pexels' => [
+        'key' => env('PEXELS_CHAVE'),
+    ],
+
     // Browser sem janela que gera as imagens dos posts. Vazio = procura o chrome-headless-shell (/opt) ou o Edge.
     'render' => [
         'browser' => env('RENDER_BROWSER'),

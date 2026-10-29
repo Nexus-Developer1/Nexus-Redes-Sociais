@@ -114,6 +114,19 @@
                                 <label class="btn btn-principal pequeno">Carregar imagem…<input type="file" accept="image/png,image/jpeg,image/webp" hidden></label>
                                 <button type="button" class="btn pequeno tirar">Tirar</button>
                             </div>
+                            @if ($pexels)
+                                <details class="procurar-imagem">
+                                    <summary class="btn btn-contorno pequeno">Procurar imagem grátis (Pexels)…</summary>
+                                    <div class="procura">
+                                        <div class="procura-barra">
+                                            <input type="search" id="pexels-q" placeholder="Ex.: server room, office team, laptop (em inglês dá mais resultados)">
+                                            <button type="button" class="btn btn-principal pequeno" id="pexels-ir">Procurar</button>
+                                        </div>
+                                        <div class="procura-grelha" id="pexels-grelha"></div>
+                                        <small>Fotos gratuitas do Pexels: uso comercial permitido. Clique numa para a usar.</small>
+                                    </div>
+                                </details>
+                            @endif
                             <div class="dupla">
                                 <label>Enquadramento <small>que parte da imagem mostrar</small>
                                     <select data-campo="enquadramento">
@@ -207,6 +220,7 @@ window.EDITOR = {
     pasta: @json($pastaUrl),
     modelos: @json(asset('modelos').'/'),
     upload: @json(route('posts.upload', $post)),
+    pexels: @json($pexels ? ['procurar' => route('images.search'), 'usar' => route('posts.stock', $post)] : null),
     csrf: @json(csrf_token()),
 };
 </script>
