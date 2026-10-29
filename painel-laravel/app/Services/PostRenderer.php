@@ -114,6 +114,53 @@ class PostRenderer
         return ['path' => "imagens-posts/design/{$post->id}/{$nome}", 'avisos' => $avisos];
     }
 
+    /** Só guarda os campos que os modelos conhecem, com limites de tamanho (editor do painel e IA). */
+    public static function limparDesign(array $d, Post $post): array
+    {
+        $texto = fn ($v, int $max) => is_scalar($v) ? mb_substr(trim(str_replace("\r", '', (string) $v)), 0, $max) : '';
+
+        $limpo = [
+            'modelo' => in_array($d['modelo'] ?? '', self::MODELOS, true) ? $d['modelo'] : 'dica',
+            'formato' => isset(self::FORMATOS[$d['formato'] ?? '']) ? $d['formato'] : '4:5',
+        ];
+        foreach (['titulo' => 300, 'texto' => 600, 'etiqueta' => 40, 'rodape' => 80, 'site' => 60,
+            'cta' => 80, 'data' => 80, 'hora' => 40] as $campo => $max) {
+            if (isset($d[$campo]) && ($v = $texto($d[$campo], $max)) !== '') {
+                $limpo[$campo] = $v;
+            }
+        }
+        if (in_array($d['icone'] ?? '', self::ICONES, true)) {
+            $limpo['icone'] = $d['icone'];
+        }
+        if (! empty($d['pontos']) && is_array($d['pontos'])) {
+            foreach (array_slice($d['pontos'], 0, 4) as $p) {
+                if (is_array($p)) {
+                    if (($t = $texto($p['texto'] ?? '', 90)) !== '') {
+                        $limpo['pontos'][] = ['destaque' => $texto($p['destaque'] ?? '', 12), 'texto' => $t];
+                    }
+                } elseif (($v = $texto($p, 90)) !== '') {
+                    $limpo['pontos'][] = $v;
+                }
+            }
+        }
+        if (! empty($d['evento']) && is_array($d['evento'])) {
+            foreach (['dia' => 4, 'mes' => 12, 'hora' => 40, 'local' => 80] as $campo => $max) {
+                if (($v = $texto($d['evento'][$campo] ?? '', $max)) !== '') {
+                    $limpo['evento'][$campo] = $v;
+                }
+            }
+        }
+        // Imagens: só ficheiros que existem na pasta do post.
+        foreach (['fundo', 'produto', 'parceiro'] as $campo) {
+            $nome = (string) ($d[$campo] ?? '');
+            if (preg_match('/^[a-z0-9-]+\.(png|jpg|webp)$/', $nome) && is_file(self::pasta($post).'/'.$nome)) {
+                $limpo[$campo] = $nome;
+            }
+        }
+
+        return $limpo;
+    }
+
     private function browser(): string
     {
         $configurado = config('services.render.browser');

@@ -11,12 +11,18 @@ class PostRequest extends Model
         'new' => 'Novo',
         'in_progress' => 'Em criação',
         'done' => 'Feito',
+        'failed' => 'Falhou',
     ];
 
-    protected $fillable = ['topic', 'status', 'user_id'];
+    protected $fillable = ['topic', 'status', 'user_id', 'post_id', 'error'];
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function post(): BelongsTo
+    {
+        return $this->belongsTo(Post::class);
     }
 }

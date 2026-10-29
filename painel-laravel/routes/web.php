@@ -36,4 +36,5 @@ Route::middleware('auth')->group(function () {
     Route::post('/posts/{post}/enviar', [PostEditorController::class, 'submit'])->name('posts.submit');
 
     Route::post('/pedidos', [PostRequestController::class, 'store'])->name('requests.store');
+    Route::post('/pedidos/{pedido}/repetir', [PostRequestController::class, 'retry'])->name('requests.retry');
 });

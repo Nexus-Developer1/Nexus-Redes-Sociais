@@ -97,7 +97,7 @@ class PostEditorController extends Controller
             'scheduled_at' => $data['scheduled_at'] ?? null,
         ]);
         if (! empty($data['design'])) {
-            $post->design = $this->limparDesign(json_decode($data['design'], true) ?: [], $post);
+            $post->design = PostRenderer::limparDesign(json_decode($data['design'], true) ?: [], $post);
             $post->image_alt = trim(str_replace(['*', "\n"], ['', ' '], $post->design['titulo'] ?? $post->title));
         }
         $post->save();
@@ -181,48 +181,4 @@ class PostEditorController extends Controller
             'Este post já foi aprovado ou publicado. Desfaça a aprovação para o alterar.');
     }
 
-    /** Só guarda os campos que os modelos conhecem, com limites de tamanho. */
-    private function limparDesign(array $d, Post $post): array
-    {
-        $texto = fn ($v, int $max) => is_scalar($v) ? mb_substr(trim(str_replace("\r", '', (string) $v)), 0, $max) : '';
-
-        $limpo = [
-            'modelo' => in_array($d['modelo'] ?? '', PostRenderer::MODELOS, true) ? $d['modelo'] : 'dica',
-            'formato' => isset(PostRenderer::FORMATOS[$d['formato'] ?? '']) ? $d['formato'] : '4:5',
-        ];
-        foreach (['titulo' => 300, 'texto' => 600, 'etiqueta' => 40, 'rodape' => 80, 'site' => 60,
-            'cta' => 80, 'data' => 80, 'hora' => 40] as $campo => $max) {
-            if (isset($d[$campo]) && ($v = $texto($d[$campo], $max)) !== '') {
-                $limpo[$campo] = $v;
-            }
-        }
-        if (in_array($d['icone'] ?? '', PostRenderer::ICONES, true)) {
-            $limpo['icone'] = $d['icone'];
-        }
-        if (! empty($d['pontos']) && is_array($d['pontos'])) {
-            foreach (array_slice($d['pontos'], 0, 4) as $p) {
-                if (is_array($p)) {
-                    $limpo['pontos'][] = ['destaque' => $texto($p['destaque'] ?? '', 12), 'texto' => $texto($p['texto'] ?? '', 90)];
-                } elseif (($v = $texto($p, 90)) !== '') {
-                    $limpo['pontos'][] = $v;
-                }
-            }
-        }
-        if (! empty($d['evento']) && is_array($d['evento'])) {
-            foreach (['dia' => 4, 'mes' => 12, 'hora' => 40, 'local' => 80] as $campo => $max) {
-                if (($v = $texto($d['evento'][$campo] ?? '', $max)) !== '') {
-                    $limpo['evento'][$campo] = $v;
-                }
-            }
-        }
-        // Imagens: só ficheiros que existem na pasta do post.
-        foreach (['fundo', 'produto', 'parceiro'] as $campo) {
-            $nome = (string) ($d[$campo] ?? '');
-            if (preg_match('/^[a-z0-9-]+\.(png|jpg|webp)$/', $nome) && is_file(PostRenderer::pasta($post).'/'.$nome)) {
-                $limpo[$campo] = $nome;
-            }
-        }
-
-        return $limpo;
-    }
 }

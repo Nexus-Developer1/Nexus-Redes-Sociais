@@ -45,7 +45,7 @@ class PainelController extends Controller
         $posts = collect();
         $requests = collect();
         if ($ver === 'pedidos') {
-            $requests = PostRequest::with('user')->latest()->get();
+            $requests = PostRequest::with(['user', 'post'])->latest()->get();
         } else {
             $posts = Post::with(['reviews.user', 'decider'])
                 ->whereIn('status', self::SECTIONS[$ver][1])

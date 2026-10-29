@@ -19,6 +19,8 @@ class PostReview extends Model
         'created' => 'criou o post no painel',
         'edited' => 'editou o post',
         'submitted' => 'enviou para aprovação',
+        'auto_created' => 'criou o post com a IA, a partir de um pedido',
+        'auto_revised' => 'refez o post com a IA, com a alteração pedida',
         'published' => 'publicou',
         'publish_failed' => 'falhou a publicação',
     ];

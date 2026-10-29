@@ -53,6 +53,10 @@ Sistema que cria posts para as redes sociais da NEXUS de forma autónoma.
     põe o post na fila como "À espera de aprovação". **Nunca aprova nem publica**; recusa alterar posts já aprovados.
   - `php artisan post:ideia --titulo= --quando= --tipo= [--post=ID]`: põe uma ideia no calendário (o painel permite "Trocar tema" e "Descartar").
   - `php artisan post:publicar [--simular]`: publica na Meta os posts aprovados cuja hora chegou (cron a cada 5 min no servidor). Sem `META_PAGE_TOKEN` no `.env` não publica nada.
+  - `php artisan post:tratar-pedidos` (cron a cada minuto): a **IA automática** cria os posts de "Pedir um post" e refaz os que têm
+    "Pedir alteração" (só posts com modelo), gera a imagem com os modelos e põe-nos "À espera de aprovação". Nunca aprova nem publica.
+    Fornecedor com API formato OpenAI em `config/ia.php` (`IA_ENDERECO`, `IA_CHAVE`, `IA_MODELO`); para testes: **Groq** (grátis),
+    conta própria da NEXUS (não usar a chave da conta partilhada da advocacia). Sem `IA_CHAVE` não faz nada. Produção: talvez API do Claude (~1 €/mês).
   Email ao aprovador quando há post para aprovar: Microsoft 365 pela API Graph (`MSGRAPH_*` no `.env`).
   Estas funcionalidades foram feitas diretamente no servidor a 28 out 2026 e depois trazidas para o Git: **alterações ao código devem passar sempre pelo repositório**.
 - **Servidor (instalado a 27 out 2026):** http://192.168.1.69:8091 (só rede interna). Ubuntu 24.04, servidor partilhado com

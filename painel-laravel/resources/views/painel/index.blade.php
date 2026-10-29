@@ -81,11 +81,11 @@
         <form class="pedir" method="POST" action="{{ route('requests.store') }}">
             @csrf
             <h2>Pedir um post</h2>
-            <label for="topic">Escreva o tema e o Claude prepara o rascunho.</label>
+            <label for="topic">Escreva o tema: a IA prepara o post e põe-no em “Para aprovar”.</label>
             <textarea id="topic" name="topic" rows="3" required maxlength="2000"
                       placeholder="Ex.: aviso de fecho no feriado de 1 de dezembro">{{ old('topic') }}</textarea>
             @error('topic')<div class="erro">{{ $message }}</div>@enderror
-            <button type="submit">Criar rascunho</button>
+            <button type="submit">Pedir post</button>
         </form>
     </aside>
 </div>
