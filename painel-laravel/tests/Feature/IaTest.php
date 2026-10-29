@@ -131,6 +131,26 @@ class IaTest extends TestCase
         $this->actingAs($user)->get(route('posts.edit', $post))->assertSee('Procurar imagem grátis');
     }
 
+    public function test_sem_pexels_usa_o_pixabay(): void
+    {
+        config(['services.pexels.key' => null, 'services.pixabay.key' => 'pixabay-teste']);
+        $hit = ['id' => 77, 'tags' => 'server, rack', 'user' => 'Rui', 'webformatURL' => 'https://pixabay.com/get/w.jpg',
+            'largeImageURL' => 'https://pixabay.com/get/large.jpg'];
+        Http::fake([
+            'ia.teste/*' => Http::response($this->respostaIa(['pesquisa_imagem' => 'server room'])),
+            'pixabay.com/api/*' => Http::response(['hits' => [$hit]]),
+            'pixabay.com/get/*' => Http::response('JPEGDATA', 200, ['Content-Type' => 'image/jpeg']),
+        ]);
+        PostRequest::create(['topic' => 'UPS Riello']);
+
+        $this->artisan('post:tratar-pedidos')->assertSuccessful();
+
+        $post = PostRequest::first()->post;
+        $this->assertSame('pixabay-77.jpg', $post->design['foto']);
+        $this->assertStringContainsString('Foto: Rui (Pixabay)', $post->source);
+        Http::assertSent(fn ($r) => str_contains($r->url(), 'pixabay.com/api/') && $r['key'] === 'pixabay-teste');
+    }
+
     public function test_data_escolhida_no_pedido_manda_sobre_a_da_ia(): void
     {
         // A IA sugere outra data; a escolhida por quem pediu é a que fica.

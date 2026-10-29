@@ -40,6 +40,10 @@ return [
     'pexels' => [
         'key' => env('PEXELS_CHAVE'),
     ],
+    // Alternativa ao Pexels (pixabay.com/api/docs): usada quando não há chave do Pexels.
+    'pixabay' => [
+        'key' => env('PIXABAY_CHAVE'),
+    ],
 
     // Browser sem janela que gera as imagens dos posts. Vazio = procura o chrome-headless-shell (/opt) ou o Edge.
     'render' => [

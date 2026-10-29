@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Post;
 use App\Models\User;
 use App\Notifications\PostParaAprovar;
-use App\Services\Pexels;
+use App\Services\BancoFotos;
 use App\Services\PostRenderer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -59,7 +59,8 @@ class PostEditorController extends Controller
             'modelos' => PostRenderer::MODELOS,
             'icones' => PostRenderer::ICONES,
             'pastaUrl' => PostRenderer::url($post),
-            'pexels' => app(Pexels::class)->configurado(),
+            'pexels' => app(BancoFotos::class)->configurado(),
+            'banco' => app(BancoFotos::class)->nome(),
         ]);
     }
 
@@ -152,7 +153,7 @@ class PostEditorController extends Controller
     }
 
     /** Procurar fotos no Pexels (editor: "Procurar imagem"). */
-    public function searchImages(Request $request, Pexels $pexels): JsonResponse
+    public function searchImages(Request $request, BancoFotos $pexels): JsonResponse
     {
         $data = $request->validate(['q' => ['required', 'string', 'max:100'], 'formato' => ['nullable', 'string']]);
         try {
@@ -163,7 +164,7 @@ class PostEditorController extends Controller
     }
 
     /** Usar uma foto do Pexels como imagem de fundo do post. */
-    public function useStockImage(Request $request, Post $post, Pexels $pexels): JsonResponse
+    public function useStockImage(Request $request, Post $post, BancoFotos $pexels): JsonResponse
     {
         $this->mustBeEditable($post);
         $data = $request->validate(['id' => ['required', 'integer', 'min:1']]);

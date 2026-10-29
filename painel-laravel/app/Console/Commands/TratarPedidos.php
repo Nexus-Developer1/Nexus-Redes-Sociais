@@ -6,7 +6,7 @@ use App\Models\Post;
 use App\Models\PostRequest;
 use App\Models\User;
 use App\Notifications\PostParaAprovar;
-use App\Services\Pexels;
+use App\Services\BancoFotos;
 use App\Services\PostRenderer;
 use App\Services\PostWriter;
 use Illuminate\Console\Command;
@@ -123,7 +123,7 @@ class TratarPedidos extends Command
      */
     private function comFoto(Post $post, array $design, string $pesquisa): array
     {
-        $pexels = app(Pexels::class);
+        $pexels = app(BancoFotos::class);
         if ($pesquisa === '' || ! $pexels->configurado()) {
             return $design;
         }
@@ -137,10 +137,10 @@ class TratarPedidos extends Command
             $design['foto'] = $foto['nome'];
             $design['tom'] = 'suave';
             unset($design['icone']); // o ícone tapava a foto
-            $post->source = trim($post->source.' · Foto: '.$foto['fotografo'].' (Pexels)');
+            $post->source = trim($post->source.' · Foto: '.$foto['fotografo'].' ('.$pexels->nome().')');
         } catch (Throwable $e) {
             report($e);
-            $this->warn("Post #{$post->id}: sem foto do Pexels ({$e->getMessage()}).");
+            $this->warn("Post #{$post->id}: sem foto do banco de fotos ({$e->getMessage()}).");
         }
 
         return $design;

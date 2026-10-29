@@ -116,14 +116,14 @@
                             </div>
                             @if ($pexels)
                                 <details class="procurar-imagem">
-                                    <summary class="btn btn-contorno pequeno">Procurar imagem grátis (Pexels)…</summary>
+                                    <summary class="btn btn-contorno pequeno">Procurar imagem grátis ({{ $banco }})…</summary>
                                     <div class="procura">
                                         <div class="procura-barra">
                                             <input type="search" id="pexels-q" placeholder="Ex.: server room, office team, laptop (em inglês dá mais resultados)">
                                             <button type="button" class="btn btn-principal pequeno" id="pexels-ir">Procurar</button>
                                         </div>
                                         <div class="procura-grelha" id="pexels-grelha"></div>
-                                        <small>Fotos gratuitas do Pexels: uso comercial permitido. Clique numa para a usar.</small>
+                                        <small>Fotos gratuitas do {{ $banco }}: uso comercial permitido. Clique numa para a usar.</small>
                                     </div>
                                 </details>
                             @endif
