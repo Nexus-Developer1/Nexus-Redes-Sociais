@@ -3,6 +3,7 @@
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\PainelController;
 use App\Http\Controllers\PostDecisionController;
+use App\Http\Controllers\PostEditorController;
 use App\Http\Controllers\PostRequestController;
 use Illuminate\Support\Facades\Route;
 
@@ -21,6 +22,15 @@ Route::middleware('auth')->group(function () {
     Route::post('/posts/{post}/desfazer', [PostDecisionController::class, 'undo'])->name('posts.undo');
     Route::post('/posts/{post}/trocar-ideia', [PostDecisionController::class, 'swapIdea'])->name('posts.swap');
     Route::post('/posts/{post}/descartar', [PostDecisionController::class, 'discard'])->name('posts.discard');
+
+    // Criar e editar posts no painel (modelos + legenda + data).
+    Route::get('/posts/novo', [PostEditorController::class, 'create'])->name('posts.create');
+    Route::post('/posts', [PostEditorController::class, 'store'])->name('posts.store');
+    Route::get('/posts/{post}/editar', [PostEditorController::class, 'edit'])->name('posts.edit');
+    Route::post('/posts/{post}/editar', [PostEditorController::class, 'update'])->name('posts.update');
+    Route::post('/posts/{post}/modelo', [PostEditorController::class, 'useTemplate'])->name('posts.template');
+    Route::post('/posts/{post}/imagens', [PostEditorController::class, 'upload'])->name('posts.upload');
+    Route::post('/posts/{post}/enviar', [PostEditorController::class, 'submit'])->name('posts.submit');
 
     Route::post('/pedidos', [PostRequestController::class, 'store'])->name('requests.store');
 });

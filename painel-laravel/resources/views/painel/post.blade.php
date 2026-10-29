@@ -64,8 +64,12 @@
                     @csrf
                     <button type="submit" class="btn btn-perigo">Rejeitar</button>
                 </form>
+                <a class="btn" href="{{ route('posts.edit', $post) }}">Editar</a>
             </div>
         @elseif (in_array($post->status, [\App\Models\Post::IDEA, \App\Models\Post::CREATING], true))
+            <div class="acoes">
+                <a class="btn btn-principal" href="{{ route('posts.edit', $post) }}">{{ $post->design ? 'Continuar a editar' : 'Fazer este post no painel' }}</a>
+            </div>
             @if ($post->change_request)
                 <div class="pedido-alteracao"><strong>Pediu outro tema:</strong> {{ $post->change_request }}</div>
             @else
@@ -103,6 +107,9 @@
                     @csrf
                     <button type="submit" class="btn btn-link">Desfazer</button>
                 </form>
+                @if ($post->isEditable())
+                    <a class="btn btn-link" href="{{ route('posts.edit', $post) }}">Editar</a>
+                @endif
             </div>
         @endif
 

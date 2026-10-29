@@ -1,4 +1,8 @@
 /* Modelos de posts NEXUS: estilos comuns a todos os tipos (dica, produto, aviso, evento). */
+/* Rajdhani (licença OFL) guardada no projeto: o servidor gera as imagens sem depender da internet. */
+@font-face { font-family: "Rajdhani"; font-weight: 500; font-display: block; src: url("fontes/rajdhani-500.woff2") format("woff2"); }
+@font-face { font-family: "Rajdhani"; font-weight: 600; font-display: block; src: url("fontes/rajdhani-600.woff2") format("woff2"); }
+@font-face { font-family: "Rajdhani"; font-weight: 700; font-display: block; src: url("fontes/rajdhani-700.woff2") format("woff2"); }
 :root {
   --verde: #3dff7a;
   --verde-claro: #7dff9e;

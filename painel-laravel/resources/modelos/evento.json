@@ -1,0 +1,10 @@
+{
+  "modelo": "evento",
+  "formato": "4:5",
+  "icone": "servidor",
+  "titulo": "Workshop:\n*backup* sem falhas",
+  "evento": { "dia": "12", "mes": "Nov", "hora": "14h30 – 17h00", "local": "Instalações NEXUS" },
+  "texto": "Uma tarde prática sobre cópias de segurança e recuperação de desastres.",
+  "cta": "Inscrições: info@nexus-solutions.pt",
+  "rodape": "Eventos NEXUS"
+}

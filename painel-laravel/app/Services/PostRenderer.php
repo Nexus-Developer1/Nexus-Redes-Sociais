@@ -1,0 +1,145 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\Post;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Process;
+use RuntimeException;
+
+/**
+ * Gera a imagem PNG de um post a partir do modelo (public/modelos) e dos dados do post (posts.design).
+ * Usa um Chrome/Edge sem janela: no servidor, o chrome-headless-shell em /opt; no Windows, o Edge.
+ */
+class PostRenderer
+{
+    public const MODELOS = ['dica', 'produto', 'aviso', 'evento'];
+
+    public const FORMATOS = ['4:5' => [1080, 1350], '1:1' => [1080, 1080], '9:16' => [1080, 1920]];
+
+    public const ICONES = ['escudo', 'servidor', 'nuvem', 'rede', 'energia', 'monitor', 'chip'];
+
+    /** Dados iniciais de um modelo (resources/modelos/<modelo>.json). */
+    public static function exemplo(string $modelo): array
+    {
+        $f = resource_path("modelos/{$modelo}.json");
+
+        return is_file($f) ? json_decode(File::get($f), true) : ['modelo' => $modelo, 'titulo' => ''];
+    }
+
+    /** Pasta pública com as imagens (fundo, produto, parceiro) e as imagens geradas do post. */
+    public static function pasta(Post $post): string
+    {
+        return public_path("imagens-posts/design/{$post->id}");
+    }
+
+    public static function url(Post $post): string
+    {
+        return asset("imagens-posts/design/{$post->id}").'/';
+    }
+
+    /**
+     * Gera o PNG e devolve ['path' => caminho relativo a public/, 'avisos' => [...]].
+     *
+     * @throws RuntimeException se o browser não existir ou não gerar a imagem
+     */
+    public function render(Post $post): array
+    {
+        $design = $post->design ?? [];
+        [$largura, $altura] = self::FORMATOS[$design['formato'] ?? '4:5'] ?? self::FORMATOS['4:5'];
+
+        $browser = $this->browser();
+        $pasta = self::pasta($post);
+        File::ensureDirectoryExists($pasta);
+        $trabalho = storage_path('app/render');
+        File::ensureDirectoryExists($trabalho);
+
+        // Os dados entram como JSON (o modelos.js põe-nos sempre como texto, nunca como HTML).
+        $json = str_replace('</', '<\/', json_encode($design, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+        $modelos = $this->fileUrl(public_path('modelos')).'/';
+        $html = '<!doctype html><html lang="pt"><head><meta charset="utf-8">'
+            .'<base href="'.$this->fileUrl($pasta).'/">'
+            .'<link href="'.$modelos.'modelos.css" rel="stylesheet"></head><body>'
+            .'<script>window.POST = '.$json.';</script>'
+            .'<script src="'.$modelos.'modelos.js"></script></body></html>';
+        $ficheiroHtml = "{$trabalho}/post-{$post->id}.html";
+        File::put($ficheiroHtml, $html);
+
+        $nome = 'post-'.now()->format('YmdHis').'.png';
+        $png = "{$pasta}/{$nome}";
+
+        $comando = [$browser];
+        if (str_contains(strtolower(basename($browser)), 'msedge') || str_contains(strtolower(basename($browser)), 'chrome.exe')) {
+            $comando[] = '--headless=new';
+        }
+        array_push($comando,
+            '--disable-gpu', '--hide-scrollbars', '--force-device-scale-factor=1',
+            '--virtual-time-budget=10000', '--allow-file-access-from-files',
+            "--window-size={$largura},{$altura}",
+            '--enable-logging=stderr', '--v=0',
+            '--user-data-dir='.storage_path('app/render/perfil'),
+            '--screenshot='.$png,
+        );
+        if (PHP_OS_FAMILY !== 'Windows') {
+            // O utilizador da app não tem as permissões que a sandbox do Chrome pede; o conteúdo é só o nosso modelo.
+            $comando[] = '--no-sandbox';
+        }
+        $comando[] = $this->fileUrl($ficheiroHtml);
+
+        $resultado = Process::timeout(90)
+            ->env(['HOME' => $trabalho, 'XDG_CONFIG_HOME' => $trabalho, 'XDG_CACHE_HOME' => $trabalho])
+            ->run($comando);
+        $registo = $resultado->output()."\n".$resultado->errorOutput();
+
+        if (! is_file($png)) {
+            throw new RuntimeException('O browser não gerou a imagem. '.trim(mb_substr($registo, 0, 500)));
+        }
+
+        // Apaga as imagens geradas antes desta (as imagens enviadas ficam).
+        foreach (File::glob("{$pasta}/post-*.png") as $antiga) {
+            if ($antiga !== $png) {
+                File::delete($antiga);
+            }
+        }
+
+        $avisos = [];
+        if (! str_contains($registo, 'NEXUS-ESTADO:pronto')) {
+            $avisos[] = 'O modelo não terminou de montar o post. Confirme a imagem antes de a enviar.';
+        }
+        preg_match_all('/"NEXUS-AVISO:(.*?)", source/s', $registo, $m);
+        foreach ($m[1] as $aviso) {
+            $avisos[] = $aviso;
+        }
+
+        return ['path' => "imagens-posts/design/{$post->id}/{$nome}", 'avisos' => $avisos];
+    }
+
+    private function browser(): string
+    {
+        $configurado = config('services.render.browser');
+        $candidatos = $configurado ? [$configurado] : [
+            '/opt/chrome-headless-shell/chrome-headless-shell',
+            'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe',
+            'C:\Program Files\Microsoft\Edge\Application\msedge.exe',
+        ];
+        foreach ($candidatos as $c) {
+            if (is_file($c)) {
+                return $c;
+            }
+        }
+
+        throw new RuntimeException('Não encontrei o browser para gerar imagens (RENDER_BROWSER no .env).');
+    }
+
+    private function fileUrl(string $caminho): string
+    {
+        $caminho = str_replace('\\', '/', $caminho);
+
+        $partes = array_map(
+            fn ($p) => preg_match('/^[A-Za-z]:$/', $p) ? $p : rawurlencode($p), // "C:" fica como está
+            explode('/', ltrim($caminho, '/'))
+        );
+
+        return 'file:///'.implode('/', $partes);
+    }
+}

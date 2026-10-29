@@ -29,7 +29,7 @@ class Post extends Model
     public const NETWORKS = ['Instagram', 'Facebook', 'LinkedIn'];
 
     protected $fillable = [
-        'title', 'caption', 'image_path', 'image_alt', 'networks',
+        'title', 'caption', 'image_path', 'image_alt', 'design', 'networks',
         'scheduled_at', 'status', 'source', 'change_request',
     ];
 
@@ -37,6 +37,7 @@ class Post extends Model
     {
         return [
             'networks' => 'array',
+            'design' => 'array',
             'scheduled_at' => 'datetime',
             'decided_at' => 'datetime',
             'published_at' => 'datetime',
@@ -57,6 +58,12 @@ class Post extends Model
     public function decider(): BelongsTo
     {
         return $this->belongsTo(User::class, 'decided_by');
+    }
+
+    /** Pode ser editado no painel? Aprovado ou publicado não (desfazer a aprovação primeiro). */
+    public function isEditable(): bool
+    {
+        return ! in_array($this->status, [self::APPROVED, self::PUBLISHED], true);
     }
 
     public function statusLabel(): string

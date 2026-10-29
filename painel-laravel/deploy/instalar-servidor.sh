@@ -79,6 +79,26 @@ as_app env APROVADOR_PASSWORD="${APROVADOR_PASSWORD:-}" php artisan db:seed --fo
 
 as_app php artisan optimize -n
 
+echo "== browser para gerar as imagens dos posts (chrome-headless-shell em /opt, só para esta app)"
+CHS=/opt/chrome-headless-shell
+if [ ! -x "$CHS/chrome-headless-shell" ]; then
+    apt-get install -y -qq unzip libnss3 libnspr4 libatk1.0-0t64 libatk-bridge2.0-0t64 libcups2t64 libdrm2 \
+        libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libpango-1.0-0 libcairo2 \
+        libasound2t64 libdbus-1-3 libexpat1 >/dev/null
+    VER=$(curl -fsS https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json \
+        | grep -o '"Stable":{[^}]*}' | grep -o '"version":"[^"]*"' | cut -d'"' -f4)
+    TMPZ=$(mktemp -d)
+    curl -fsSL -o "$TMPZ/chs.zip" "https://storage.googleapis.com/chrome-for-testing-public/$VER/linux64/chrome-headless-shell-linux64.zip"
+    unzip -q "$TMPZ/chs.zip" -d "$TMPZ"
+    rm -rf "$CHS"
+    mv "$TMPZ/chrome-headless-shell-linux64" "$CHS"
+    rm -rf "$TMPZ"
+    chmod -R a+rX "$CHS"
+    echo "   instalado chrome-headless-shell $VER"
+fi
+# Bibliotecas em falta aparecem aqui (a lista deve ficar vazia).
+ldd "$CHS/chrome-headless-shell" | grep "not found" || true
+
 echo "== agendador (publica os posts aprovados à hora marcada; sem chave da Meta não faz nada)"
 cat > /etc/cron.d/$APP <<EOF
 # NEXUS Redes Sociais: tarefas agendadas do Laravel (post:publicar a cada 5 min).

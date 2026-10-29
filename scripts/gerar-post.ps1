@@ -25,7 +25,7 @@ if (-not $formatos.ContainsKey($formato)) { throw "Formato inválido: $formato (
 $largura, $altura = $formatos[$formato]
 
 # Caminho relativo da pasta do post até modelos\ (para o post.html funcionar em qualquer pasta).
-$modelos = Join-Path (Split-Path $PSScriptRoot -Parent) "modelos"
+$modelos = Join-Path (Split-Path $PSScriptRoot -Parent) "painel-laravel\public\modelos"
 $rel = ([Uri]($pasta + "\")).MakeRelativeUri([Uri]($modelos + "\")).ToString()
 
 # Os dados entram como JSON dentro de <script>; "</" é escapado para não fechar a tag.
@@ -36,7 +36,6 @@ $html = @"
 <head>
 <meta charset="utf-8">
 <!-- Gerado por scripts/gerar-post.ps1 a partir de dados.json. Alterar o dados.json, não este ficheiro. -->
-<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&display=block" rel="stylesheet">
 <link href="${rel}modelos.css" rel="stylesheet">
 </head>
 <body>

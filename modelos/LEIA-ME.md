@@ -3,15 +3,18 @@
 Quatro modelos fixos: **dica**, **produto**, **aviso** e **evento**. Todos têm o mesmo topo (logótipo NEXUS) e o mesmo rodapé.
 Exemplos prontos em `exemplos/` (com o `post.png` de cada um).
 
-## Como fazer um post (sem terminal): editor
-Duplo clique em **`abrir-editor.bat`** (raiz do projeto). Abre http://127.0.0.1:8020 no browser:
-- **+ Novo post**: escolhe o tipo e o nome da pasta (fica em `posts\`), começa a partir do exemplo do modelo;
-- à esquerda os campos, à direita a pré-visualização ao vivo e os avisos (texto que não cabe, imagem em falta);
-- **Escolher…** envia fundo, foto do produto ou logótipo do parceiro para a pasta do post;
-- **Guardar e gerar imagem** grava o `dados.json` e cria o `post.png` (é o mesmo script do terminal).
-Fechar a janela preta do `abrir-editor.bat` desliga o editor. Só funciona neste computador (127.0.0.1).
+## Onde estão as coisas
+- Os modelos (`modelos.css`, `modelos.js`, fontes Rajdhani e logótipo) estão em **`painel-laravel/public/modelos/`**:
+  é a mesma cópia usada pelo painel e pelo script do terminal.
+- Dados iniciais de cada tipo (quando se cria um post novo no painel): `painel-laravel/resources/modelos/<tipo>.json`.
+- Esta pasta (`modelos/`) só tem este guia e os `exemplos/`.
 
-## Como fazer um post (terminal)
+## Como fazer um post no painel (sem terminal)
+No painel, **+ Criar post** → escolher o tipo → página de edição com legenda, data, redes e a imagem,
+com pré-visualização ao vivo. **Guardar e gerar imagem** cria o PNG no servidor; **Enviar para aprovação** põe-no na fila.
+Cada post da fila tem também o botão **Editar**.
+
+## Como fazer um post (terminal, para o Claude)
 1. Criar uma pasta, por exemplo `posts/2026-11-workstations/`, com um `dados.json` (copiar de um exemplo).
 2. Pôr na mesma pasta as imagens que o post usa (fundo, foto do produto, logótipo do parceiro).
 3. Correr:
@@ -22,7 +25,7 @@ Fechar a janela preta do `abrir-editor.bat` desliga o editor. Só funciona neste
    (texto que não cabe, imagem que não existe, etc.) e o script termina com o código 2.
 4. Enviar para aprovação com `php artisan post:submeter --imagem=...\post.png ...`.
 
-Mudar o aspeto de todos os posts = mudar `modelos.css` / `modelos.js`. O `post.html` é gerado; não se edita à mão.
+Mudar o aspeto de todos os posts = mudar `painel-laravel/public/modelos/modelos.css` / `modelos.js`. O `post.html` é gerado; não se edita à mão.
 
 ## Campos do dados.json
 | Campo | Modelos | O que é |
@@ -46,4 +49,4 @@ Mudar o aspeto de todos os posts = mudar `modelos.css` / `modelos.js`. O `post.h
 ## Regras
 - O texto é sempre posto em código; logótipos e fotos de produtos vêm de ficheiros oficiais, nunca de IA.
 - O título encolhe sozinho até caber. Se for longo demais, o ícone sai primeiro e depois o script avisa.
-- O logótipo vem de `marca/logo-nexus.png`: quando houver a versão em alta resolução, basta substituir esse ficheiro.
+- O logótipo vem de `painel-laravel/public/modelos/logo-nexus.png` (cópia de `marca/logo-nexus.png`): quando houver a versão em alta resolução, substituir os dois.

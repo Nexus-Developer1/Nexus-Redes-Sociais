@@ -119,7 +119,7 @@
     post.appendChild(fg);
   }
 
-  var logo = h('div', 'logo', [imagem(BASE + '../marca/logo-nexus.png', '', 'logótipo'), h('div', 'sub', ['IT SOLUTIONS'])]);
+  var logo = h('div', 'logo', [imagem(BASE + 'logo-nexus.png', '', 'logótipo'), h('div', 'sub', ['IT SOLUTIONS'])]);
   var parceiroNoTopo = modelo === 'produto' && P.parceiro;
   var direita = parceiroNoTopo ? h('div', 'parceiro', [imagem(P.parceiro, '', 'logótipo do parceiro')])
     : (etiqueta ? h('div', 'etiqueta', [etiqueta]) : null);
@@ -203,7 +203,7 @@
     // Lido pelo scripts/gerar-post.ps1 no registo do Edge.
     console.log('NEXUS-ESTADO:pronto');
     avisos.forEach(function (a) { console.log('NEXUS-AVISO:' + a); });
-    // Dentro do editor (modelos/editor), mostra os avisos ao lado da pré-visualização.
+    // Dentro do editor do painel, mostra os avisos ao lado da pré-visualização.
     if (window.parent !== window) window.parent.postMessage({ nexus: 'pronto', avisos: avisos }, '*');
   }
 

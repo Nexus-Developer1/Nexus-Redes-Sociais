@@ -16,6 +16,9 @@ class PostReview extends Model
         'undone' => 'desfez a decisão',
         'idea_swap' => 'pediu outro tema',
         'discarded' => 'descartou a ideia',
+        'created' => 'criou o post no painel',
+        'edited' => 'editou o post',
+        'submitted' => 'enviou para aprovação',
         'published' => 'publicou',
         'publish_failed' => 'falhou a publicação',
     ];
