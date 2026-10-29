@@ -53,7 +53,9 @@ if (Test-Path $png) { Remove-Item $png }
 
 $opcoes = @("--headless=new", "--disable-gpu", "--hide-scrollbars", "--force-device-scale-factor=1",
           "--virtual-time-budget=10000", "--allow-file-access-from-files", "--window-size=$largura,$altura",
-          "--enable-logging=stderr", "--v=0", "--screenshot=$png", $url)
+          "--enable-logging=stderr", "--v=0", "--screenshot=$png", $url,
+          # perfil à parte, para não interferir com o Edge que estiver aberto
+          "--user-data-dir=$env:TEMP\nexus-gerar-post-edge")
 
 # O modelos.js escreve "NEXUS-ESTADO" e "NEXUS-AVISO" na consola; o Edge passa-os para o stderr.
 # (No PowerShell 5.1, o stderr de um programa não pode parar o script.)

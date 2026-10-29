@@ -203,6 +203,8 @@
     // Lido pelo scripts/gerar-post.ps1 no registo do Edge.
     console.log('NEXUS-ESTADO:pronto');
     avisos.forEach(function (a) { console.log('NEXUS-AVISO:' + a); });
+    // Dentro do editor (modelos/editor), mostra os avisos ao lado da pré-visualização.
+    if (window.parent !== window) window.parent.postMessage({ nexus: 'pronto', avisos: avisos }, '*');
   }
 
   window.addEventListener('load', function () {

@@ -3,7 +3,15 @@
 Quatro modelos fixos: **dica**, **produto**, **aviso** e **evento**. Todos têm o mesmo topo (logótipo NEXUS) e o mesmo rodapé.
 Exemplos prontos em `exemplos/` (com o `post.png` de cada um).
 
-## Como fazer um post
+## Como fazer um post (sem terminal): editor
+Duplo clique em **`abrir-editor.bat`** (raiz do projeto). Abre http://127.0.0.1:8020 no browser:
+- **+ Novo post**: escolhe o tipo e o nome da pasta (fica em `posts\`), começa a partir do exemplo do modelo;
+- à esquerda os campos, à direita a pré-visualização ao vivo e os avisos (texto que não cabe, imagem em falta);
+- **Escolher…** envia fundo, foto do produto ou logótipo do parceiro para a pasta do post;
+- **Guardar e gerar imagem** grava o `dados.json` e cria o `post.png` (é o mesmo script do terminal).
+Fechar a janela preta do `abrir-editor.bat` desliga o editor. Só funciona neste computador (127.0.0.1).
+
+## Como fazer um post (terminal)
 1. Criar uma pasta, por exemplo `posts/2026-11-workstations/`, com um `dados.json` (copiar de um exemplo).
 2. Pôr na mesma pasta as imagens que o post usa (fundo, foto do produto, logótipo do parceiro).
 3. Correr:

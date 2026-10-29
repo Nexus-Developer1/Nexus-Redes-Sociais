@@ -36,6 +36,7 @@ Sistema que cria posts para as redes sociais da NEXUS de forma autónoma.
 - `modelos/`: **modelos fixos** (dica, produto, aviso, evento) em HTML/CSS/JS; formatos 4:5, 1:1 e 9:16. Ver `modelos/LEIA-ME.md`.
   Cada post novo = pasta com `dados.json` → `.\scripts\gerar-post.ps1 -Pasta <pasta>` cria `post.html` + `post.png`
   e avisa (código 2) se o texto não couber ou faltar uma imagem. Usar sempre os modelos para posts novos.
+  Editor no browser para o utilizador (sem terminal): `abrir-editor.bat` → http://127.0.0.1:8020 (PHP embutido + `modelos/editor/`).
 - `posts/aviso-fecho/`: aviso "Amanhã estamos fechados" (23 out 2026), 100% em código.
 - `posts/dica-backup/`: dica da regra 3-2-1 de backup, com fundo do Pollinations.
 - `painel/`: protótipo do painel de aprovação (formato do canvas Design do claude.ai). Online: https://claude.ai/artifact/V5St7mNn398ZmY99MaAYgc

@@ -1,7 +1,7 @@
 {
   "modelo": "dica",
   "formato": "4:5",
-  "fundo": "../../../posts/dica-backup/fundo2.jpg",
+  "fundo": "fundo.jpg",
   "icone": "escudo",
   "titulo": "O seu backup está\nmesmo *seguro*?",
   "texto": "Siga a regra 3-2-1 e proteja os dados da sua empresa:",
