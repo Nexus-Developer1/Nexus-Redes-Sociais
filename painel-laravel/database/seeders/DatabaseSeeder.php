@@ -22,7 +22,7 @@ class DatabaseSeeder extends Seeder
                 'name' => env('APROVADOR_NOME', 'Aprovador'),
                 'email' => $email,
                 'password' => $password,
-            ]);
+            ])->forceFill(['is_admin' => true])->save();
             if (! env('APROVADOR_PASSWORD')) {
                 $this->command?->warn("Aprovador criado: {$email} / palavra-passe: {$password}");
             }

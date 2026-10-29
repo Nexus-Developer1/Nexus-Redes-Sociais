@@ -1,11 +1,13 @@
 <?php
 
 use App\Http\Controllers\CalendarioController;
+use App\Http\Controllers\ContaController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\PainelController;
 use App\Http\Controllers\PostDecisionController;
 use App\Http\Controllers\PostEditorController;
 use App\Http\Controllers\PostRequestController;
+use App\Http\Controllers\UtilizadoresController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -25,6 +27,16 @@ Route::middleware('auth')->group(function () {
     Route::post('/posts/{post}/descartar', [PostDecisionController::class, 'discard'])->name('posts.discard');
 
     Route::get('/calendario', [CalendarioController::class, 'index'])->name('calendario');
+
+    // A minha conta e gestão de utilizadores (esta só para administradores).
+    Route::get('/conta', [ContaController::class, 'show'])->name('conta');
+    Route::post('/conta', [ContaController::class, 'update'])->name('conta.update');
+    Route::post('/conta/palavra-passe', [ContaController::class, 'password'])->name('conta.password')->middleware('throttle:10,1');
+    Route::get('/utilizadores', [UtilizadoresController::class, 'index'])->name('users.index');
+    Route::post('/utilizadores', [UtilizadoresController::class, 'store'])->name('users.store');
+    Route::post('/utilizadores/{user}/palavra-passe', [UtilizadoresController::class, 'resetPassword'])->name('users.reset');
+    Route::post('/utilizadores/{user}/admin', [UtilizadoresController::class, 'toggleAdmin'])->name('users.admin');
+    Route::post('/utilizadores/{user}/remover', [UtilizadoresController::class, 'destroy'])->name('users.destroy');
 
     // Criar e editar posts no painel (modelos + legenda + data).
     Route::get('/posts/novo', [PostEditorController::class, 'create'])->name('posts.create');
