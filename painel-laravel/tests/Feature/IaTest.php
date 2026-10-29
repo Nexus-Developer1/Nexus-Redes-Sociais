@@ -212,7 +212,10 @@ class IaTest extends TestCase
 
     public function test_ia_na_legenda_devolve_legenda_nova_sem_guardar(): void
     {
-        Http::fake(['ia.teste/*' => Http::response(['choices' => [['message' => ['content' => '"Legenda mais curta.\nContacte‑nos.\n#NEXUS"']]]])]);
+        Http::fake(['ia.teste/*' => Http::sequence()
+            ->push(['choices' => [['message' => ['content' => '"Legenda **mais** curta.\nContacte‑nos.\n#NEXUS"']]]])
+            ->push(['choices' => [['message' => ['content' => '{}']]]]), // revisor PT-PT: nada a mudar
+        ]);
         $user = User::factory()->create();
         $post = Post::create(['title' => 'Backup', 'caption' => 'Legenda antiga muito comprida', 'networks' => ['Instagram'],
             'status' => Post::PENDING, 'design' => PostRenderer::exemplo('dica')]);
@@ -247,11 +250,26 @@ class IaTest extends TestCase
         $this->assertSame('Proteja a sua equipa.', $post->design['texto']);
     }
 
+    public function test_sem_revisor_o_texto_nao_se_usa(): void
+    {
+        // A IA escreve o post mas o revisor esbarra no limite: o pedido volta à fila, sem post.
+        Http::fake(['ia.teste/*' => Http::sequence()
+            ->push($this->respostaIa())
+            ->push(['error' => ['message' => 'rate limit']], 429),
+        ]);
+        $pedido = PostRequest::create(['topic' => 'tema']);
+
+        $this->artisan('post:tratar-pedidos')->assertSuccessful();
+
+        $this->assertSame('new', $pedido->fresh()->status);
+        $this->assertSame(0, Post::count());
+    }
+
     public function test_correcoes_fixas_de_brasileirismos(): void
     {
         $this->assertSame(
-            'A sua Equipa deve detetar o ficheiro no ecrã do telemóvel. Contacte-nos. Eletrónico, económico, género. Eles têm. #equipe',
-            \App\Services\PostWriter::ptpt('A sua Equipe deve detectar o arquivo na tela do celular. Contate-nos. Eletrônico, econômico, gênero. Eles têm. #equipe')
+            'A sua Equipa deve detetar o ficheiro no ecrã do telemóvel. Contacte-nos. Eletrónico, económico, género. Eles têm. Guarde o trabalho. #equipe',
+            \App\Services\PostWriter::ptpt('A sua Equipe deve detectar o arquivo na tela do celular. Contate-nos. Eletrônico, econômico, gênero. Eles têm. Salve o trabalho. #equipe')
         );
     }
 

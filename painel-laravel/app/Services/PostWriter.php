@@ -64,9 +64,7 @@ class PostWriter
             return null;
         }
         $lista = collect($fotos)->map(fn ($f) => $f['id'].': '.mb_substr($f['alt'], 0, 150))->implode("\n");
-        $resposta = Http::withToken(config('ia.chave'))->timeout(30)->acceptJson()
-            ->post(rtrim(config('ia.endereco'), '/').'/chat/completions', [
-                'model' => config('ia.modelo'),
+        $resposta = $this->chamar(30, [
                 'messages' => [
                     ['role' => 'system', 'content' => 'Escolhes a fotografia de fundo para um post de uma empresa portuguesa de informática '
                         .'(servidores, computadores, redes, energia/UPS, cibersegurança, escritórios). Cada linha é "id: palavras que descrevem a foto". '
@@ -84,6 +82,23 @@ class PostWriter
         $id = (int) ($m[0] ?? 0);
 
         return in_array($id, array_column($fotos, 'id'), true) ? $id : null;
+    }
+
+    /**
+     * Chamada à IA. Se o plano gratuito pedir para esperar (429 com retry-after até 30 s),
+     * espera e tenta outra vez, até 3 vezes, em vez de desistir.
+     */
+    private function chamar(int $timeout, array $pedido): \Illuminate\Http\Client\Response
+    {
+        for ($tentativa = 1; ; $tentativa++) {
+            $resposta = Http::withToken(config('ia.chave'))->timeout($timeout)->acceptJson()
+                ->post(rtrim(config('ia.endereco'), '/').'/chat/completions', ['model' => config('ia.modelo')] + $pedido);
+            $espera = (float) $resposta->header('retry-after');
+            if ($resposta->status() !== 429 || $tentativa >= 3 || $espera <= 0 || $espera > 30) {
+                return $resposta;
+            }
+            usleep((int) (($espera + 0.5) * 1_000_000));
+        }
     }
 
     /** O que cada botão da IA faz à legenda (editor). */
@@ -104,9 +119,7 @@ class PostWriter
         }
         $pedido = self::ACOES_LEGENDA[$acao] ?? throw new RuntimeException('Ação desconhecida.');
 
-        $resposta = Http::withToken(config('ia.chave'))->timeout(60)->acceptJson()
-            ->post(rtrim(config('ia.endereco'), '/').'/chat/completions', [
-                'model' => config('ia.modelo'),
+        $resposta = $this->chamar(60, [
                 'messages' => [
                     ['role' => 'system', 'content' => "És o redator das redes sociais da NEXUS IT Solutions, empresa portuguesa de informática "
                         ."(servidores, workstations, redes, UPS, backup, cibersegurança). Site: nexus-solutions.pt, email: info@nexus-solutions.pt.\n"
@@ -136,9 +149,7 @@ class PostWriter
     /** Passa uma pesquisa de fotos escrita em português para palavras-chave em inglês (os bancos de fotos funcionam melhor). */
     public function pesquisaEmIngles(string $pesquisa): string
     {
-        $resposta = Http::withToken(config('ia.chave'))->timeout(20)->acceptJson()
-            ->post(rtrim(config('ia.endereco'), '/').'/chat/completions', [
-                'model' => config('ia.modelo'),
+        $resposta = $this->chamar(20, [
                 'messages' => [
                     ['role' => 'system', 'content' => 'Traduz o pedido para 2 a 5 palavras-chave em inglês, para pesquisar fotografias num banco de imagens. Responde só com as palavras, sem aspas nem pontuação.'],
                     ['role' => 'user', 'content' => mb_substr($pesquisa, 0, 200)],
@@ -161,12 +172,8 @@ class PostWriter
 
         $erro = null;
         for ($tentativa = 1; $tentativa <= 2; $tentativa++) {
-            $resposta = Http::withToken(config('ia.chave'))
-                ->timeout(config('ia.timeout'))
-                ->acceptJson()
-                ->post(rtrim(config('ia.endereco'), '/').'/chat/completions', [
-                    'model' => config('ia.modelo'),
-                    'messages' => [
+            $resposta = $this->chamar(config('ia.timeout'), [
+                        'messages' => [
                         ['role' => 'system', 'content' => $this->instrucoes()],
                         ['role' => 'user', 'content' => $mensagem],
                     ],
@@ -203,7 +210,8 @@ class PostWriter
             return $v;
         }
 
-        return self::ptpt(strtr(str_replace(['\r\n', '\n'], "\n", $v), [
+        // **negrito** de markdown: o Instagram mostra os asteriscos, por isso saem.
+        return self::ptpt(strtr(str_replace(['\r\n', '\n', '**'], ["\n", "\n", ''], $v), [
             "\u{2010}" => '-', "\u{2011}" => '-', "\u{2012}" => '-', "\u{00AD}" => '',
             "\u{00A0}" => ' ', "\u{202F}" => ' ', "\u{2009}" => ' ', "\u{200B}" => '',
         ]));
@@ -225,7 +233,7 @@ class PostWriter
         'treinamento' => 'formação', 'treinamentos' => 'formações',
         'planilha' => 'folha de cálculo', 'planilhas' => 'folhas de cálculo',
         'ônibus' => 'autocarro', 'trem' => 'comboio', 'xícara' => 'chávena',
-        'esporte' => 'desporto',
+        'esporte' => 'desporto', 'salvar' => 'guardar', 'salve' => 'guarde', 'salvem' => 'guardem',
     ];
 
     /** Expressões em que a palavra muda de género ("na tela" → "no ecrã"); aplicam-se antes das palavras soltas. */
@@ -287,11 +295,10 @@ class PostWriter
         if (! $textos) {
             return [];
         }
-        try {
-            $resposta = Http::withToken(config('ia.chave'))->timeout(60)->acceptJson()
-                ->post(rtrim(config('ia.endereco'), '/').'/chat/completions', [
-                    'model' => config('ia.modelo'),
-                    'messages' => [
+        $revistos = null;
+        for ($tentativa = 1; $tentativa <= 2 && ! is_array($revistos); $tentativa++) {
+            $resposta = $this->chamar(60, [
+                        'messages' => [
                         ['role' => 'system', 'content' => 'És revisor de português europeu (de Portugal) de uma empresa portuguesa. '
                             .'Recebes um objeto JSON com textos. Devolve o MESMO objeto JSON, com as mesmas chaves, corrigindo só: '
                             .'brasileirismos de vocabulário (equipe→equipa, tela→ecrã, usuário→utilizador, arquivo→ficheiro, contato→contacto, '
@@ -306,14 +313,14 @@ class PostWriter
                     'response_format' => ['type' => 'json_object'],
                     'temperature' => 0,
                 ]);
+            if ($resposta->failed()) {
+                // Sem revisão o texto não se usa (o pedido volta à fila / o botão avisa).
+                throw new RuntimeException('O revisor de português não conseguiu rever o texto (a IA respondeu com erro '.$resposta->status().'). Tente daqui a um minuto.');
+            }
             $revistos = json_decode((string) $resposta->json('choices.0.message.content'), true);
-        } catch (\Throwable $e) {
-            report($e);
-
-            return $textos;
         }
         if (! is_array($revistos)) {
-            return $textos;
+            throw new RuntimeException('O revisor de português não devolveu uma revisão válida. Tente outra vez.');
         }
         // Só aceita a revisão de cada texto se veio como texto e não ficou muito diferente em tamanho.
         foreach ($textos as $chave => $original) {
