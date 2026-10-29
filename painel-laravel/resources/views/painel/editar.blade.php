@@ -72,10 +72,25 @@
                                 @checked(in_array($net, old('networks', $post->networks ?? []), true))> {{ $net }}</label>
                         @endforeach
                     </div>
-                    <label class="cresce">Legenda <small id="conta-legenda"></small>
+                    <div class="campo-legenda">
+                        <label for="legenda" class="rotulo">Legenda <small id="conta-legenda"></small></label>
+                        @if ($ia)
+                            {{-- Botões da IA: mudam a legenda na hora; só fica guardada com "Guardar" --}}
+                            <div class="ia-legenda" role="group" aria-label="IA na legenda">
+                                <span class="ia-rotulo">✨ IA:</span>
+                                <button type="button" class="chip" data-acao="escrever">Escrever</button>
+                                <button type="button" class="chip" data-acao="curta">Mais curta</button>
+                                <button type="button" class="chip" data-acao="profissional">Mais profissional</button>
+                                <button type="button" class="chip" data-acao="proxima">Mais próxima</button>
+                                <button type="button" class="chip" data-acao="corrigir">Corrigir português</button>
+                                <button type="button" class="chip" data-acao="hashtags">Hashtags</button>
+                                <button type="button" class="chip desfazer" id="ia-desfazer" hidden>↶ Desfazer</button>
+                                <span class="ia-estado" id="ia-estado" aria-live="polite"></span>
+                            </div>
+                        @endif
                         <textarea name="caption" id="legenda" rows="10" maxlength="2200"
                                   placeholder="Texto que acompanha a imagem no Instagram/Facebook, com hashtags no fim.">{{ old('caption', $post->caption) }}</textarea>
-                    </label>
+                    </div>
                 </section>
 
                 <section class="caixa" id="design">
@@ -220,6 +235,7 @@ window.EDITOR = {
     pasta: @json($pastaUrl),
     modelos: @json(asset('modelos').'/'),
     upload: @json(route('posts.upload', $post)),
+    legendaIa: @json($ia ? route('posts.captionAi', $post) : null),
     pexels: @json($pexels ? ['procurar' => route('images.search'), 'usar' => route('posts.stock', $post)] : null),
     csrf: @json(csrf_token()),
 };

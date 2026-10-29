@@ -328,3 +328,12 @@ body.ecra-editor { height: 100vh; height: 100dvh; display: flex; flex-direction:
 .password-nova { background: #fff8e1; border-color: #f0d98a; display: flex; flex-direction: column; gap: 8px; }
 .credenciais { display: flex; flex-direction: column; gap: 4px; }
 .credenciais code { font-size: 15px; background: #fff; padding: 2px 8px; border-radius: 6px; border: 1px solid #f0d98a; user-select: all; }
+/* IA na legenda (editor) */
+.campo-legenda { display: flex; flex-direction: column; gap: 6px; }
+.ia-legenda { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.ia-rotulo { font-size: 13px; font-weight: 600; color: var(--verde); }
+.chip { font: inherit; font-size: 13px; font-weight: 600; padding: 4px 11px; border-radius: 999px; border: 1px solid #b9d3c1; background: #f1f8f3; color: var(--verde); cursor: pointer; }
+.chip:hover { background: var(--verde); border-color: var(--verde); color: #fff; }
+.chip:disabled { opacity: .55; cursor: wait; }
+.chip.desfazer { background: #fff; border-color: #c8cfca; color: #33443a; }
+.ia-estado { font-size: 13px; color: var(--texto-2); }

@@ -207,6 +207,25 @@ class IaTest extends TestCase
             && ! str_contains($r['messages'][1]['content'] ?? '', '77:'));
     }
 
+    public function test_ia_na_legenda_devolve_legenda_nova_sem_guardar(): void
+    {
+        Http::fake(['ia.teste/*' => Http::response(['choices' => [['message' => ['content' => '"Legenda mais curta.\nContacte‑nos.\n#NEXUS"']]]])]);
+        $user = User::factory()->create();
+        $post = Post::create(['title' => 'Backup', 'caption' => 'Legenda antiga muito comprida', 'networks' => ['Instagram'],
+            'status' => Post::PENDING, 'design' => PostRenderer::exemplo('dica')]);
+
+        $this->actingAs($user)->get(route('posts.edit', $post))->assertSee('Mais profissional');
+        $this->actingAs($user)->postJson(route('posts.captionAi', $post), [
+            'acao' => 'curta', 'legenda' => 'Legenda antiga muito comprida', 'titulo' => 'O seu *backup*',
+        ])->assertOk()->assertJson(['legenda' => "Legenda mais curta.\nContacte-nos.\n#NEXUS"]); // sem aspas nem hífen especial
+
+        $this->assertSame('Legenda antiga muito comprida', $post->fresh()->caption); // só guarda com "Guardar"
+        Http::assertSent(fn ($r) => str_contains($r['messages'][1]['content'], 'mais curta')
+            && str_contains($r['messages'][1]['content'], 'O seu backup'));
+
+        $this->actingAs($user)->postJson(route('posts.captionAi', $post), ['acao' => 'apagar-tudo'])->assertStatus(422);
+    }
+
     public function test_data_escolhida_no_pedido_manda_sobre_a_da_ia(): void
     {
         // A IA sugere outra data; a escolhida por quem pediu é a que fica.

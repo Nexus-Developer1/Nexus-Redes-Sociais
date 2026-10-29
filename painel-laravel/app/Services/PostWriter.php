@@ -86,6 +86,50 @@ class PostWriter
         return in_array($id, array_column($fotos, 'id'), true) ? $id : null;
     }
 
+    /** O que cada botão da IA faz à legenda (editor). */
+    public const ACOES_LEGENDA = [
+        'escrever' => 'Escreve a legenda para este post, a partir do título e do texto da imagem.',
+        'curta' => 'Reescreve a legenda mais curta (no máximo uns 400 caracteres), com a mesma mensagem, o convite ao contacto e as hashtags.',
+        'profissional' => 'Reescreve a legenda com um tom mais profissional e institucional, sem perder a mensagem.',
+        'proxima' => 'Reescreve a legenda com um tom mais próximo e simpático (sem exageros nem gíria), sem perder a mensagem.',
+        'corrigir' => 'Corrige só erros de português de Portugal, acentos e pontuação. Não mudes mais nada.',
+        'hashtags' => 'Mantém o texto exatamente igual e troca as hashtags do fim por 5 a 8 hashtags relevantes para o tema, incluindo #NEXUS.',
+    ];
+
+    /** A IA reescreve a legenda conforme o botão carregado no editor. Devolve a legenda nova. */
+    public function legenda(string $acao, string $legenda, string $contexto): string
+    {
+        if (! $this->configurado()) {
+            throw new RuntimeException('A IA não está configurada (IA_CHAVE no .env).');
+        }
+        $pedido = self::ACOES_LEGENDA[$acao] ?? throw new RuntimeException('Ação desconhecida.');
+
+        $resposta = Http::withToken(config('ia.chave'))->timeout(60)->acceptJson()
+            ->post(rtrim(config('ia.endereco'), '/').'/chat/completions', [
+                'model' => config('ia.modelo'),
+                'messages' => [
+                    ['role' => 'system', 'content' => "És o redator das redes sociais da NEXUS IT Solutions, empresa portuguesa de informática "
+                        ."(servidores, workstations, redes, UPS, backup, cibersegurança). Site: nexus-solutions.pt, email: info@nexus-solutions.pt.\n"
+                        ."Escreves SEMPRE em português de Portugal, nunca do Brasil (equipa, ecrã, utilizador, contacto, \"a fazer\").\n"
+                        ."Nunca inventes preços, promoções, números ou características que não estejam no texto.\n"
+                        ."Legendas: parágrafos curtos, no máximo 2200 caracteres, 1 ou 2 emojis no máximo, hashtags no fim.\n"
+                        ."Usa hífens e espaços normais. Responde SÓ com a legenda final, sem aspas nem comentários."],
+                    ['role' => 'user', 'content' => "Post: {$contexto}\n\nLegenda atual:\n".($legenda !== '' ? $legenda : '(vazia)')."\n\nPedido: {$pedido}"],
+                ],
+                'temperature' => $acao === 'corrigir' ? 0 : 0.7,
+            ]);
+
+        if ($resposta->failed()) {
+            throw new RuntimeException('A IA respondeu com erro '.$resposta->status().'.');
+        }
+        $nova = trim((string) $this->limparTexto((string) $resposta->json('choices.0.message.content')), " \t\n\r\"");
+        if ($nova === '') {
+            throw new RuntimeException('A IA não devolveu nenhuma legenda.');
+        }
+
+        return mb_substr($nova, 0, 2200);
+    }
+
     /** Passa uma pesquisa de fotos escrita em português para palavras-chave em inglês (os bancos de fotos funcionam melhor). */
     public function pesquisaEmIngles(string $pesquisa): string
     {

@@ -24,6 +24,55 @@
     b.textContent = E.design ? 'A gerar a imagem…' : 'A guardar…';
   });
 
+  // ---------- IA na legenda: muda a legenda na hora; só fica guardada com "Guardar" ----------
+  var antes = null;
+  function estadoIa(texto) { $('#ia-estado').textContent = texto; }
+  $$('.ia-legenda [data-acao]').forEach(function (botao) {
+    botao.addEventListener('click', function () {
+      var titulo = $('#design [data-campo=titulo]');
+      var texto = $('#design [data-campo=texto]');
+      $$('.ia-legenda .chip').forEach(function (b) { b.disabled = true; });
+      estadoIa('A IA está a escrever…');
+      fetch(E.legendaIa, {
+        method: 'POST',
+        headers: { 'X-CSRF-TOKEN': E.csrf, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          acao: botao.dataset.acao,
+          legenda: legenda.value,
+          titulo: titulo ? titulo.value : '',
+          texto: texto ? texto.value : '',
+        }),
+      })
+        .then(function (r) {
+          return r.json().catch(function () { return {}; }).then(function (j) {
+            if (!r.ok) throw new Error(j.message || ('Erro ' + r.status));
+            return j;
+          });
+        })
+        .then(function (j) {
+          antes = legenda.value;
+          legenda.value = j.legenda;
+          contaLegenda();
+          alterado = true;
+          $('#ia-desfazer').hidden = false;
+          estadoIa('Feito. Reveja e carregue em “Guardar”.');
+        })
+        .catch(function (err) { estadoIa('Não foi possível: ' + err.message); })
+        .then(function () { $$('.ia-legenda .chip').forEach(function (b) { b.disabled = false; }); });
+    });
+  });
+  var desfazer = $('#ia-desfazer');
+  if (desfazer) {
+    desfazer.addEventListener('click', function () {
+      if (antes === null) return;
+      legenda.value = antes;
+      antes = null;
+      contaLegenda();
+      desfazer.hidden = true;
+      estadoIa('Legenda anterior reposta.');
+    });
+  }
+
   if (!E.design) return; // post sem modelo: só legenda, data e redes
 
   var imagens = { foto: E.design.foto || E.design.fundo || '', produto: E.design.produto || '', parceiro: E.design.parceiro || '' };

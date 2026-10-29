@@ -63,6 +63,7 @@ class PostEditorController extends Controller
             'pastaUrl' => PostRenderer::url($post),
             'pexels' => app(BancoFotos::class)->configurado(),
             'banco' => app(BancoFotos::class)->nome(),
+            'ia' => app(PostWriter::class)->configurado(),
         ]);
     }
 
@@ -241,6 +242,27 @@ class PostEditorController extends Controller
             'comment' => 'Foto: '.$foto['fotografo'].' ('.$banco->nome().')']);
 
         return back()->with('ok', 'Foto trocada em “'.$post->title.'”.');
+    }
+
+    /** Botões da IA na legenda (editor): devolve a legenda nova; só fica guardada quando se carrega em Guardar. */
+    public function captionAi(Request $request, Post $post, PostWriter $escritor): JsonResponse
+    {
+        $this->mustBeEditable($post);
+        $data = $request->validate([
+            'acao' => ['required', Rule::in(array_keys(PostWriter::ACOES_LEGENDA))],
+            'legenda' => ['nullable', 'string', 'max:2200'],
+            'titulo' => ['nullable', 'string', 'max:300'],
+            'texto' => ['nullable', 'string', 'max:600'],
+        ]);
+        $contexto = trim($post->title.'. '.str_replace(['*', "\n"], ['', ' '], ($data['titulo'] ?? '').'. '.($data['texto'] ?? '')), ' .');
+
+        try {
+            return response()->json(['legenda' => $escritor->legenda($data['acao'], trim($data['legenda'] ?? ''), $contexto)]);
+        } catch (RuntimeException $e) {
+            report($e);
+
+            return response()->json(['message' => $e->getMessage()], 502);
+        }
     }
 
     /** Mudar só a data de publicação, a partir da lista de posts. */
