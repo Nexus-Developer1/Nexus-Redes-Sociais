@@ -26,16 +26,22 @@ class Pixabay
      */
     public function procurar(string $pesquisa, string $formato = '4:5', int $quantos = 18): array
     {
-        $resposta = $this->pedido([
+        $parametros = [
             'q' => mb_substr($pesquisa, 0, 100),
             'image_type' => 'photo',
             'orientation' => $formato === '1:1' ? 'all' : 'vertical',
             'per_page' => max(3, min($quantos, 50)),
             'safesearch' => 'true',
             'min_width' => 800,
-        ]);
+        ];
+        // A IA pesquisa em inglês; quem usa o editor pode escrever em português.
+        // Primeiro em inglês; se vier pouco, completa com a pesquisa em português.
+        $hits = $this->pedido($parametros + ['lang' => 'en'])['hits'] ?? [];
+        if (count($hits) < $quantos / 2) {
+            $hits = array_merge($hits, $this->pedido($parametros + ['lang' => 'pt'])['hits'] ?? []);
+        }
 
-        return collect($resposta['hits'] ?? [])->map(fn ($f) => [
+        return collect($hits)->unique('id')->take($quantos)->map(fn ($f) => [
             'id' => (int) $f['id'],
             'miniatura' => (string) ($f['webformatURL'] ?? $f['previewURL'] ?? ''),
             'alt' => (string) ($f['tags'] ?? ''),
@@ -70,7 +76,7 @@ class Pixabay
             throw new RuntimeException('O Pixabay não está configurado (PIXABAY_CHAVE no .env).');
         }
         $resposta = Http::timeout(20)->acceptJson()
-            ->get(self::API, ['key' => config('services.pixabay.key'), 'lang' => 'pt'] + $parametros);
+            ->get(self::API, ['key' => config('services.pixabay.key')] + $parametros);
         if ($resposta->failed()) {
             throw new RuntimeException('O Pixabay respondeu com erro '.$resposta->status().'.');
         }
