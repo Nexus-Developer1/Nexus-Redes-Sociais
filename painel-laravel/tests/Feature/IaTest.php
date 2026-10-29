@@ -87,6 +87,33 @@ class IaTest extends TestCase
             && str_contains($r['messages'][1]['content'], 'post sobre UPS Riello'));
     }
 
+    public function test_data_escolhida_no_pedido_manda_sobre_a_da_ia(): void
+    {
+        // A IA sugere outra data; a escolhida por quem pediu é a que fica.
+        Http::fake(['ia.teste/*' => Http::response($this->respostaIa(['publicar_em' => now()->addDays(9)->format('Y-m-d').' 10:00']))]);
+        $user = User::factory()->create();
+        $quando = now()->addDays(20)->setTime(17, 30);
+
+        $this->actingAs($user)->post(route('requests.store'), [
+            'topic' => 'Aviso: fechados no feriado',
+            'publish_at' => $quando->format('Y-m-d\TH:i'),
+        ])->assertSessionHasNoErrors();
+        $this->artisan('post:tratar-pedidos')->assertSuccessful();
+
+        $post = PostRequest::first()->post;
+        $this->assertSame($quando->format('Y-m-d H:i'), $post->scheduled_at->format('Y-m-d H:i'));
+        Http::assertSent(fn ($r) => str_contains($r['messages'][1]['content'], 'A data de publicação já está decidida'));
+    }
+
+    public function test_data_no_passado_e_recusada(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user)->post(route('requests.store'), [
+            'topic' => 'tema', 'publish_at' => now()->subDay()->format('Y-m-d\TH:i'),
+        ])->assertSessionHasErrors('publish_at');
+        $this->assertSame(0, PostRequest::count());
+    }
+
     public function test_alteracao_pedida_e_feita_pela_ia(): void
     {
         Http::fake(['ia.teste/*' => Http::response($this->respostaIa(['titulo' => 'UPS *Riello*\npara datacenters']))]);

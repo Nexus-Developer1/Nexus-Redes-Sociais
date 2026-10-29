@@ -58,7 +58,7 @@ class TratarPedidos extends Command
         $post = null;
 
         try {
-            $r = $escritor->criar($pedido->topic);
+            $r = $escritor->criar($pedido->topic, $pedido->publish_at);
 
             $post = Post::create([
                 'title' => $r['titulo_interno'],

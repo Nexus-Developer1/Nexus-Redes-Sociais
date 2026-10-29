@@ -19,12 +19,20 @@ class PostWriter
         return filled(config('ia.chave'));
     }
 
-    /** Post novo a partir do tema escrito em "Pedir um post". */
-    public function criar(string $tema): array
+    /** Post novo a partir do tema escrito em "Pedir um post" (e, se escolhida, a data de publicação). */
+    public function criar(string $tema, ?Carbon $publicarEm = null): array
     {
-        return $this->pedir(
-            "Pedido de post: \"{$tema}\"\n\nCria o post completo.",
-        );
+        $data = $publicarEm
+            ? "\nA data de publicação já está decidida: ".$publicarEm->locale('pt_PT')->translatedFormat('l, j \d\e F \d\e Y, H:i')
+              .'. Usa-a em "publicar_em" e não a mudes. (A data do acontecimento, se houver, é a que vem no tema.)'
+            : '';
+
+        $r = $this->pedir("Pedido de post: \"{$tema}\"{$data}\n\nCria o post completo.");
+        if ($publicarEm) {
+            $r['publicar_em'] = $publicarEm->copy(); // a escolha de quem pediu manda sempre
+        }
+
+        return $r;
     }
 
     /** Nova versão de um post, com o que o aprovador pediu para mudar. */

@@ -85,6 +85,10 @@
             <textarea id="topic" name="topic" rows="3" required maxlength="2000"
                       placeholder="Ex.: aviso de fecho no feriado de 1 de dezembro">{{ old('topic') }}</textarea>
             @error('topic')<div class="erro">{{ $message }}</div>@enderror
+            <label for="publish_at">Publicar em <small>(opcional; vazio = a IA escolhe)</small></label>
+            <input type="datetime-local" id="publish_at" name="publish_at" value="{{ old('publish_at') }}"
+                   min="{{ now()->format('Y-m-d\TH:i') }}">
+            @error('publish_at')<div class="erro">{{ $message }}</div>@enderror
             <button type="submit">Pedir post</button>
         </form>
     </aside>

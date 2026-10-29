@@ -271,3 +271,5 @@ body.ecra-editor { height: 100vh; height: 100dvh; display: flex; flex-direction:
 .historico summary:hover { color: var(--verde); }
 .historico[open] summary { margin-bottom: 4px; }
 @media (max-width: 520px) { .post { grid-template-columns: 1fr; } .post-imagem { max-width: 240px; } }
+.pedir input[type=datetime-local] { border: 1px solid #2f4a38; background: #12241a; color: #fff; border-radius: 8px; padding: 9px 12px; font: inherit; color-scheme: dark; }
+.pedir label small { color: #8fa597; font-weight: 400; }

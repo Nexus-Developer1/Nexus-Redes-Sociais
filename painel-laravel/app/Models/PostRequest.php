@@ -14,7 +14,12 @@ class PostRequest extends Model
         'failed' => 'Falhou',
     ];
 
-    protected $fillable = ['topic', 'status', 'user_id', 'post_id', 'error'];
+    protected $fillable = ['topic', 'publish_at', 'status', 'user_id', 'post_id', 'error'];
+
+    protected function casts(): array
+    {
+        return ['publish_at' => 'datetime'];
+    }
 
     public function user(): BelongsTo
     {

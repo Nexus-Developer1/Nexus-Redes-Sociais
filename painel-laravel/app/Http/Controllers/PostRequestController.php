@@ -13,12 +13,15 @@ class PostRequestController extends Controller
     {
         $data = $request->validate([
             'topic' => ['required', 'string', 'max:2000'],
+            'publish_at' => ['nullable', 'date', 'after:now'],
         ], [
             'topic.required' => 'Escreva o tema do post.',
+            'publish_at.after' => 'A data de publicação tem de ser no futuro.',
         ]);
 
         PostRequest::create([
             'topic' => $data['topic'],
+            'publish_at' => $data['publish_at'] ?? null,
             'user_id' => $request->user()->id,
         ]);
 

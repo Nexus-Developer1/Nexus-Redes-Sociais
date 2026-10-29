@@ -7,7 +7,10 @@
                 <div class="pedido-texto">
                     <div style="font-weight:600">{{ $req->topic }}</div>
                     <div class="origem">
-                        {{ $req->user?->name ?? '—' }} · {{ $req->created_at->locale('pt_PT')->translatedFormat('j M, H:i') }}
+                        {{ $req->user?->name ?? '—' }} · pedido a {{ $req->created_at->locale('pt_PT')->translatedFormat('j M, H:i') }}
+                        @if ($req->publish_at)
+                            · <b>publicar a {{ $req->publish_at->locale('pt_PT')->translatedFormat('D, j M, H:i') }}</b>
+                        @endif
                         @if ($req->post)
                             · <a href="{{ route('posts.edit', $req->post) }}">ver o post “{{ $req->post->title }}”</a>
                         @endif
