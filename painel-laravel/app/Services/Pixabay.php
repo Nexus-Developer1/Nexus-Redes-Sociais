@@ -29,16 +29,17 @@ class Pixabay
         $parametros = [
             'q' => mb_substr($pesquisa, 0, 100),
             'image_type' => 'photo',
-            'orientation' => $formato === '1:1' ? 'all' : 'vertical',
+            'orientation' => 'all', // o post corta a foto ao tamanho certo; só verticais dava poucos resultados
             'per_page' => max(3, min($quantos, 50)),
             'safesearch' => 'true',
             'min_width' => 800,
         ];
         // A IA pesquisa em inglês; quem usa o editor pode escrever em português.
-        // Primeiro em inglês; se vier pouco, completa com a pesquisa em português.
-        $hits = $this->pedido($parametros + ['lang' => 'en'])['hits'] ?? [];
+        // Pesquisa primeiro na língua que parece ser a da pesquisa e completa com a outra se vier pouco.
+        [$primeira, $segunda] = self::parecePortugues($pesquisa) ? ['pt', 'en'] : ['en', 'pt'];
+        $hits = $this->pedido($parametros + ['lang' => $primeira])['hits'] ?? [];
         if (count($hits) < $quantos / 2) {
-            $hits = array_merge($hits, $this->pedido($parametros + ['lang' => 'pt'])['hits'] ?? []);
+            $hits = array_merge($hits, $this->pedido($parametros + ['lang' => $segunda])['hits'] ?? []);
         }
 
         return collect($hits)->unique('id')->take($quantos)->map(fn ($f) => [
@@ -47,6 +48,11 @@ class Pixabay
             'alt' => (string) ($f['tags'] ?? ''),
             'fotografo' => (string) ($f['user'] ?? ''),
         ])->filter(fn ($f) => $f['miniatura'] !== '')->values()->all();
+    }
+
+    public static function parecePortugues(string $texto): bool
+    {
+        return (bool) preg_match('/[áàâãéêíóôõúç]|\b(de|da|do|das|dos|com|para|em|uma?|equipa|escrit\w*|servidor\w*|reuni\w*|trabalh\w*|empresa|pessoas?)\b/iu', $texto);
     }
 
     /** @return array{nome: string, fotografo: string} */

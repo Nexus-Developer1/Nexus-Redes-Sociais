@@ -52,6 +52,23 @@ class PostWriter
         );
     }
 
+    /** Passa uma pesquisa de fotos escrita em português para palavras-chave em inglês (os bancos de fotos funcionam melhor). */
+    public function pesquisaEmIngles(string $pesquisa): string
+    {
+        $resposta = Http::withToken(config('ia.chave'))->timeout(20)->acceptJson()
+            ->post(rtrim(config('ia.endereco'), '/').'/chat/completions', [
+                'model' => config('ia.modelo'),
+                'messages' => [
+                    ['role' => 'system', 'content' => 'Traduz o pedido para 2 a 5 palavras-chave em inglês, para pesquisar fotografias num banco de imagens. Responde só com as palavras, sem aspas nem pontuação.'],
+                    ['role' => 'user', 'content' => mb_substr($pesquisa, 0, 200)],
+                ],
+                'temperature' => 0,
+            ]);
+        $texto = trim((string) $resposta->json('choices.0.message.content'), " \t\n\r\"'.");
+
+        return $resposta->successful() && $texto !== '' ? mb_substr($texto, 0, 80) : $pesquisa;
+    }
+
     /**
      * @return array{titulo_interno: string, design: array, legenda: string, redes: array, publicar_em: ?Carbon}
      */

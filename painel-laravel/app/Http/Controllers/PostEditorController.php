@@ -6,6 +6,8 @@ use App\Models\Post;
 use App\Models\User;
 use App\Notifications\PostParaAprovar;
 use App\Services\BancoFotos;
+use App\Services\Pixabay;
+use App\Services\PostWriter;
 use App\Services\PostRenderer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -152,12 +154,20 @@ class PostEditorController extends Controller
         return response()->json(['nome' => $nome]);
     }
 
-    /** Procurar fotos no Pexels (editor: "Procurar imagem"). */
-    public function searchImages(Request $request, BancoFotos $pexels): JsonResponse
+    /** Procurar fotos no banco de fotos (editor: "Procurar imagem"). Em português, a IA traduz primeiro para inglês. */
+    public function searchImages(Request $request, BancoFotos $pexels, PostWriter $escritor): JsonResponse
     {
         $data = $request->validate(['q' => ['required', 'string', 'max:100'], 'formato' => ['nullable', 'string']]);
+        $pesquisa = $data['q'];
+        if (Pixabay::parecePortugues($pesquisa) && $escritor->configurado()) {
+            try {
+                $pesquisa = $escritor->pesquisaEmIngles($pesquisa);
+            } catch (\Throwable $e) {
+                report($e); // sem tradução, pesquisa como foi escrita
+            }
+        }
         try {
-            return response()->json(['fotos' => $pexels->procurar($data['q'], $data['formato'] ?? '4:5')]);
+            return response()->json(['pesquisa' => $pesquisa, 'fotos' => $pexels->procurar($pesquisa, $data['formato'] ?? '4:5')]);
         } catch (RuntimeException $e) {
             return response()->json(['message' => $e->getMessage()], 502);
         }

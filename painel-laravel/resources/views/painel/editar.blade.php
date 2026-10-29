@@ -119,7 +119,7 @@
                                     <summary class="btn btn-contorno pequeno">Procurar imagem grátis ({{ $banco }})…</summary>
                                     <div class="procura">
                                         <div class="procura-barra">
-                                            <input type="search" id="pexels-q" placeholder="Ex.: server room, office team, laptop (em inglês dá mais resultados)">
+                                            <input type="search" id="pexels-q" placeholder="Ex.: sala de servidores, equipa no escritório, portátil">
                                             <button type="button" class="btn btn-principal pequeno" id="pexels-ir">Procurar</button>
                                         </div>
                                         <div class="procura-grelha" id="pexels-grelha"></div>

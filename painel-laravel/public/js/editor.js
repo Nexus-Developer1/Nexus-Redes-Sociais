@@ -190,8 +190,14 @@
       { headers: { 'Accept': 'application/json' } })
       .then(lerJson)
       .then(function (j) {
-        if (!j.fotos.length) return aviso('Sem resultados. Experimente outras palavras (em inglês dá mais resultados).');
+        if (!j.fotos.length) return aviso('Sem resultados. Experimente outras palavras.');
         grelha.innerHTML = '';
+        if (j.pesquisa && j.pesquisa.toLowerCase() !== q.toLowerCase()) {
+          var nota = document.createElement('p');
+          nota.className = 'origem procura-nota';
+          nota.textContent = 'Pesquisado como: ' + j.pesquisa;
+          grelha.appendChild(nota);
+        }
         j.fotos.forEach(function (f) {
           var b = document.createElement('button');
           b.type = 'button';
