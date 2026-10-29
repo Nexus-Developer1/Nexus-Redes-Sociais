@@ -20,7 +20,7 @@
             @if ($post->isEditable())
                 {{-- Clicar na data abre um campo para a mudar logo aqui --}}
                 <details class="mudar-data">
-                    <summary title="Mudar o dia e a hora de publicação">{{ $post->whenLabel() }} <span class="lapis" aria-hidden="true">✎</span></summary>
+                    <summary title="Mudar o dia e a hora de publicação"><span class="quando">{{ $post->whenLabel() }}</span> <span class="mudar">✎ Mudar data</span></summary>
                     <form method="POST" action="{{ route('posts.date', $post) }}">
                         @csrf
                         <input type="datetime-local" name="scheduled_at" required aria-label="Dia e hora de publicação"
