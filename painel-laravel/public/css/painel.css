@@ -25,7 +25,8 @@ h1, h2.titulo { font-family: 'Rajdhani', sans-serif; font-weight: 700; }
 .marca span { font-size: 11px; line-height: 1; font-weight: 500; color: #8fb39a; letter-spacing: 5px; text-transform: uppercase; padding-left: 5px; }
 .utilizador { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #dfe9e2; }
 .avatar { width: 34px; height: 34px; border-radius: 50%; background: #1d3a27; color: var(--verde-neon); display: flex; align-items: center; justify-content: center; font-weight: 600; }
-.utilizador button { background: none; border: 0; color: #b9cbbf; text-decoration: underline; cursor: pointer; padding: 8px; }
+.utilizador .sair { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px 0 10px; margin-left: 4px; background: transparent; border: 1px solid #2f4a38; border-radius: 8px; color: #dfe9e2; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.utilizador .sair:hover { border-color: var(--verde-neon); color: var(--verde-neon); background: rgba(61,220,120,.08); }
 
 .grelha { max-width: 1400px; margin: 0 auto; padding: 24px 16px; display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
 .menu { flex: 1 1 190px; max-width: 230px; display: flex; flex-direction: column; gap: 4px; }
