@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\ImagemBiblioteca;
 use App\Models\Post;
 use App\Models\PostRequest;
 use App\Models\User;
@@ -70,7 +71,21 @@ class TratarPedidos extends Command
                 'source' => 'Pedido de '.($pedido->user?->name ?? 'alguém').': “'.$pedido->topic.'”',
                 'design' => ['formato' => $r['design']['formato'] ?? '4:5'],
             ]);
-            $design = $this->comFoto($post, $r['design'], $r['pesquisa_imagem'] ?? '');
+            $design = $r['design'];
+            // Produto e parceiro escolhidos pela IA na biblioteca: copia as imagens oficiais para o post.
+            foreach (['produto' => $r['produto_biblioteca'] ?? 0, 'parceiro' => $r['parceiro_biblioteca'] ?? 0] as $campo => $id) {
+                $img = $id ? ImagemBiblioteca::where('tipo', ImagemBiblioteca::PARA_CAMPO[$campo])->find($id) : null;
+                if ($img) {
+                    $design[$campo] = $img->copiarPara($post);
+                }
+            }
+            if (($design['modelo'] ?? '') === 'montra' && empty($design['produto'])) {
+                $design['modelo'] = 'produto'; // sem a foto do produto, o "produto em destaque" não faz sentido
+            }
+            // Com a foto do produto, o fundo fica limpo; senão procura-se uma foto de fundo.
+            if (empty($design['produto'])) {
+                $design = $this->comFoto($post, $design, $r['pesquisa_imagem'] ?? '');
+            }
             $this->montar($post, $design, $renderer);
             $this->paraAprovacao($post, 'auto_created');
 
@@ -123,6 +138,29 @@ class TratarPedidos extends Command
      */
     private function comFoto(Post $post, array $design, string $pesquisa): array
     {
+        $tom = ($design['modelo'] ?? '') === 'frase' ? 'forte' : 'suave';
+
+        // 1.º as fotos da biblioteca da NEXUS (equipa, instalações…), se alguma servir para o tema.
+        $nossas = ImagemBiblioteca::where('tipo', 'foto')->latest()->limit(40)->get();
+        if ($nossas->isNotEmpty()) {
+            try {
+                $temaBib = trim($post->title.' — '.str_replace(['*', "\n"], ['', ' '], (string) ($design['titulo'] ?? '')));
+                $id = app(PostWriter::class)->escolherFoto($temaBib,
+                    $nossas->map(fn ($i) => ['id' => $i->id, 'alt' => $i->descricao])->all());
+                if ($id && ($img = $nossas->firstWhere('id', $id))) {
+                    $design['foto'] = $img->copiarPara($post);
+                    $design['tom'] = $tom;
+                    unset($design['icone']);
+                    $post->source = trim($post->source.' · Foto da biblioteca NEXUS');
+
+                    return $design;
+                }
+            } catch (Throwable $e) {
+                report($e);
+            }
+        }
+
+        // 2.º o banco de fotos grátis.
         $pexels = app(BancoFotos::class);
         if ($pesquisa === '' || ! $pexels->configurado()) {
             return $design;

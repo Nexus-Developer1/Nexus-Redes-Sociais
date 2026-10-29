@@ -127,6 +127,7 @@
                                 <span class="rotulo">Imagem de fundo <small>(opcional: qualquer imagem ou foto, JPG ou PNG até 20 MB; sem imagem usa o verde da marca)</small></span>
                                 <b class="nome"></b>
                                 <label class="btn btn-principal pequeno">Carregar imagem…<input type="file" accept="image/png,image/jpeg,image/webp" hidden></label>
+                                <button type="button" class="btn btn-contorno pequeno da-biblioteca" data-campo="foto">Da biblioteca…</button>
                                 <button type="button" class="btn pequeno tirar">Tirar</button>
                             </div>
                             @if ($pexels)
@@ -206,6 +207,7 @@
                                     <span class="rotulo">{{ $rotulo }} <small>({{ $ajuda }})</small></span>
                                     <b class="nome"></b>
                                     <label class="btn btn-contorno pequeno">Escolher…<input type="file" accept="image/png,image/jpeg,image/webp" hidden></label>
+                                    <button type="button" class="btn btn-contorno pequeno da-biblioteca" data-campo="{{ $campo }}">Da biblioteca…</button>
                                     <button type="button" class="btn pequeno tirar">Tirar</button>
                                 </div>
                             @endforeach
@@ -231,6 +233,17 @@
     @endif
 </div>
 
+@if ($post->isEditable() && $post->design)
+{{-- Escolher uma imagem da biblioteca da NEXUS --}}
+<dialog id="dlg-biblioteca" aria-labelledby="dlg-titulo">
+    <div class="dlg-cabeca">
+        <h2 id="dlg-titulo">Biblioteca</h2>
+        <button type="button" class="btn pequeno" id="dlg-fechar">Fechar</button>
+    </div>
+    <div class="dlg-grelha" id="dlg-grelha"></div>
+</dialog>
+@endif
+
 @if ($post->isEditable())
 <script>
 window.EDITOR = {
@@ -239,6 +252,7 @@ window.EDITOR = {
     modelos: @json(asset('modelos').'/'),
     upload: @json(route('posts.upload', $post)),
     legendaIa: @json($ia ? route('posts.captionAi', $post) : null),
+    biblioteca: { lista: @json(route('biblioteca.lista')), usar: @json(route('posts.biblioteca', $post)), pagina: @json(route('biblioteca')) },
     pexels: @json($pexels ? ['procurar' => route('images.search'), 'usar' => route('posts.stock', $post)] : null),
     csrf: @json(csrf_token()),
 };

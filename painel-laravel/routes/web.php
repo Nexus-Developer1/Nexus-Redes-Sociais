@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BibliotecaController;
 use App\Http\Controllers\CalendarioController;
 use App\Http\Controllers\ContaController;
 use App\Http\Controllers\LoginController;
@@ -27,6 +28,14 @@ Route::middleware('auth')->group(function () {
     Route::post('/posts/{post}/descartar', [PostDecisionController::class, 'discard'])->name('posts.discard');
 
     Route::get('/calendario', [CalendarioController::class, 'index'])->name('calendario');
+
+    // Biblioteca da NEXUS (fotos próprias, produtos, logótipos de parceiros).
+    Route::get('/biblioteca', [BibliotecaController::class, 'index'])->name('biblioteca');
+    Route::post('/biblioteca', [BibliotecaController::class, 'store'])->name('biblioteca.store');
+    Route::get('/biblioteca/lista', [BibliotecaController::class, 'lista'])->name('biblioteca.lista');
+    Route::post('/biblioteca/{imagem}', [BibliotecaController::class, 'update'])->name('biblioteca.update');
+    Route::post('/biblioteca/{imagem}/remover', [BibliotecaController::class, 'destroy'])->name('biblioteca.destroy');
+    Route::post('/posts/{post}/biblioteca', [BibliotecaController::class, 'usar'])->name('posts.biblioteca');
 
     // A minha conta e gestão de utilizadores (esta só para administradores).
     Route::get('/conta', [ContaController::class, 'show'])->name('conta');

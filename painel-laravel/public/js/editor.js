@@ -290,5 +290,77 @@
     });
   }
 
+  // ---------- escolher da biblioteca da NEXUS ----------
+  var dlg = $('#dlg-biblioteca');
+  var TIPO_DO_CAMPO = { foto: 'foto', produto: 'produto', parceiro: 'logo' };
+  var TITULO_DO_CAMPO = { foto: 'Fotos da NEXUS', produto: 'Produtos', parceiro: 'Logótipos de parceiros' };
+  function usarDaBiblioteca(id, campo, botao) {
+    botao.classList.add('a-carregar');
+    fetch(E.biblioteca.usar, {
+      method: 'POST',
+      headers: { 'X-CSRF-TOKEN': E.csrf, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: id, campo: campo }),
+    })
+      .then(lerJson)
+      .then(function (j) {
+        imagens[campo] = j.nome;
+        alterado = true;
+        if (campo === 'foto') {
+          var icone = $('#design [data-campo=icone]');
+          if (icone && icone.value) icone.value = '';
+        }
+        dlg.close();
+        mostrarImagens();
+        previa();
+      })
+      .catch(function (err) { alert('A imagem não foi usada: ' + err.message); })
+      .then(function () { botao.classList.remove('a-carregar'); });
+  }
+  function abrirBiblioteca(campo) {
+    var grelhaB = $('#dlg-grelha');
+    $('#dlg-titulo').textContent = TITULO_DO_CAMPO[campo] || 'Biblioteca';
+    grelhaB.innerHTML = '<p class="origem">A carregar…</p>';
+    dlg.showModal();
+    fetch(E.biblioteca.lista + '?tipo=' + TIPO_DO_CAMPO[campo], { headers: { 'Accept': 'application/json' } })
+      .then(lerJson)
+      .then(function (j) {
+        grelhaB.innerHTML = '';
+        if (!j.imagens.length) {
+          var p = document.createElement('p');
+          p.className = 'origem';
+          p.append('Ainda não há imagens deste tipo. ');
+          var a = document.createElement('a');
+          a.href = E.biblioteca.pagina;
+          a.target = '_blank';
+          a.textContent = 'Abrir a biblioteca para as adicionar';
+          p.appendChild(a);
+          grelhaB.appendChild(p);
+          return;
+        }
+        j.imagens.forEach(function (i) {
+          var b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'dlg-item';
+          var img = new Image();
+          img.src = i.url;
+          img.alt = '';
+          img.loading = 'lazy';
+          var legenda = document.createElement('span');
+          legenda.textContent = i.descricao;
+          b.appendChild(img);
+          b.appendChild(legenda);
+          b.addEventListener('click', function () { usarDaBiblioteca(i.id, campo, b); });
+          grelhaB.appendChild(b);
+        });
+      })
+      .catch(function (err) { grelhaB.textContent = 'Não foi possível abrir a biblioteca: ' + err.message; });
+  }
+  if (dlg) {
+    $$('.da-biblioteca').forEach(function (b) {
+      b.addEventListener('click', function () { abrirBiblioteca(b.dataset.campo); });
+    });
+    $('#dlg-fechar').addEventListener('click', function () { dlg.close(); });
+  }
+
   previa();
 })();

@@ -28,3 +28,6 @@ Thumbs.db
 
 # Imagens dos posts feitos no painel (enviadas e geradas)
 /public/imagens-posts/design/
+
+# Biblioteca da NEXUS (imagens carregadas no painel)
+/public/imagens-posts/biblioteca/

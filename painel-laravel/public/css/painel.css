@@ -166,7 +166,7 @@ body.ecra-editor { height: 100vh; height: 100dvh; display: flex; flex-direction:
 .redes { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; }
 .editor-campos label.check { flex-direction: row; align-items: center; gap: 6px; font-weight: 500; }
 .imagens { display: flex; flex-direction: column; gap: 10px; border-top: 1px solid var(--borda); padding-top: 12px; }
-.imagem-campo { display: grid; grid-template-columns: 1fr auto auto; gap: 4px 8px; align-items: center; }
+.imagem-campo { display: grid; grid-template-columns: 1fr auto auto auto; gap: 4px 8px; align-items: center; }
 .imagem-campo .rotulo { grid-column: 1 / -1; }
 .imagem-campo .nome { font-weight: 500; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .imagem-campo .nome:empty::before { content: "(nenhuma)"; color: var(--texto-2); font-weight: 400; }
@@ -337,3 +337,38 @@ body.ecra-editor { height: 100vh; height: 100dvh; display: flex; flex-direction:
 .chip:disabled { opacity: .55; cursor: wait; }
 .chip.desfazer { background: #fff; border-color: #c8cfca; color: #33443a; }
 .ia-estado { font-size: 13px; color: var(--texto-2); }
+
+/* ---------- Biblioteca ---------- */
+.filtros { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto; }
+.filtros a { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--borda); background: #fff; color: #33443a; text-decoration: none; font-size: 14px; }
+.filtros a:hover { border-color: var(--verde); color: var(--verde); }
+.filtros a.ativo { background: var(--verde); border-color: var(--verde); color: #fff; font-weight: 600; }
+.biblioteca { display: grid; grid-template-columns: minmax(300px, 380px) minmax(0, 1fr); gap: 24px; padding: 20px 24px 40px; align-items: start; }
+.biblioteca-lado { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 16px; }
+.formulario select { font: inherit; font-weight: 400; padding: 9px 11px; border: 1px solid #c8cfca; border-radius: 8px; background: #fff; }
+.dicas-biblioteca ul { margin: 0; padding-left: 18px; font-size: 14px; color: #33443a; display: flex; flex-direction: column; gap: 6px; }
+.dicas-biblioteca h2 { margin: 0 0 8px; }
+.biblioteca-grelha { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; align-items: start; }
+.biblioteca-grelha .vazio { grid-column: 1 / -1; }
+.bib-item { background: #fff; border: 1px solid var(--borda); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+.bib-imagem { display: block; height: 180px; overflow: hidden; background: #eef3ef; }
+.bib-imagem img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* produtos e logótipos: mostrar inteiros, sobre fundo neutro */
+.bib-imagem.tipo-produto, .bib-imagem.tipo-logo { background: repeating-conic-gradient(#f2f4f2 0% 25%, #fff 0% 50%) 50% / 18px 18px; padding: 10px; }
+.bib-imagem.tipo-produto img, .bib-imagem.tipo-logo img { object-fit: contain; }
+.bib-form { padding: 10px; display: flex; flex-direction: column; gap: 6px; }
+.bib-form select, .bib-form textarea { font: inherit; font-size: 13px; padding: 6px 8px; border: 1px solid #c8cfca; border-radius: 6px; width: 100%; resize: vertical; }
+.bib-acoes { display: flex; justify-content: space-between; gap: 6px; }
+@media (max-width: 900px) { .biblioteca { grid-template-columns: 1fr; } .biblioteca-lado { position: static; } }
+
+/* "Da biblioteca…" no editor */
+#dlg-biblioteca { border: 0; border-radius: 14px; padding: 0; width: min(860px, 94vw); }
+#dlg-biblioteca::backdrop { background: rgba(0,0,0,.45); }
+.dlg-cabeca { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-bottom: 1px solid var(--borda); }
+.dlg-cabeca h2 { margin: 0; font-size: 20px; }
+.dlg-grelha { padding: 14px 18px 18px; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; max-height: 65vh; overflow-y: auto; }
+.dlg-item { padding: 0; border: 2px solid var(--borda); border-radius: 10px; background: #fff; cursor: pointer; overflow: hidden; text-align: left; font: inherit; }
+.dlg-item:hover, .dlg-item:focus-visible { border-color: var(--verde); }
+.dlg-item img { width: 100%; aspect-ratio: 4 / 3; object-fit: contain; background: #f2f4f2; display: block; }
+.dlg-item span { display: block; padding: 6px 8px; font-size: 12.5px; color: #33443a; }
+.dlg-item.a-carregar { opacity: .5; cursor: wait; }

@@ -27,12 +27,33 @@ class PostWriter
               .'. Usa-a em "publicar_em" e não a mudes. (A data do acontecimento, se houver, é a que vem no tema.)'
             : '';
 
-        $r = $this->pedir("Pedido de post: \"{$tema}\"{$data}\n\nCria o post completo.");
+        $r = $this->pedir("Pedido de post: \"{$tema}\"{$data}\n".$this->catalogo()."\nCria o post completo.");
         if ($publicarEm) {
             $r['publicar_em'] = $publicarEm->copy(); // a escolha de quem pediu manda sempre
         }
 
         return $r;
+    }
+
+    /**
+     * Produtos e logótipos de parceiros que existem na biblioteca da NEXUS, para a IA os poder usar
+     * (com o id). Vazio se a biblioteca não tiver nenhum.
+     */
+    private function catalogo(): string
+    {
+        $produtos = \App\Models\ImagemBiblioteca::where('tipo', 'produto')->latest()->limit(40)->get();
+        $logos = \App\Models\ImagemBiblioteca::where('tipo', 'logo')->latest()->limit(40)->get();
+        if ($produtos->isEmpty() && $logos->isEmpty()) {
+            return '';
+        }
+        $linhas = fn ($c) => $c->map(fn ($i) => "  {$i->id}: {$i->descricao}")->implode("\n");
+
+        return "\nIMAGENS OFICIAIS DA NEXUS (biblioteca):\n"
+            .($produtos->isNotEmpty() ? "Produtos:\n".$linhas($produtos)."\n" : '')
+            .($logos->isNotEmpty() ? "Logótipos de parceiros:\n".$linhas($logos)."\n" : '')
+            .'Se o post for sobre um destes produtos, usa o modelo "montra" (ou "produto") e põe o id em "produto_biblioteca". '
+            .'Se o produto ou o tema for de uma destas marcas, põe o id do logótipo em "parceiro_biblioteca". '
+            ."Se nenhum servir, 0. Nunca uses um produto que não corresponda ao tema.\n";
     }
 
     /** Nova versão de um post, com o que o aprovador pediu para mudar. */
@@ -377,7 +398,12 @@ class PostWriter
         $design = array_intersect_key($d, array_flip([
             'modelo', 'formato', 'numero', 'titulo', 'texto', 'etiqueta', 'rodape', 'icone', 'cta', 'pontos', 'data', 'hora', 'evento',
         ]));
-        if (! in_array($design['modelo'] ?? '', ['dica', 'produto', 'aviso', 'evento', 'numero', 'frase'], true)) {
+        $produtoBib = (int) ($d['produto_biblioteca'] ?? 0);
+        $permitidos = ['dica', 'produto', 'aviso', 'evento', 'numero', 'frase'];
+        if ($produtoBib > 0) {
+            $permitidos[] = 'montra'; // só com a foto oficial do produto, da biblioteca
+        }
+        if (! in_array($design['modelo'] ?? '', $permitidos, true)) {
             $design['modelo'] = 'dica'; // "montra" precisa da foto oficial do produto, que a IA não tem
         }
         if (($design['etiqueta'] ?? null) === '') {
@@ -406,6 +432,8 @@ class PostWriter
             'redes' => $redes ?: ['Instagram', 'Facebook'],
             'publicar_em' => $quando,
             'pesquisa_imagem' => mb_substr(trim((string) ($d['pesquisa_imagem'] ?? '')), 0, 80),
+            'produto_biblioteca' => $produtoBib,
+            'parceiro_biblioteca' => (int) ($d['parceiro_biblioteca'] ?? 0),
         ];
     }
 
@@ -456,6 +484,8 @@ class PostWriter
           "texto" = uma frase curta por baixo. Os pontos explicam-se na legenda.
         - "frase": mensagem institucional curta e forte (valores, slogan, frase de marca). "titulo" = a frase (máx. ~40 caracteres,
           2 a 3 linhas); "texto" = um complemento curto (máx. ~40 caracteres). Sem pontos nem ícone.
+        - "montra": produto em destaque com a foto oficial. SÓ quando o pedido traz a lista de imagens oficiais da NEXUS
+          e um produto dessa lista corresponde ao tema. "titulo" = nome do produto (curto); "texto" = uma frase curta.
         - Varia os modelos: não uses sempre "dica".
         - "titulo": 2 a 3 linhas curtas separadas por \\n, no máximo ~22 caracteres por linha.
           Põe UMA ou duas palavras importantes entre asteriscos para ficarem a verde, ex.: "O seu backup está\\nmesmo *seguro*?".
@@ -487,7 +517,7 @@ class PostWriter
         RESPONDE SÓ com um objeto JSON, sem mais nada, exatamente com estes campos:
         {
           "titulo_interno": "nome curto do post para o painel",
-          "modelo": "dica|produto|aviso|evento|numero|frase",
+          "modelo": "dica|produto|aviso|evento|numero|frase|montra",
           "numero": "",
           "formato": "4:5|1:1",
           "titulo": "...",
@@ -503,7 +533,9 @@ class PostWriter
           "legenda": "...",
           "redes": ["Instagram", "Facebook"],
           "publicar_em": "AAAA-MM-DD HH:MM",
-          "pesquisa_imagem": "..."
+          "pesquisa_imagem": "...",
+          "produto_biblioteca": 0,
+          "parceiro_biblioteca": 0
         }
         Campos que não se aplicam ao modelo escolhido ficam vazios ("" ou []).
         TXT;
