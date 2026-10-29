@@ -9,6 +9,7 @@ use App\Services\PostRenderer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
@@ -20,9 +21,12 @@ use Throwable;
 /** Criar e editar posts no painel: legenda, data, redes e a imagem feita com os modelos. */
 class PostEditorController extends Controller
 {
-    public function create(): View
+    public function create(Request $request): View
     {
-        return view('painel.criar', ['modelos' => PostRenderer::MODELOS]);
+        // ?data=AAAA-MM-DD vem do "+" do calendário.
+        $data = preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $request->query('data')) ? $request->query('data') : null;
+
+        return view('painel.criar', ['modelos' => PostRenderer::MODELOS, 'data' => $data]);
     }
 
     public function store(Request $request): RedirectResponse
@@ -30,12 +34,14 @@ class PostEditorController extends Controller
         $data = $request->validate([
             'modelo' => ['required', Rule::in(PostRenderer::MODELOS)],
             'title' => ['required', 'string', 'max:150'],
+            'data' => ['nullable', 'date_format:Y-m-d'],
         ], ['title.required' => 'Dê um nome ao post (só aparece no painel).']);
 
         $post = Post::create([
             'title' => $data['title'],
             'design' => PostRenderer::exemplo($data['modelo']),
             'networks' => ['Instagram', 'Facebook'],
+            'scheduled_at' => ! empty($data['data']) ? Carbon::parse($data['data'].' 10:00') : null,
             'status' => Post::CREATING,
             'source' => 'Criado no painel por '.$request->user()->name,
         ]);

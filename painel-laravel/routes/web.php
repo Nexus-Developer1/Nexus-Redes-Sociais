@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CalendarioController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\PainelController;
 use App\Http\Controllers\PostDecisionController;
@@ -22,6 +23,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/posts/{post}/desfazer', [PostDecisionController::class, 'undo'])->name('posts.undo');
     Route::post('/posts/{post}/trocar-ideia', [PostDecisionController::class, 'swapIdea'])->name('posts.swap');
     Route::post('/posts/{post}/descartar', [PostDecisionController::class, 'discard'])->name('posts.discard');
+
+    Route::get('/calendario', [CalendarioController::class, 'index'])->name('calendario');
 
     // Criar e editar posts no painel (modelos + legenda + data).
     Route::get('/posts/novo', [PostEditorController::class, 'create'])->name('posts.create');

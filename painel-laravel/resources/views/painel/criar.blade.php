@@ -8,10 +8,13 @@
 <div class="pagina-estreita">
     <a href="{{ route('painel') }}" class="voltar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg> Voltar ao painel</a>
     <h1>Criar post</h1>
-    <p class="sub">Escolha o tipo de post. Começa com um exemplo, que depois muda à vontade.</p>
+    <p class="sub">Escolha o tipo de post. Começa com um exemplo, que depois muda à vontade.
+        @if ($data)<br>Data de publicação: <b>{{ \Illuminate\Support\Carbon::parse($data)->locale('pt_PT')->translatedFormat('l, j \d\e F') }}, 10:00</b> (pode mudar a hora a seguir).@endif
+    </p>
 
     <form method="POST" action="{{ route('posts.store') }}" class="caixa criar">
         @csrf
+        @if ($data)<input type="hidden" name="data" value="{{ $data }}">@endif
         <fieldset class="tipos">
             <legend>Tipo de post</legend>
             @php($descricoes = [
