@@ -106,16 +106,16 @@
                             </label>
                         </div>
 
-                        {{-- Foto de fundo, em qualquer tipo de post --}}
+                        {{-- Imagem de fundo (qualquer imagem), em qualquer tipo de post --}}
                         <div class="foto-destaque">
                             <div class="imagem-campo" data-imagem="foto">
-                                <span class="rotulo">Foto de fundo <small>(opcional: equipa, instalação, produto… JPG ou PNG até 20 MB; sem foto usa o verde da marca)</small></span>
+                                <span class="rotulo">Imagem de fundo <small>(opcional: qualquer imagem ou foto, JPG ou PNG até 20 MB; sem imagem usa o verde da marca)</small></span>
                                 <b class="nome"></b>
-                                <label class="btn btn-principal pequeno">Carregar foto…<input type="file" accept="image/png,image/jpeg,image/webp" hidden></label>
+                                <label class="btn btn-principal pequeno">Carregar imagem…<input type="file" accept="image/png,image/jpeg,image/webp" hidden></label>
                                 <button type="button" class="btn pequeno tirar">Tirar</button>
                             </div>
                             <div class="dupla">
-                                <label>Enquadramento <small>para não cortar caras</small>
+                                <label>Enquadramento <small>que parte da imagem mostrar</small>
                                     <select data-campo="enquadramento">
                                         <option value="centro">Centro</option>
                                         <option value="topo">Mostrar mais o topo</option>
@@ -125,8 +125,8 @@
                                 <label>Tom verde
                                     <select data-campo="tom">
                                         <option value="suave">Suave (recomendado)</option>
-                                        <option value="forte">Forte (foto toda verde)</option>
-                                        <option value="nenhum">Nenhum (foto natural)</option>
+                                        <option value="forte">Forte (imagem toda verde)</option>
+                                        <option value="nenhum">Nenhum (imagem natural)</option>
                                     </select>
                                 </label>
                             </div>

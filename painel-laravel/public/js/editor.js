@@ -157,7 +157,7 @@
         .then(function (j) {
           imagens[k] = j.nome;
           alterado = true;
-          // Com foto da equipa, o ícone tapava-a: tira-se (pode voltar a escolher-se).
+          // Com imagem de fundo, o ícone tapava-a: tira-se (pode voltar a escolher-se).
           var icone = $('#design [data-campo=icone]');
           if (k === 'foto' && icone && icone.value) icone.value = '';
         })
