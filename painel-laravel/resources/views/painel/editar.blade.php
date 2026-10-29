@@ -105,6 +105,33 @@
                                 </select>
                             </label>
                         </div>
+
+                        {{-- Modelo "foto": a foto vem primeiro, é o mais importante --}}
+                        <div class="foto-destaque" data-modelos="foto">
+                            <div class="imagem-campo" data-imagem="foto">
+                                <span class="rotulo">Foto <small>(equipa, instalação, produto… JPG ou PNG até 20 MB)</small></span>
+                                <b class="nome"></b>
+                                <label class="btn btn-principal pequeno">Carregar foto…<input type="file" accept="image/png,image/jpeg,image/webp" hidden></label>
+                                <button type="button" class="btn pequeno tirar">Tirar</button>
+                            </div>
+                            <div class="dupla">
+                                <label>Enquadramento <small>para não cortar caras</small>
+                                    <select data-campo="enquadramento">
+                                        <option value="centro">Centro</option>
+                                        <option value="topo">Mostrar mais o topo</option>
+                                        <option value="baixo">Mostrar mais o fundo</option>
+                                    </select>
+                                </label>
+                                <label>Tom verde
+                                    <select data-campo="tom">
+                                        <option value="suave">Suave (recomendado)</option>
+                                        <option value="forte">Forte (foto toda verde)</option>
+                                        <option value="nenhum">Nenhum (foto natural)</option>
+                                    </select>
+                                </label>
+                            </div>
+                        </div>
+
                         <label>Título na imagem <small>Enter muda de linha · <code>*palavra*</code> fica a verde</small>
                             <textarea data-campo="titulo" rows="2"></textarea>
                         </label>
@@ -134,12 +161,12 @@
                                 <input data-campo="cta" placeholder="ex.: Peça a sua proposta">
                             </label>
                         </div>
-                        <div class="dupla">
+                        <div class="dupla" data-modelos="dica produto aviso evento">
                             <label>Etiqueta <input data-campo="etiqueta" placeholder="(a do tipo de post)"></label>
                             <label>Rodapé <input data-campo="rodape" placeholder="tema do post"></label>
                         </div>
 
-                        <div class="imagens">
+                        <div class="imagens" data-modelos="dica produto aviso evento">
                             @foreach ([
                                 'fundo' => ['Fundo', 'da IA de imagens; sem fundo usa o verde da marca', ''],
                                 'produto' => ['Foto do produto', 'oficial; substitui o ícone', 'produto'],

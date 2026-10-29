@@ -103,7 +103,7 @@ class TratarPedidos extends Command
                 'scheduled_at' => $r['publicar_em'],
             ]);
             // As imagens que alguém pôs no post (fundo, foto, parceiro) mantêm-se.
-            $design = $r['design'] + array_intersect_key($post->design ?? [], array_flip(['fundo', 'produto', 'parceiro']));
+            $design = $r['design'] + array_intersect_key($post->design ?? [], array_flip(['foto', 'fundo', 'produto', 'parceiro', 'enquadramento', 'tom']));
             $this->montar($post, $design, $renderer);
             $this->paraAprovacao($post, 'auto_revised');
             $this->info("Post #{$post->id} refeito: {$post->title}");

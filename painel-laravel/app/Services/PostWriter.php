@@ -117,6 +117,9 @@ class PostWriter
         $design = array_intersect_key($d, array_flip([
             'modelo', 'formato', 'titulo', 'texto', 'etiqueta', 'rodape', 'icone', 'cta', 'pontos', 'data', 'hora', 'evento',
         ]));
+        if (! in_array($design['modelo'] ?? '', ['dica', 'produto', 'aviso', 'evento'], true)) {
+            $design['modelo'] = 'dica'; // o modelo "foto" precisa de uma foto, que a IA não tem
+        }
         if (($design['etiqueta'] ?? null) === '') {
             unset($design['etiqueta']); // vazio = a etiqueta do tipo de post
         }

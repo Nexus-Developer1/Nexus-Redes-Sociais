@@ -13,7 +13,7 @@ use RuntimeException;
  */
 class PostRenderer
 {
-    public const MODELOS = ['dica', 'produto', 'aviso', 'evento'];
+    public const MODELOS = ['dica', 'produto', 'aviso', 'evento', 'foto'];
 
     public const FORMATOS = ['4:5' => [1080, 1350], '1:1' => [1080, 1080], '9:16' => [1080, 1920]];
 
@@ -129,6 +129,13 @@ class PostRenderer
                 $limpo[$campo] = $v;
             }
         }
+        // Modelo "foto": enquadramento (para não cortar caras) e intensidade do tom verde.
+        if (in_array($d['enquadramento'] ?? '', ['topo', 'centro', 'baixo'], true)) {
+            $limpo['enquadramento'] = $d['enquadramento'];
+        }
+        if (in_array($d['tom'] ?? '', ['nenhum', 'suave', 'forte'], true)) {
+            $limpo['tom'] = $d['tom'];
+        }
         if (in_array($d['icone'] ?? '', self::ICONES, true)) {
             $limpo['icone'] = $d['icone'];
         }
@@ -151,7 +158,7 @@ class PostRenderer
             }
         }
         // Imagens: só ficheiros que existem na pasta do post.
-        foreach (['fundo', 'produto', 'parceiro'] as $campo) {
+        foreach (['foto', 'fundo', 'produto', 'parceiro'] as $campo) {
             $nome = (string) ($d[$campo] ?? '');
             if (preg_match('/^[a-z0-9-]+\.(png|jpg|webp)$/', $nome) && is_file(self::pasta($post).'/'.$nome)) {
                 $limpo[$campo] = $nome;

@@ -26,11 +26,12 @@
 
   if (!E.design) return; // post sem modelo: só legenda, data e redes
 
-  var imagens = { fundo: E.design.fundo || '', produto: E.design.produto || '', parceiro: E.design.parceiro || '' };
+  var imagens = { foto: E.design.foto || '', fundo: E.design.fundo || '', produto: E.design.produto || '', parceiro: E.design.parceiro || '' };
 
   // ---------- preencher ----------
   $$('[data-campo]').forEach(function (el) {
     var v = E.design[el.dataset.campo];
+    if (el.tagName === 'SELECT' && (v === undefined || v === null || v === '')) return; // fica a 1.ª opção
     el.value = v === undefined || v === null ? '' : v;
   });
   if (!E.design.formato) $('#f-formato').value = '4:5';
@@ -79,7 +80,7 @@
     }
     $$('[data-imagem]').forEach(function (bloco) {
       var k = bloco.dataset.imagem;
-      if (imagens[k] && !bloco.hidden) d[k] = imagens[k];
+      if (imagens[k] && visivel(bloco)) d[k] = imagens[k];
     });
     return d;
   }

@@ -22,6 +22,7 @@
                 'produto' => 'Produto ou serviço, com foto oficial, vantagens e botão.',
                 'aviso' => 'Fecho, horário, mudança. Título grande e data.',
                 'evento' => 'Workshop, feira, webinar. Dia em destaque, hora e local.',
+                'foto' => 'Foto da equipa, de uma instalação ou de um produto, com pouco texto por cima.',
             ])
             @foreach ($modelos as $m)
                 <label class="tipo">

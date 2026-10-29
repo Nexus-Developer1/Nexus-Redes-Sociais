@@ -14,8 +14,8 @@
 
   var FORMATOS = { '4:5': 'f-4x5', '1:1': 'f-1x1', '9:16': 'f-9x16' };
   var ESCALA = { '4:5': 1, '1:1': 0.86, '9:16': 1.1 };
-  var TITULO = { dica: 88, produto: 80, aviso: 124, evento: 80 };
-  var ETIQUETA = { dica: 'Dica', aviso: 'Aviso', evento: 'Evento', produto: '' };
+  var TITULO = { dica: 88, produto: 80, aviso: 124, evento: 80, foto: 50 };
+  var ETIQUETA = { dica: 'Dica', aviso: 'Aviso', evento: 'Evento', produto: '', foto: '' };
 
   var I = 'stroke-width="7"';
   var ICONES = {
@@ -103,12 +103,31 @@
 
   // ---------- montagem ----------
   var modelo = P.modelo;
-  if (!TITULO[modelo]) { avisos.push('modelo desconhecido: "' + modelo + '" (use dica, produto, aviso ou evento)'); modelo = 'aviso'; }
+  if (!TITULO[modelo]) { avisos.push('modelo desconhecido: "' + modelo + '" (use dica, produto, aviso, evento ou foto)'); modelo = 'aviso'; }
   var formato = P.formato || '4:5';
   if (!FORMATOS[formato]) { avisos.push('formato desconhecido: "' + formato + '"'); formato = '4:5'; }
   var etiqueta = P.etiqueta !== undefined ? P.etiqueta : ETIQUETA[modelo];
 
   var post = h('div', 'post ' + FORMATOS[formato] + ' m-' + modelo);
+
+  if (modelo === 'foto') {
+    // Foto a ocupar tudo (equipa, instalações, produtos), aba NEXUS no topo e o título em caixas em baixo.
+    var foto = P.foto || P.fundo;
+    if (foto) {
+      var img = imagem(foto, 'fundo foto-principal', 'foto');
+      img.style.objectPosition = { topo: 'center 15%', baixo: 'center 85%' }[P.enquadramento] || 'center center';
+      post.appendChild(img);
+    } else {
+      avisos.push('falta a foto: carregue uma em "Foto"');
+      var vazio = h('div', 'fundo-gerado');
+      vazio.innerHTML = REDE_FUNDO;
+      post.appendChild(vazio);
+    }
+    post.appendChild(h('div', 'tom tom-' + (['nenhum', 'suave', 'forte'].indexOf(P.tom) >= 0 ? P.tom : 'suave')));
+    post.appendChild(h('header', null, [h('div', 'aba', [imagem(BASE + 'logo-nexus.png', '', 'logótipo')])]));
+    post.appendChild(h('main', null, [titulo(P.titulo), texto()]));
+    document.body.appendChild(post);
+  } else {
 
   if (P.fundo) {
     post.appendChild(imagem(P.fundo, 'fundo', 'fundo'));
@@ -144,6 +163,7 @@
   post.appendChild(h('main', null, conteudo));
   post.appendChild(h('footer', null, [h('span', 'tema', [P.rodape || '']), h('span', 'site', [P.site || 'nexus-solutions.pt'])]));
   document.body.appendChild(post);
+  } // fim dos modelos com ilustração
 
   // ---------- ajustar o texto ao espaço ----------
   var t0 = TITULO[modelo] * ESCALA[formato];
