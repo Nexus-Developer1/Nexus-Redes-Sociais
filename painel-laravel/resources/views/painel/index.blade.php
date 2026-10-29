@@ -25,7 +25,7 @@
         <div>
             <h1>{{ $sections[$ver]['title'] }}</h1>
             @if ($ver === 'fila')
-                <p class="sub">Posts criados pelo Claude. Nada é publicado sem a sua aprovação.</p>
+                <p class="sub">Posts feitos pela IA, pelo Claude ou pela equipa. Nada é publicado sem a sua aprovação.</p>
             @elseif ($ver === 'ideias')
                 <p class="sub">Calendário de temas (1 post por semana). Cada ideia vira um post que chega à fila para aprovar. Pode trocar o tema ou descartar.</p>
             @endif
@@ -89,4 +89,18 @@
         </form>
     </aside>
 </div>
+
+<script>
+// Legendas longas aparecem resumidas; "Ver legenda completa" abre e fecha.
+document.querySelectorAll('[data-legenda]').forEach(function (el) {
+    var botao = el.nextElementSibling;
+    if (!botao || el.scrollHeight <= el.clientHeight + 4) return;
+    el.classList.add('cortada');
+    botao.hidden = false;
+    botao.addEventListener('click', function () {
+        var aberta = el.classList.toggle('aberta');
+        botao.textContent = aberta ? 'Ver menos' : 'Ver legenda completa';
+    });
+});
+</script>
 @endsection

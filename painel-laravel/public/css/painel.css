@@ -243,3 +243,31 @@ body.ecra-editor { height: 100vh; height: 100dvh; display: flex; flex-direction:
 .pedido-texto { min-width: 0; flex: 1 1 300px; }
 .pedido-lado { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .pedido-erro { margin-top: 6px; font-size: 13px; color: #7a2016; background: #fbe4e1; border-radius: 8px; padding: 6px 10px; }
+
+/* ---------- Cartão do post (listas do painel): compacto e arrumado ---------- */
+.lista-posts { align-items: stretch; }
+.post { display: grid; grid-template-columns: 160px minmax(0, 1fr); gap: 18px; padding: 18px; align-items: start; }
+.post-imagem a, .post-imagem img, .post-imagem .sem-imagem { display: block; }
+.post-imagem img, .post-imagem .sem-imagem { width: 100%; height: auto; border-radius: 10px; border: 1px solid #e3e8e4; }
+.post-imagem .sem-imagem { aspect-ratio: 4 / 5; }
+.post .corpo { gap: 10px; }
+.post h2 { font-size: 18px; line-height: 1.3; }
+.post .meta { font-size: 13px; gap: 6px; }
+.post .meta .sep { color: #9aa79f; }
+.post .legenda { font-size: 14px; line-height: 1.45; padding: 10px 12px; }
+.legenda[data-legenda]:not(.aberta) { max-height: calc(1.45em * 4 + 20px); overflow: hidden; }
+.legenda.cortada:not(.aberta) { -webkit-mask-image: linear-gradient(#000 65%, transparent); mask-image: linear-gradient(#000 65%, transparent); }
+.ver-mais { align-self: flex-start; margin-top: -4px; padding: 0; background: none; border: 0; color: var(--verde); font: inherit; font-size: 13px; font-weight: 600; text-decoration: underline; cursor: pointer; }
+.post .origem { font-size: 12.5px; }
+.post .acoes { gap: 8px; align-items: center; margin-top: 2px; }
+.post .acoes .btn { min-height: 38px; padding: 0 14px; font-size: 14px; display: inline-flex; align-items: center; }
+.post .acoes .direita { margin-left: auto; }
+.post .acoes .btn-perigo { border-color: transparent; background: transparent; padding: 0 8px; }
+.post .acoes .btn-perigo:hover { background: #fbe4e1; }
+.post .acoes details[open] { flex-basis: 100%; order: 5; }
+.post .acoes.nota { font-size: 13.5px; color: #33443a; }
+.pedido-alteracao.erro { background: #fbe4e1; color: #7a2016; }
+.historico summary { cursor: pointer; font-size: 13px; color: #56675d; width: fit-content; }
+.historico summary:hover { color: var(--verde); }
+.historico[open] summary { margin-bottom: 4px; }
+@media (max-width: 520px) { .post { grid-template-columns: 1fr; } .post-imagem { max-width: 240px; } }
