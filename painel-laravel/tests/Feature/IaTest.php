@@ -53,7 +53,7 @@ class IaTest extends TestCase
             'pontos' => [['destaque' => '', 'texto' => 'Instalação pela NEXUS']],
             'data' => '', 'hora' => '',
             'evento' => ['dia' => '', 'mes' => '', 'hora' => '', 'local' => ''],
-            'legenda' => "Uma falha de energia pode parar a sua empresa.\n#NEXUS #UPS",
+            'legenda' => 'Uma falha de energia pode parar a sua empresa.\nContacte‑nos: nexus‑solutions.pt\n#NEXUS #UPS',
             'redes' => ['Instagram', 'LinkedIn', 'TikTok'],
             'publicar_em' => now()->addDays(3)->format('Y-m-d').' 10:00',
         ], $extra);
@@ -77,6 +77,8 @@ class IaTest extends TestCase
         $this->assertSame("UPS *Riello*\nsempre ligados", $post->design['titulo']);
         $this->assertSame(['Instagram', 'LinkedIn'], $post->networks); // "TikTok" não existe no painel
         $this->assertSame('10:00', $post->scheduled_at->format('H:i'));
+        // "\n" à letra e hífens especiais da IA ficam normais
+        $this->assertSame("Uma falha de energia pode parar a sua empresa.\nContacte-nos: nexus-solutions.pt\n#NEXUS #UPS", $post->caption);
         $this->assertNotNull($post->image_path);
         $this->assertSame('auto_created', $post->reviews()->first()->action);
         Notification::assertSentTo($user, PostParaAprovar::class);

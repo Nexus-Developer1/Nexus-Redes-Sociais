@@ -84,17 +84,31 @@ class PostWriter
         throw new RuntimeException($erro);
     }
 
+    /**
+     * Limpa o texto que vem da IA: "\n" escrito à letra passa a mudança de linha, e hífens e espaços
+     * "especiais" (ex.: U+2011 em "e‑mail") passam a normais, para não estragar o site e o email.
+     */
+    private function limparTexto(mixed $v): mixed
+    {
+        if (is_array($v)) {
+            return array_map(fn ($x) => $this->limparTexto($x), $v);
+        }
+        if (! is_string($v)) {
+            return $v;
+        }
+
+        return strtr(str_replace(['\r\n', '\n'], "\n", $v), [
+            "\u{2010}" => '-', "\u{2011}" => '-', "\u{2012}" => '-', "\u{00AD}" => '',
+            "\u{00A0}" => ' ', "\u{202F}" => ' ', "\u{2009}" => ' ', "\u{200B}" => '',
+        ]);
+    }
+
     private function normalizar(array $d): array
     {
+        $d = $this->limparTexto($d);
         $design = array_intersect_key($d, array_flip([
             'modelo', 'formato', 'titulo', 'texto', 'etiqueta', 'rodape', 'icone', 'cta', 'pontos', 'data', 'hora', 'evento',
         ]));
-        // Converte "\n" escrito à letra em mudança de linha a sério.
-        foreach (['titulo', 'texto'] as $campo) {
-            if (isset($design[$campo]) && is_string($design[$campo])) {
-                $design[$campo] = str_replace('\n', "\n", $design[$campo]);
-            }
-        }
         if (($design['etiqueta'] ?? null) === '') {
             unset($design['etiqueta']); // vazio = a etiqueta do tipo de post
         }
@@ -158,15 +172,16 @@ class PostWriter
         - O texto da imagem é curto. A explicação vai na legenda.
 
         A IMAGEM (o servidor monta-a com um destes modelos; tu só escreves os textos)
-        - "dica": conselho útil. Pode ter "pontos" (até 3). Se cada ponto tiver um número ou destaque curto
-          (ex.: "3", "24h", "99,9%"), mete-o em "destaque" e aparece como cartão.
-        - "produto": produto ou serviço. "pontos" = até 3 vantagens curtas (deixa "destaque" vazio). Usa "cta".
+        - "dica": conselho útil. Pode ter "pontos" (2 a 4). Se cada ponto tiver um número ou destaque curto
+          (ex.: "1", "24h", "99,9%"), mete-o em "destaque" e aparece como cartão.
+          Se o título disser um número ("4 sinais", "3 passos"), tem de haver EXATAMENTE esse número de pontos.
+        - "produto": produto ou serviço. "pontos" = 2 a 4 vantagens curtas (deixa "destaque" vazio). Usa "cta".
         - "aviso": fecho, feriado, horário, mudança. Usa "data" (ex.: "Sexta-feira, 8 de dezembro") e "hora" se fizer sentido.
         - "evento": workshop, feira, webinar. Preenche "evento" (dia, mês abreviado, hora, local). Usa "cta".
         - "titulo": 2 a 3 linhas curtas separadas por \\n, no máximo ~22 caracteres por linha.
           Põe UMA ou duas palavras importantes entre asteriscos para ficarem a verde, ex.: "O seu backup está\\nmesmo *seguro*?".
         - "texto": uma frase curta (máx. ~90 caracteres) por baixo do título.
-        - "pontos": cada texto com no máximo ~40 caracteres.
+        - "pontos": cada texto com no máximo ~35 caracteres.
         - "icone": um destes: {$icones} (ou "" para nenhum). Escolhe o que combina com o tema.
         - "rodape": tema do post em 2 a 4 palavras (ex.: "Backup & Disaster Recovery").
         - "etiqueta": deixa "" (usa a do tipo de post), a não ser que outra palavra seja claramente melhor.
@@ -175,6 +190,8 @@ class PostWriter
 
         A LEGENDA
         - 300 a 900 caracteres, em parágrafos curtos, a explicar o tema e porque interessa a uma empresa.
+          Se a imagem tem pontos (sinais, passos, vantagens), a legenda desenvolve cada um numa linha.
+        - Usa hífens e espaços normais (nada de caracteres especiais em "e-mail", no site ou no email).
         - Termina com um convite ao contacto (nexus-solutions.pt ou info@nexus-solutions.pt) e 4 a 8 hashtags,
           incluindo #NEXUS. Pode ter 1 ou 2 emojis, no máximo.
 
