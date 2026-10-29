@@ -128,4 +128,18 @@ class PainelTest extends TestCase
                 && str_ends_with($mail->actionUrl, '#post-'.$n->post->id);
         });
     }
+    public function test_pagina_expirada_volta_atras_com_o_texto(): void
+    {
+        // Simula o 419 (formulário de uma página aberta há demasiado tempo).
+        \Illuminate\Support\Facades\Route::middleware(['web'])->post('/teste-419', fn () => abort(419));
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->from('/')->post('/teste-419', ['topic' => 'Tema escrito'])
+            ->assertRedirect('/')
+            ->assertSessionHas('erro')
+            ->assertSessionHasInput('topic', 'Tema escrito');
+
+        $this->post('/sair');
+        $this->post('/teste-419')->assertRedirect(route('login'))->assertSessionHas('erro');
+    }
 }

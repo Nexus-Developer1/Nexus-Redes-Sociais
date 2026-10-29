@@ -31,6 +31,9 @@
             @endif
         </div>
 
+        @if (session('erro'))
+            <div class="aviso erro" role="alert">{{ session('erro') }}</div>
+        @endif
         @if (session('ok'))
             <div class="aviso" role="status">{{ session('ok') }}</div>
         @endif
