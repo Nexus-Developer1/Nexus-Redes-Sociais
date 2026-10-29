@@ -6,7 +6,7 @@
 @include('painel.topo')
 
 <div class="pagina-estreita">
-    <a href="{{ route('painel') }}" class="voltar">← Voltar ao painel</a>
+    <a href="{{ route('painel') }}" class="voltar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg> Voltar ao painel</a>
     <h1>Criar post</h1>
     <p class="sub">Escolha o tipo de post. Começa com um exemplo, que depois muda à vontade.</p>
 

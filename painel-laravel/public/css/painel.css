@@ -114,7 +114,8 @@ details.alterar[open] > summary { display: none; }
 .criar-post:hover { background: var(--verde-escuro); color: #fff; }
 .btn.pequeno { min-height: 36px; padding: 0 12px; font-size: 14px; display: inline-flex; align-items: center; }
 a.btn { display: inline-flex; align-items: center; text-decoration: none; }
-.voltar { display: inline-block; margin-bottom: 6px; font-size: 14px; }
+.voltar { display: inline-flex; align-items: center; gap: 4px; align-self: flex-start; height: 36px; padding: 0 14px 0 9px; border: 1px solid #c8cfca; border-radius: 8px; background: #fff; color: #33443a; font-size: 14px; font-weight: 600; text-decoration: none; white-space: nowrap; }
+.voltar:hover { border-color: var(--verde); background: #f1f8f3; color: var(--verde); }
 .aviso.erro { background: #fbe4e1; color: #7a2016; }
 .aviso.amarelo { background: #fff2d6; color: #6b4a00; }
 
@@ -134,7 +135,7 @@ body.ecra-editor { height: 100vh; height: 100dvh; display: flex; flex-direction:
 .pagina-editor { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .editor-barra { flex: none; display: flex; align-items: center; gap: 12px 16px; flex-wrap: wrap; padding: 10px 24px;
   background: #fff; border-bottom: 1px solid var(--borda); }
-.editor-barra .voltar { margin: 0; white-space: nowrap; }
+.editor-barra .voltar { flex: none; }
 .editor-barra h1 { margin: 0; font-size: 24px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .barra-acoes { margin-left: auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .editor-bloqueado { padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; }
