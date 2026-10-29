@@ -34,6 +34,9 @@
         @if (session('ok'))
             <div class="aviso" role="status">{{ session('ok') }}</div>
         @endif
+        @if ($errors->has('scheduled_at'))
+            <div class="aviso erro" role="alert">{{ $errors->first('scheduled_at') }}</div>
+        @endif
         @if ($errors->has('comment'))
             <div class="aviso erro" role="alert">{{ $errors->first('comment') }}</div>
         @endif

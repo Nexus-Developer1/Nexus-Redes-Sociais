@@ -17,7 +17,20 @@
 
         <div class="meta">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0a6e31" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M16 3v4M8 3v4M3 10h18"></path></svg>
-            <span>{{ $post->whenLabel() }}</span>
+            @if ($post->isEditable())
+                {{-- Clicar na data abre um campo para a mudar logo aqui --}}
+                <details class="mudar-data">
+                    <summary title="Mudar o dia e a hora de publicação">{{ $post->whenLabel() }} <span class="lapis" aria-hidden="true">✎</span></summary>
+                    <form method="POST" action="{{ route('posts.date', $post) }}">
+                        @csrf
+                        <input type="datetime-local" name="scheduled_at" required aria-label="Dia e hora de publicação"
+                               value="{{ $post->scheduled_at?->format('Y-m-d\TH:i') }}" min="{{ now()->format('Y-m-d\TH:i') }}">
+                        <button type="submit" class="btn btn-principal">Guardar</button>
+                    </form>
+                </details>
+            @else
+                <span>{{ $post->whenLabel() }}</span>
+            @endif
             <span class="sep">·</span>
             @foreach ($post->networks as $net)
                 <span class="rede">{{ $net }}</span>

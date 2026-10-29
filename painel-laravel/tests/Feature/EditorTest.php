@@ -153,6 +153,26 @@ class EditorTest extends TestCase
         $this->assertSame('UPS Riello', $post->fresh()->design['titulo']);
     }
 
+    public function test_mudar_a_data_na_lista(): void
+    {
+        $post = $this->postComModelo(['status' => Post::PENDING, 'scheduled_at' => now()->addDay()]);
+        $nova = now()->addDays(10)->setTime(17, 0);
+
+        $this->actingAs($this->user)->get('/')->assertSee('Mudar o dia e a hora de publicação');
+        $this->actingAs($this->user)->post(route('posts.date', $post), ['scheduled_at' => $nova->format('Y-m-d\TH:i')])
+            ->assertSessionHas('ok');
+
+        $this->assertSame($nova->format('Y-m-d H:i'), $post->fresh()->scheduled_at->format('Y-m-d H:i'));
+        $this->assertSame('rescheduled', $post->reviews()->first()->action);
+
+        // Passado: recusado. Aprovado: não se mexe (desfazer primeiro).
+        $this->actingAs($this->user)->post(route('posts.date', $post), ['scheduled_at' => now()->subDay()->format('Y-m-d\TH:i')])
+            ->assertSessionHasErrors('scheduled_at');
+        $post->update(['status' => Post::APPROVED]);
+        $this->actingAs($this->user)->post(route('posts.date', $post), ['scheduled_at' => $nova->format('Y-m-d\TH:i')])
+            ->assertStatus(409);
+    }
+
     public function test_visitante_nao_edita(): void
     {
         $post = $this->postComModelo();

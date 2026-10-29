@@ -18,6 +18,7 @@ class PostReview extends Model
         'discarded' => 'descartou a ideia',
         'created' => 'criou o post no painel',
         'edited' => 'editou o post',
+        'rescheduled' => 'mudou a data',
         'submitted' => 'enviou para aprovação',
         'auto_created' => 'criou o post com a IA, a partir de um pedido',
         'auto_revised' => 'refez o post com a IA, com a alteração pedida',

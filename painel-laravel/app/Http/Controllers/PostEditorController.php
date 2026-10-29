@@ -149,6 +149,25 @@ class PostEditorController extends Controller
         return response()->json(['nome' => $nome]);
     }
 
+    /** Mudar só a data de publicação, a partir da lista de posts. */
+    public function reschedule(Request $request, Post $post): RedirectResponse
+    {
+        $this->mustBeEditable($post);
+        $data = $request->validate([
+            'scheduled_at' => ['required', 'date', 'after:now'],
+        ], ['scheduled_at.after' => 'A data de publicação tem de ser no futuro.']);
+
+        $antes = $post->whenLabel();
+        $post->update(['scheduled_at' => Carbon::parse($data['scheduled_at'])]);
+        $post->reviews()->create([
+            'user_id' => $request->user()->id,
+            'action' => 'rescheduled',
+            'comment' => $antes.' → '.$post->whenLabel(),
+        ]);
+
+        return back()->with('ok', "“{$post->title}” passa a ser publicado {$post->whenLabel()}.");
+    }
+
     public function submit(Request $request, Post $post): RedirectResponse
     {
         $this->mustBeEditable($post);
