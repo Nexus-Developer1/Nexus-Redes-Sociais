@@ -19,7 +19,8 @@ textarea, input, button { font: inherit; }
 h1, h2.titulo { font-family: 'Rajdhani', sans-serif; font-weight: 700; }
 
 .topo { background: var(--escuro); color: #fff; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 24px; }
-.marca { display: flex; align-items: baseline; gap: 14px; text-decoration: none; }
+.marca { display: flex; align-items: center; gap: 14px; text-decoration: none; }
+.marca img { display: block; width: 150px; height: 28px; }
 .marca b { font-family: 'Rajdhani', sans-serif; font-size: 28px; letter-spacing: 4px; color: var(--verde-neon); }
 .marca span { font-size: 14px; color: #b9cbbf; letter-spacing: 1px; }
 .utilizador { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #dfe9e2; }
@@ -104,7 +105,8 @@ details.alterar[open] > summary { display: none; }
 .login { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px; background: var(--escuro); }
 .login form { background: #fff; border-radius: 14px; padding: 28px; width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 12px; }
 .login h1 { margin: 0; font-size: 30px; }
-.login h1 b { color: var(--verde); letter-spacing: 3px; }
+.login h1 { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.login h1 img { display: block; }
 .login label { font-weight: 600; font-size: 14px; }
 .login input[type=email], .login input[type=password] { border: 1px solid #b9c6bd; border-radius: 8px; padding: 10px 12px; min-height: 44px; }
 .login .lembrar { display: flex; gap: 8px; align-items: center; font-weight: 400; }
