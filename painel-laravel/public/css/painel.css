@@ -19,10 +19,10 @@ textarea, input, button { font: inherit; }
 h1, h2.titulo { font-family: 'Rajdhani', sans-serif; font-weight: 700; }
 
 .topo { background: var(--escuro); color: #fff; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 24px; }
-.marca { display: flex; align-items: center; gap: 14px; text-decoration: none; }
+.marca { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; text-decoration: none; }
 .marca img { display: block; width: 150px; height: 28px; }
 .marca b { font-family: 'Rajdhani', sans-serif; font-size: 28px; letter-spacing: 4px; color: var(--verde-neon); }
-.marca span { font-size: 14px; color: #b9cbbf; letter-spacing: 1px; }
+.marca span { font-size: 12px; line-height: 1; color: #b9cbbf; letter-spacing: 2px; text-transform: uppercase; }
 .utilizador { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #dfe9e2; }
 .avatar { width: 34px; height: 34px; border-radius: 50%; background: #1d3a27; color: var(--verde-neon); display: flex; align-items: center; justify-content: center; font-weight: 600; }
 .utilizador button { background: none; border: 0; color: #b9cbbf; text-decoration: underline; cursor: pointer; padding: 8px; }
