@@ -138,7 +138,7 @@ class IaTest extends TestCase
     {
         config(['services.pexels.key' => null, 'services.pixabay.key' => 'pixabay-teste']);
         $hit = ['id' => 77, 'tags' => 'server, rack', 'user' => 'Rui', 'webformatURL' => 'https://pixabay.com/get/w.jpg',
-            'largeImageURL' => 'https://pixabay.com/get/large.jpg'];
+            'largeImageURL' => 'https://pixabay.com/get/large.jpg', 'imageWidth' => 3000, 'imageHeight' => 4000];
         Http::fake([
             'ia.teste/*' => Http::sequence()->push($this->respostaIa(['pesquisa_imagem' => 'server room']))
                 ->push(['choices' => [['message' => ['content' => '{}']]]]) // revisor PT-PT: nada a mudar
@@ -164,7 +164,7 @@ class IaTest extends TestCase
                 ->push(['choices' => [['message' => ['content' => '{}']]]])
                 ->push(['choices' => [['message' => ['content' => '0']]]]),
             'pixabay.com/api/*' => Http::response(['hits' => [['id' => 5, 'tags' => 'ribs, barbecue', 'user' => 'x',
-                'webformatURL' => 'https://pixabay.com/get/w.jpg', 'largeImageURL' => 'https://pixabay.com/get/l.jpg']]]),
+                'webformatURL' => 'https://pixabay.com/get/w.jpg', 'largeImageURL' => 'https://pixabay.com/get/l.jpg', 'imageWidth' => 3000, 'imageHeight' => 4000]]]),
         ]);
         PostRequest::create(['topic' => 'UPS']);
 
@@ -180,8 +180,8 @@ class IaTest extends TestCase
     {
         config(['services.pexels.key' => null, 'services.pixabay.key' => 'pixabay-teste']);
         $hits = [
-            ['id' => 77, 'tags' => 'server', 'user' => 'Rui', 'webformatURL' => 'https://pixabay.com/get/w77.jpg', 'largeImageURL' => 'https://pixabay.com/get/l77.jpg'],
-            ['id' => 88, 'tags' => 'data center', 'user' => 'Ana', 'webformatURL' => 'https://pixabay.com/get/w88.jpg', 'largeImageURL' => 'https://pixabay.com/get/l88.jpg'],
+            ['id' => 77, 'tags' => 'server', 'user' => 'Rui', 'webformatURL' => 'https://pixabay.com/get/w77.jpg', 'largeImageURL' => 'https://pixabay.com/get/l77.jpg', 'imageWidth' => 3000, 'imageHeight' => 4000],
+            ['id' => 88, 'tags' => 'data center', 'user' => 'Ana', 'webformatURL' => 'https://pixabay.com/get/w88.jpg', 'largeImageURL' => 'https://pixabay.com/get/l88.jpg', 'imageWidth' => 3000, 'imageHeight' => 4000],
         ];
         Http::fake([
             // a IA só vê a 88 (a 77 já foi usada) e escolhe-a
@@ -278,6 +278,21 @@ precisa de *renovar*', 'pontos' => []]))
 
         $d = PostRequest::first()->post->design;
         $this->assertSame(['numero', '5'], [$d['modelo'], $d['numero']]);
+    }
+
+    public function test_so_fotos_que_ficam_nitidas(): void
+    {
+        config(['services.pexels.key' => null, 'services.pixabay.key' => 'pix']);
+        Http::fake(['pixabay.com/api/*' => Http::response(['hits' => [
+            // panorâmica: teria de ser ampliada 3x para encher o post 4:5 → fica de fora
+            ['id' => 1, 'tags' => 'server', 'user' => 'a', 'webformatURL' => 'https://pixabay.com/get/1.jpg', 'imageWidth' => 4000, 'imageHeight' => 1400],
+            // vertical: quase não é ampliada → serve
+            ['id' => 2, 'tags' => 'server', 'user' => 'b', 'webformatURL' => 'https://pixabay.com/get/2.jpg', 'imageWidth' => 3000, 'imageHeight' => 3750],
+        ]])]);
+
+        $fotos = app(\App\Services\BancoFotos::class)->procurar('server room', '4:5', 5);
+
+        $this->assertSame([2], array_column($fotos, 'id'));
     }
 
     public function test_correcoes_fixas_de_brasileirismos(): void

@@ -29,25 +29,52 @@ class Pixabay
         $parametros = [
             'q' => mb_substr($pesquisa, 0, 100),
             'image_type' => 'photo',
-            'orientation' => 'all', // o post corta a foto ao tamanho certo; só verticais dava poucos resultados
-            'per_page' => max(3, min($quantos, 50)),
+            'per_page' => 50,
             'safesearch' => 'true',
             'min_width' => 800,
         ];
         // A IA pesquisa em inglês; quem usa o editor pode escrever em português.
         // Pesquisa primeiro na língua que parece ser a da pesquisa e completa com a outra se vier pouco.
+        // Primeiro só fotos verticais (ficam nítidas no post 4:5); depois as outras, que passam pelo filtro de nitidez.
         [$primeira, $segunda] = self::parecePortugues($pesquisa) ? ['pt', 'en'] : ['en', 'pt'];
-        $hits = $this->pedido($parametros + ['lang' => $primeira])['hits'] ?? [];
-        if (count($hits) < $quantos / 2) {
-            $hits = array_merge($hits, $this->pedido($parametros + ['lang' => $segunda])['hits'] ?? []);
+        $hits = [];
+        foreach ([[$primeira, 'vertical'], [$primeira, 'all'], [$segunda, 'vertical'], [$segunda, 'all']] as [$lang, $orientacao]) {
+            $nitidas = collect($hits)->filter(fn ($f) => self::ampliacao($f, $formato) <= self::AMPLIACAO_NITIDA)->count();
+            if ($nitidas >= $quantos) {
+                break;
+            }
+            $hits = array_merge($hits, $this->pedido($parametros + ['lang' => $lang, 'orientation' => $orientacao])['hits'] ?? []);
         }
 
-        return collect($hits)->unique('id')->take($quantos)->map(fn ($f) => [
+        // Só fotos que ficam nítidas no tamanho do post; as que obrigariam a ampliar muito ficam de fora.
+        return collect($hits)->unique('id')
+            ->filter(fn ($f) => self::ampliacao($f, $formato) <= self::AMPLIACAO_NITIDA)
+            ->take($quantos)->map(fn ($f) => [
             'id' => (int) $f['id'],
             'miniatura' => (string) ($f['webformatURL'] ?? $f['previewURL'] ?? ''),
             'alt' => (string) ($f['tags'] ?? ''),
             'fotografo' => (string) ($f['user'] ?? ''),
         ])->filter(fn ($f) => $f['miniatura'] !== '')->values()->all();
+    }
+
+    /** Ampliação máxima aceite: acima disto a foto fica visivelmente desfocada. */
+    public const AMPLIACAO_NITIDA = 1.3;
+
+    /**
+     * Quanto a foto teria de ser ampliada para encher o post. O Pixabay gratuito dá no máximo
+     * 1280 px no lado maior (largeImageURL); um post 4:5 tem 1080×1350.
+     */
+    public static function ampliacao(array $foto, string $formato): float
+    {
+        $w = (int) ($foto['imageWidth'] ?? 0);
+        $h = (int) ($foto['imageHeight'] ?? 0);
+        if ($w <= 0 || $h <= 0) {
+            return 99.0;
+        }
+        $f = min(1, 1280 / max($w, $h));
+        [$alvoW, $alvoH] = PostRenderer::FORMATOS[$formato] ?? PostRenderer::FORMATOS['4:5'];
+
+        return max($alvoW / ($w * $f), $alvoH / ($h * $f));
     }
 
     public static function parecePortugues(string $texto): bool
