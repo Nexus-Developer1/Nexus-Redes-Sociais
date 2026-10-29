@@ -1,0 +1,12 @@
+{
+  "modelo": "evento",
+  "formato": "4:5",
+  "foto": "foto.jpg",
+  "enquadramento": "centro",
+  "tom": "suave",
+  "titulo": "Workshop:\n*backup* sem falhas",
+  "evento": { "dia": "12", "mes": "Nov", "hora": "14h30 – 17h00", "local": "Instalações NEXUS" },
+  "texto": "Uma tarde prática com a equipa técnica da NEXUS.",
+  "cta": "Inscrições: info@nexus-solutions.pt",
+  "rodape": "Eventos NEXUS"
+}

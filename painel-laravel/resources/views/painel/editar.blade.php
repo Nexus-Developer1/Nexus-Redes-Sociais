@@ -106,10 +106,10 @@
                             </label>
                         </div>
 
-                        {{-- Modelo "foto": a foto vem primeiro, é o mais importante --}}
-                        <div class="foto-destaque" data-modelos="foto">
+                        {{-- Foto de fundo, em qualquer tipo de post --}}
+                        <div class="foto-destaque">
                             <div class="imagem-campo" data-imagem="foto">
-                                <span class="rotulo">Foto <small>(equipa, instalação, produto… JPG ou PNG até 20 MB)</small></span>
+                                <span class="rotulo">Foto de fundo <small>(opcional: equipa, instalação, produto… JPG ou PNG até 20 MB; sem foto usa o verde da marca)</small></span>
                                 <b class="nome"></b>
                                 <label class="btn btn-principal pequeno">Carregar foto…<input type="file" accept="image/png,image/jpeg,image/webp" hidden></label>
                                 <button type="button" class="btn pequeno tirar">Tirar</button>
@@ -161,14 +161,13 @@
                                 <input data-campo="cta" placeholder="ex.: Peça a sua proposta">
                             </label>
                         </div>
-                        <div class="dupla" data-modelos="dica produto aviso evento">
+                        <div class="dupla">
                             <label>Etiqueta <input data-campo="etiqueta" placeholder="(a do tipo de post)"></label>
                             <label>Rodapé <input data-campo="rodape" placeholder="tema do post"></label>
                         </div>
 
-                        <div class="imagens" data-modelos="dica produto aviso evento">
+                        <div class="imagens" data-modelos="produto">
                             @foreach ([
-                                'fundo' => ['Fundo', 'da IA de imagens; sem fundo usa o verde da marca', ''],
                                 'produto' => ['Foto do produto', 'oficial; substitui o ícone', 'produto'],
                                 'parceiro' => ['Logótipo do parceiro', 'oficial: Supermicro, NVIDIA, Riello…', 'produto'],
                             ] as $campo => [$rotulo, $ajuda, $so])

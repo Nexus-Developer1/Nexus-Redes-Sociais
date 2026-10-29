@@ -26,7 +26,7 @@
 
   if (!E.design) return; // post sem modelo: só legenda, data e redes
 
-  var imagens = { foto: E.design.foto || '', fundo: E.design.fundo || '', produto: E.design.produto || '', parceiro: E.design.parceiro || '' };
+  var imagens = { foto: E.design.foto || E.design.fundo || '', produto: E.design.produto || '', parceiro: E.design.parceiro || '' };
 
   // ---------- preencher ----------
   $$('[data-campo]').forEach(function (el) {
@@ -154,7 +154,13 @@
             return j;
           });
         })
-        .then(function (j) { imagens[k] = j.nome; alterado = true; })
+        .then(function (j) {
+          imagens[k] = j.nome;
+          alterado = true;
+          // Com foto da equipa, o ícone tapava-a: tira-se (pode voltar a escolher-se).
+          var icone = $('#design [data-campo=icone]');
+          if (k === 'foto' && icone && icone.value) icone.value = '';
+        })
         .catch(function (err) { alert('A imagem não foi enviada: ' + err.message); })
         .then(function () { input.value = ''; mostrarImagens(); previa(); });
     });

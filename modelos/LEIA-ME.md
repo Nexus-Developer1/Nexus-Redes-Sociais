@@ -1,6 +1,6 @@
 # Modelos de posts NEXUS
 
-Cinco modelos: **dica**, **produto**, **aviso**, **evento** e **foto** (foto a ocupar tudo, aba NEXUS no topo, título em caixas em baixo, como no feed atual).
+Quatro modelos: **dica**, **produto**, **aviso** e **evento**. Qualquer um pode levar uma **foto de fundo** (equipa, instalação, produto ou IA de imagens), com tom verde por cima.
 Exemplos prontos em `exemplos/` (com o `post.png` de cada um).
 
 ## Onde estão as coisas
@@ -30,10 +30,10 @@ Mudar o aspeto de todos os posts = mudar `painel-laravel/public/modelos/modelos.
 ## Campos do dados.json
 | Campo | Modelos | O que é |
 |---|---|---|
-| `modelo` | todos | `dica`, `produto`, `aviso`, `evento` ou `foto` |
-| `foto` | foto | a foto (equipa, instalação, produto) |
-| `enquadramento` | foto | `centro`, `topo` ou `baixo` (para não cortar caras) |
-| `tom` | foto | tom verde: `suave` (por defeito), `forte` ou `nenhum` |
+| `modelo` | todos | `dica`, `produto`, `aviso` ou `evento` |
+| `foto` | todos | foto de fundo (equipa, instalação, produto, IA de imagens); `fundo` também funciona |
+| `enquadramento` | todos | com foto: `centro`, `topo` ou `baixo` (para não cortar caras) |
+| `tom` | todos | com foto: tom verde `suave` (por defeito), `forte` ou `nenhum` |
 | `formato` | todos | `4:5` (feed, por defeito), `1:1` (quadrado) ou `9:16` (Stories/Reels) |
 | `titulo` | todos | `\n` muda de linha; `*palavra*` fica a verde |
 | `texto` | todos | frase por baixo do título (aceita `\n` e `*...*`) |

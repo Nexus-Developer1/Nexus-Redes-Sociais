@@ -13,7 +13,7 @@ use RuntimeException;
  */
 class PostRenderer
 {
-    public const MODELOS = ['dica', 'produto', 'aviso', 'evento', 'foto'];
+    public const MODELOS = ['dica', 'produto', 'aviso', 'evento'];
 
     public const FORMATOS = ['4:5' => [1080, 1350], '1:1' => [1080, 1080], '9:16' => [1080, 1920]];
 
@@ -129,7 +129,7 @@ class PostRenderer
                 $limpo[$campo] = $v;
             }
         }
-        // Modelo "foto": enquadramento (para não cortar caras) e intensidade do tom verde.
+        // Foto de fundo (qualquer tipo): enquadramento (para não cortar caras) e intensidade do tom verde.
         if (in_array($d['enquadramento'] ?? '', ['topo', 'centro', 'baixo'], true)) {
             $limpo['enquadramento'] = $d['enquadramento'];
         }

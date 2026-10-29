@@ -175,9 +175,9 @@ class EditorTest extends TestCase
 
     public function test_post_com_foto_da_equipa(): void
     {
-        $this->actingAs($this->user)->post('/posts', ['modelo' => 'foto', 'title' => 'A nossa equipa']);
+        $this->actingAs($this->user)->post('/posts', ['modelo' => 'evento', 'title' => 'A nossa equipa']);
         $post = Post::firstWhere('title', 'A nossa equipa');
-        $this->assertSame('foto', $post->design['modelo']);
+        $this->assertSame('evento', $post->design['modelo']);
 
         $this->actingAs($this->user)
             ->post(route('posts.upload', $post), ['ficheiro' => UploadedFile::fake()->image('Equipa NEXUS.jpg', 80, 100)])
@@ -185,7 +185,7 @@ class EditorTest extends TestCase
 
         $this->actingAs($this->user)->post(route('posts.update', $post), [
             'title' => 'A nossa equipa', 'networks' => ['Instagram'],
-            'design' => json_encode(['modelo' => 'foto', 'titulo' => 'A equipa', 'foto' => 'equipa-nexus.jpg',
+            'design' => json_encode(['modelo' => 'evento', 'titulo' => 'A equipa', 'foto' => 'equipa-nexus.jpg',
                 'enquadramento' => 'topo', 'tom' => 'forte']),
         ])->assertSessionHas('ok');
 
