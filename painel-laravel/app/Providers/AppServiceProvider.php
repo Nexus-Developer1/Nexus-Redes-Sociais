@@ -13,7 +13,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Ficheiros novos legíveis por todos (rw-r--r--): as imagens dos posts e da biblioteca são servidas pelo
+        // Apache (www-data), que não é do grupo da app. No servidor o PHP corre com umask 027, o que deixava as
+        // imagens geradas sem leitura para o Apache (imagem partida no painel). Vale também para o Chrome que
+        // gera as imagens, porque herda a umask. O que é privado está em pastas que o Apache não atravessa.
+        umask(0022);
     }
 
     /**
