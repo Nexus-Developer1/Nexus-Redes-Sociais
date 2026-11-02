@@ -71,6 +71,17 @@ class UtilizadoresTest extends TestCase
         $this->assertNull($outro->fresh());
     }
 
+    public function test_nome_com_codigo_nao_corre_como_javascript(): void
+    {
+        $admin = $this->admin();
+        User::factory()->create(['name' => "x');alert(1);//"]);
+
+        $html = $this->actingAs($admin)->get('/utilizadores')->assertOk()->getContent();
+
+        $this->assertStringNotContainsString('onsubmit="return confirm(', $html);
+        $this->assertStringContainsString('data-confirm="Remover a conta de x&#039;);alert(1);//?', $html);
+    }
+
     public function test_repor_palavra_passe(): void
     {
         $admin = $this->admin();

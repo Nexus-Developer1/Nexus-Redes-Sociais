@@ -28,8 +28,8 @@ $largura, $altura = $formatos[$formato]
 $modelos = Join-Path (Split-Path $PSScriptRoot -Parent) "painel-laravel\public\modelos"
 $rel = ([Uri]($pasta + "\")).MakeRelativeUri([Uri]($modelos + "\")).ToString()
 
-# Os dados entram como JSON dentro de <script>; "</" é escapado para não fechar a tag.
-$jsonSeguro = $json.Trim() -replace '</', '<\/'
+# Os dados entram como JSON dentro de <script>; < > & são escapados (<…) para nenhum texto abrir ou fechar tags.
+$jsonSeguro = $json.Trim() -replace '<', '<' -replace '>', '>' -replace '&', '&'
 $html = @"
 <!doctype html>
 <html lang="pt">

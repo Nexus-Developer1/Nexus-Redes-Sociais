@@ -41,7 +41,7 @@
                 @if ($u->is_admin)<span class="estado estado-approved">Administrador</span>@endif
                 <div class="user-acoes">
                     <form method="POST" action="{{ route('users.reset', $u) }}"
-                          onsubmit="return confirm('Criar uma palavra-passe nova para {{ $u->name }}? A atual deixa de funcionar.')">
+                          data-confirm="Criar uma palavra-passe nova para {{ $u->name }}? A atual deixa de funcionar.">
                         @csrf<button type="submit" class="btn pequeno">Nova palavra-passe</button>
                     </form>
                     <form method="POST" action="{{ route('users.admin', $u) }}">
@@ -49,7 +49,7 @@
                     </form>
                     @unless ($u->is(auth()->user()))
                         <form method="POST" action="{{ route('users.destroy', $u) }}"
-                              onsubmit="return confirm('Remover a conta de {{ $u->name }}? O histórico dos posts mantém-se.')">
+                              data-confirm="Remover a conta de {{ $u->name }}? O histórico dos posts mantém-se.">
                             @csrf<button type="submit" class="btn pequeno btn-perigo">Remover</button>
                         </form>
                     @endunless

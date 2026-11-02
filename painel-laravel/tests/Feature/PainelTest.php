@@ -142,4 +142,31 @@ class PainelTest extends TestCase
         $this->post('/sair');
         $this->post('/teste-419')->assertRedirect(route('login'))->assertSessionHas('erro');
     }
+    public function test_aprovar_so_a_versao_que_se_viu(): void
+    {
+        $user = User::factory()->create();
+        $post = $this->novoPost();
+        $versaoVista = (string) $post->updated_at->timestamp;
+        $this->travel(5)->seconds();
+        $post->update(['caption' => 'Legenda mudada por outra pessoa']);
+
+        $this->actingAs($user)->post(route('posts.approve', $post), ['versao' => $versaoVista])->assertSessionHas('erro');
+        $this->assertSame(Post::PENDING, $post->fresh()->status);
+
+        $this->actingAs($user)->post(route('posts.approve', $post), ['versao' => (string) $post->fresh()->updated_at->timestamp]);
+        $this->assertSame(Post::APPROVED, $post->fresh()->status);
+    }
+
+    public function test_mudar_palavra_passe_termina_as_outras_sessoes(): void
+    {
+        $user = User::factory()->create(['password' => 'antiga-12345']);
+        // Outra sessão (outro computador), aberta com a palavra-passe antiga.
+        $this->actingAs($user)->get('/')->assertOk();
+        $hashAntigo = $user->getAuthPassword();
+
+        $user->update(['password' => 'nova-pass-123']);
+
+        $this->withSession(['password_hash_web' => $hashAntigo])->actingAs($user->fresh())
+            ->get('/')->assertRedirect('/entrar');
+    }
 }

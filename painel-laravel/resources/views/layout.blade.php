@@ -10,5 +10,13 @@
 </head>
 <body class="@yield('body_class')">
 @yield('body')
+<script>
+// Formulários com data-confirm pedem confirmação. O texto vem de um atributo HTML (nunca de código JS),
+// por isso nomes ou textos escritos por utilizadores não podem correr como código.
+document.addEventListener('submit', function (e) {
+    var msg = e.target.getAttribute('data-confirm');
+    if (msg && !window.confirm(msg)) e.preventDefault();
+});
+</script>
 </body>
 </html>

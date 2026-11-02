@@ -13,6 +13,10 @@ class PostDecisionController extends Controller
     public function approve(Request $request, Post $post): RedirectResponse
     {
         $this->mustBe($post, [Post::PENDING]);
+        // Só se aprova a versão que a pessoa viu: se o post mudou entretanto, mostra-se a nova.
+        if ($request->filled('versao') && $request->input('versao') !== (string) $post->updated_at?->timestamp) {
+            return back()->with('erro', "“{$post->title}” foi alterado entretanto. Reveja a versão nova antes de aprovar.");
+        }
         $post->decide('approved', Post::APPROVED, $request->user());
 
         return back()->with('ok', "“{$post->title}” foi aprovado e agendado.");

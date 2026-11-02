@@ -43,6 +43,9 @@ class UtilizadoresController extends Controller
         $this->soAdmin($request);
         $password = $this->novaPassword();
         $user->update(['password' => $password]);
+        // Termina as sessões dessa pessoa (incluindo "manter sessão iniciada").
+        $user->setRememberToken(\Illuminate\Support\Str::random(60));
+        $user->save();
 
         return back()->with('password', [$user->email, $password])
             ->with('ok', "Palavra-passe nova para {$user->name}.");

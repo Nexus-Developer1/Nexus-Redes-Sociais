@@ -61,7 +61,8 @@ class PostRenderer
         File::ensureDirectoryExists($trabalho);
 
         // Os dados entram como JSON (o modelos.js põe-nos sempre como texto, nunca como HTML).
-        $json = str_replace('</', '<\/', json_encode($design, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+        // < > & escapados (<…): nenhum texto do post consegue fechar ou abrir tags dentro do <script>.
+        $json = json_encode($design, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP);
         $modelos = $this->fileUrl(public_path('modelos')).'/';
         $html = '<!doctype html><html lang="pt"><head><meta charset="utf-8">'
             .'<base href="'.$this->fileUrl($pasta).'/">'

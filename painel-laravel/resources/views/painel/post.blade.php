@@ -71,6 +71,8 @@
             <div class="acoes">
                 <form method="POST" action="{{ route('posts.approve', $post) }}">
                     @csrf
+                    {{-- a versão que a pessoa está a ver: se o post mudar entretanto, a aprovação é recusada --}}
+                    <input type="hidden" name="versao" value="{{ $post->updated_at?->timestamp }}">
                     <button type="submit" class="btn btn-principal" title="Aprovar e agendar para a data marcada">Aprovar</button>
                 </form>
                 <details class="alterar">

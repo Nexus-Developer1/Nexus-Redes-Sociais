@@ -108,8 +108,13 @@ class Pixabay
         if (! $this->configurado()) {
             throw new RuntimeException('O Pixabay não está configurado (PIXABAY_CHAVE no .env).');
         }
-        $resposta = Http::timeout(20)->acceptJson()
-            ->get(self::API, ['key' => config('services.pixabay.key')] + $parametros);
+        try {
+            $resposta = Http::timeout(20)->acceptJson()
+                ->get(self::API, ['key' => config('services.pixabay.key')] + $parametros);
+        } catch (\Illuminate\Http\Client\ConnectionException) {
+            // A mensagem original traz o endereço completo, com a chave: não pode ir para os logs.
+            throw new RuntimeException('Não foi possível ligar ao Pixabay. Tente daqui a pouco.');
+        }
         if ($resposta->failed()) {
             throw new RuntimeException('O Pixabay respondeu com erro '.$resposta->status().'.');
         }
