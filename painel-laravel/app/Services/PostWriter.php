@@ -454,7 +454,8 @@ class PostWriter
                             .'brasileirismos de vocabulário (equipe→equipa, tela→ecrã, usuário→utilizador, arquivo→ficheiro, contato→contacto, '
                             .'celular→telemóvel, time→equipa), de ortografia (detectar→detetar, fato→facto, econômico→económico) e de construção '
                             .'(gerúndio "estou fazendo"→"estou a fazer", "segue sendo"/"segue como"→"continua a ser", "você pode estar"→"pode estar"), '
-                            .'mistura de "tu" e "você" (usa sempre "você"/"a sua empresa", sem "tu", "teu", "fica atento"), '
+                            .'mistura de "tu" e "você" (usa sempre "você"/"a sua empresa", sem "tu", "teu", "fica atento"; nas ordens e conselhos '
+                            .'usa o imperativo de "você": Garanta, Proteja, Faça, Descubra, Fale, Saiba, e não Garante, Protege, Faz, Descobre, Fala, Sabe), '
                             .'e erros de ortografia, acentuação e pontuação. '
                             .'NÃO acrescentes nem tires informação, não mudes o sentido, o tom, os emojis, as mudanças de linha, os asteriscos, '
                             .'os endereços nem as hashtags (nas hashtags só corriges a grafia). Se um texto já estiver certo, devolve-o igual.'],
