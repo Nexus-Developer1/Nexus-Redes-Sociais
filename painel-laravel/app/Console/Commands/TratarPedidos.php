@@ -211,9 +211,7 @@ class TratarPedidos extends Command
         $post->image_alt = trim(str_replace(['*', "\n"], ['', ' '], $post->design['titulo'] ?? $post->title));
         $post->save();
 
-        $imagem = $renderer->render($post);
-        $post->image_path = $imagem['path'];
-        $post->save();
+        $post->guardarImagens($renderer->render($post));
     }
 
     private function paraAprovacao(Post $post, string $acao): void

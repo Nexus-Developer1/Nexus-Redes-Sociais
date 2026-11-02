@@ -90,6 +90,100 @@
     return typeof p === 'string' ? p : (p.destaque ? p.destaque + ' | ' : '') + (p.texto || '');
   }).join('\n');
 
+  // ---------- carrossel: capa (este post) + um slide por ponto + contactos ----------
+  var MAX_SLIDES = 8;
+  var listaSlides = $('#slides-lista');
+  var caixaCarrossel = $('#f-carrossel');
+  var slideAtual = 0; // imagem mostrada na pré-visualização (0 = capa)
+
+  function criarSlide(s) {
+    var li = document.createElement('li');
+    li.className = 'slide-item';
+    // HTML fixo; os textos entram só como .value
+    li.innerHTML = '<div class="slide-cabeca"><b></b><button type="button" class="btn pequeno slide-tirar">Tirar</button></div>'
+      + '<div class="slide-campos"><label>Destaque <small>ex.: 1, 24h</small><input data-s="destaque" maxlength="12"></label>'
+      + '<label>Título <small>Enter muda de linha · <code>*palavra*</code> a verde</small><textarea data-s="titulo" rows="2" maxlength="120"></textarea></label></div>'
+      + '<label>Texto <small>1 ou 2 frases</small><textarea data-s="texto" rows="3" maxlength="400"></textarea></label>';
+    ['destaque', 'titulo', 'texto'].forEach(function (k) { $('[data-s=' + k + ']', li).value = s[k] || ''; });
+    $('.slide-tirar', li).addEventListener('click', function () {
+      li.remove();
+      numerarSlides();
+      alterado = true;
+      previa();
+    });
+    listaSlides.appendChild(li);
+    return li;
+  }
+  function numerarSlides() {
+    $$('.slide-item', listaSlides).forEach(function (li, i) { $('.slide-cabeca b', li).textContent = 'Slide ' + (i + 2); });
+    $('#slide-mais').hidden = listaSlides.children.length >= MAX_SLIDES;
+  }
+  function lerSlides() {
+    return $$('.slide-item', listaSlides).map(function (li) {
+      var s = {};
+      ['destaque', 'titulo', 'texto'].forEach(function (k) {
+        var v = $('[data-s=' + k + ']', li).value.replace(/\r/g, '').trim();
+        if (v) s[k] = v;
+      });
+      return s;
+    }).filter(function (s) { return s.titulo || s.texto; });
+  }
+  function carrosselLigado() {
+    return caixaCarrossel && caixaCarrossel.checked && !caixaCarrossel.closest('[hidden]') && $('#f-formato').value !== '9:16';
+  }
+  function estadoCarrossel() {
+    var stories = $('#f-formato').value === '9:16';
+    caixaCarrossel.disabled = stories;
+    caixaCarrossel.closest('label').title = stories ? 'Os Stories não têm carrossel: escolha o formato 4:5 ou 1:1.' : '';
+    $('#slides').hidden = !caixaCarrossel.checked || stories;
+  }
+  if (caixaCarrossel) {
+    if (E.design.carrossel && E.design.slides) {
+      caixaCarrossel.checked = true;
+      E.design.slides.forEach(criarSlide);
+    }
+    numerarSlides();
+    estadoCarrossel();
+
+    caixaCarrossel.addEventListener('change', function () {
+      if (caixaCarrossel.checked && !listaSlides.children.length) {
+        // Os pontos que já estiverem escritos passam a ser os slides; senão, 3 slides em branco.
+        var pontos = $('#f-pontos').value.split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
+        if (pontos.length && visivel($('#f-pontos'))) {
+          pontos.slice(0, MAX_SLIDES).forEach(function (l, i) {
+            var k = l.indexOf('|');
+            criarSlide(k >= 0 ? { destaque: l.slice(0, k).trim(), titulo: l.slice(k + 1).trim() } : { destaque: String(i + 1), titulo: l });
+          });
+          $('#f-pontos').value = '';
+        } else {
+          for (var i = 1; i <= 3; i++) criarSlide({ destaque: String(i) });
+        }
+        numerarSlides();
+      }
+      estadoCarrossel();
+      slideAtual = caixaCarrossel.checked ? 1 : 0;
+      previa();
+    });
+    $('#slide-mais').addEventListener('click', function () {
+      var li = criarSlide({ destaque: String(listaSlides.children.length + 1) });
+      numerarSlides();
+      alterado = true;
+      slideAtual = listaSlides.children.length;
+      previa();
+      $('[data-s=titulo]', li).focus();
+    });
+    // Ao escrever num slide, a pré-visualização mostra esse slide.
+    $('#design').addEventListener('focusin', function (e) {
+      if (!carrosselLigado() || e.target === caixaCarrossel) return;
+      var li = e.target.closest('.slide-item');
+      var novo = li ? $$('.slide-item', listaSlides).indexOf(li) + 1
+        : (e.target.dataset.campo === 'fecho' ? lerSlides().length + 1 : 0);
+      if (novo !== slideAtual) { slideAtual = novo; previa(); }
+    });
+    $('#slide-ant').addEventListener('click', function () { slideAtual = Math.max(0, slideAtual - 1); previa(); });
+    $('#slide-seg').addEventListener('click', function () { slideAtual++; previa(); });
+  }
+
   function mostrarCampos() {
     var modelo = $('#f-modelo').value;
     $$('[data-modelos]').forEach(function (el) { el.hidden = el.dataset.modelos.split(' ').indexOf(modelo) < 0; });
@@ -131,6 +225,10 @@
       var k = bloco.dataset.imagem;
       if (imagens[k] && visivel(bloco)) d[k] = imagens[k];
     });
+    if (caixaCarrossel && carrosselLigado()) {
+      var slides = lerSlides();
+      if (slides.length) { d.carrossel = true; d.slides = slides; }
+    }
     return d;
   }
 
@@ -159,6 +257,18 @@
   function previa() {
     var d = ler();
     formato = d.formato;
+    // Carrossel: mostra a imagem escolhida nas setas (capa, slides ou contactos).
+    var total = d.carrossel ? d.slides.length + 2 : 1;
+    slideAtual = Math.max(0, Math.min(slideAtual, total - 1));
+    if (d.carrossel) d.slide = slideAtual;
+    var nav = $('#slides-nav');
+    if (nav) {
+      nav.hidden = total === 1;
+      $('#slide-qual').textContent = (slideAtual === 0 ? 'Capa' : slideAtual === total - 1 ? 'Contactos' : 'Slide ' + (slideAtual + 1))
+        + ' · ' + (slideAtual + 1) + ' / ' + total;
+      $('#slide-ant').disabled = slideAtual === 0;
+      $('#slide-seg').disabled = slideAtual >= total - 1;
+    }
     var json = JSON.stringify(d).replace(/</g, '\\u003c');
     var html = '<!doctype html><html lang="pt"><head><meta charset="utf-8">'
       + '<base href="' + E.pasta + '">'
@@ -184,6 +294,7 @@
 
   $('#design').addEventListener('input', function (e) {
     if (e.target.id === 'f-modelo') mostrarCampos();
+    if (e.target.id === 'f-formato' && caixaCarrossel) estadoCarrossel();
     previaDepois();
   });
 

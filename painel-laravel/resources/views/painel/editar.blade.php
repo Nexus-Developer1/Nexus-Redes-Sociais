@@ -35,7 +35,9 @@
         <div class="editor-bloqueado">
             <div class="aviso">Este post já foi {{ $post->status === \App\Models\Post::PUBLISHED ? 'publicado' : 'aprovado' }}.
                 Para o alterar, use “Desfazer” no painel primeiro.</div>
-            @if ($post->image_path)<img class="imagem-final" src="{{ asset($post->image_path) }}" alt="{{ $post->image_alt }}">@endif
+            @foreach ($post->imagens() as $i => $img)
+                <img class="imagem-final" src="{{ asset($img) }}" alt="{{ $i ? 'Imagem '.($i + 1) : $post->image_alt }}">
+            @endforeach
         </div>
     @else
     <div class="editor">
@@ -172,6 +174,19 @@
                         <label data-modelos="dica produto">Pontos <small>um por linha · na dica, <code>3 | cópias dos dados</code> faz um cartão</small>
                             <textarea id="f-pontos" rows="3"></textarea>
                         </label>
+                        {{-- Carrossel: esta imagem é a capa; depois um slide por ponto e no fim os contactos --}}
+                        <div class="carrossel-campo" data-modelos="dica numero produto frase montra">
+                            <label class="check"><input type="checkbox" id="f-carrossel"> <b>Carrossel</b>
+                                <small>várias imagens no mesmo post: esta é a capa, depois um slide por ponto e no fim os contactos</small></label>
+                            <div id="slides" hidden>
+                                <ol class="slides-lista" id="slides-lista"></ol>
+                                <button type="button" class="btn btn-contorno pequeno" id="slide-mais">+ Slide</button>
+                                <label>Último slide (contactos) <small>título · Enter muda de linha · <code>*palavra*</code> fica a verde</small>
+                                    <textarea data-campo="fecho" rows="2" maxlength="80" placeholder="Fale com a&#10;*NEXUS*"></textarea>
+                                </label>
+                            </div>
+                        </div>
+
                         <div data-modelos="aviso" class="dupla">
                             <label>Data <input data-campo="data" placeholder="Sexta-feira, 23 de outubro"></label>
                             <label>Hora <input data-campo="hora" placeholder="opcional"></label>
@@ -219,6 +234,11 @@
 
         <aside class="editor-lado">
             @if ($post->design)
+                <div class="slides-nav" id="slides-nav" hidden>
+                    <button type="button" class="btn pequeno" id="slide-ant" aria-label="Imagem anterior">‹</button>
+                    <span id="slide-qual" aria-live="polite"></span>
+                    <button type="button" class="btn pequeno" id="slide-seg" aria-label="Imagem seguinte">›</button>
+                </div>
                 <div id="avisos-vivo"></div>
                 <div class="area-previa" id="area-previa">
                     <div class="moldura" id="moldura"><iframe id="previa" title="Pré-visualização do post"></iframe></div>

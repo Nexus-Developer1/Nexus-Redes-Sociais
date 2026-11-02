@@ -29,6 +29,9 @@ class PostParaAprovar extends Notification
             ->line('Há um post novo à espera da sua aprovação (imagem em anexo).')
             ->line('**'.$post->title.'**')
             ->line('Data prevista: '.$post->whenLabel().' · Redes: '.implode(', ', $post->networks ?? []));
+        if ($post->imagens_carrossel) {
+            $mail->line('Carrossel com '.count($post->imagens_carrossel).' imagens (vão todas em anexo, por ordem).');
+        }
 
         if ($post->caption) {
             $mail->line('**Legenda:**');
@@ -43,8 +46,11 @@ class PostParaAprovar extends Notification
             ->line('Nada é publicado sem a sua aprovação. O painel só abre na rede da NEXUS.')
             ->salutation('Painel de Redes Sociais NEXUS');
 
-        if ($post->image_path && is_file(public_path($post->image_path))) {
-            $mail->attach(public_path($post->image_path));
+        // Todas as imagens (num carrossel, pela ordem em que aparecem).
+        foreach ($post->imagens() as $imagem) {
+            if (is_file(public_path($imagem))) {
+                $mail->attach(public_path($imagem));
+            }
         }
 
         return $mail;

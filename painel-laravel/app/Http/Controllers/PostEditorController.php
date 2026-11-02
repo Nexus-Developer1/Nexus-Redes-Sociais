@@ -127,7 +127,7 @@ class PostEditorController extends Controller
             return redirect()->route('posts.edit', $post)
                 ->with('erro', 'As alterações foram guardadas, mas a imagem não foi gerada: '.$e->getMessage());
         }
-        $post->update(['image_path' => $resultado['path']]);
+        $post->guardarImagens($resultado);
 
         return redirect()->route('posts.edit', $post)
             ->with('ok', 'Alterações guardadas e imagem gerada.')
@@ -226,8 +226,7 @@ class PostEditorController extends Controller
             $post->design = PostRenderer::limparDesign($design, $post);
             $post->save();
 
-            $imagem = $renderer->render($post);
-            $post->update(['image_path' => $imagem['path']]);
+            $post->guardarImagens($renderer->render($post));
             // A foto do banco que saiu já não faz falta.
             if ($anterior && $anterior !== $foto['nome'] && preg_match('/^(pixabay|pexels)-\d+\.jpg$/', $anterior)) {
                 File::delete(PostRenderer::pasta($post).'/'.$anterior);

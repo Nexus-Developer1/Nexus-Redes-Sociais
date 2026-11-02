@@ -367,3 +367,22 @@ body.ecra-editor { height: 100vh; height: 100dvh; display: flex; flex-direction:
 /* Ideias: aviso da IA a fazer o post */
 .nota-auto { margin: 0 0 10px; color: var(--texto-2); font-size: 13px; }
 .ia-a-fazer { display: inline-flex; align-items: center; min-height: 38px; padding: 0 12px; border-radius: 8px; background: #e6eefc; color: #1f3f86; font-size: 14px; font-weight: 600; }
+
+/* ---------- carrossel ---------- */
+.carrossel-campo { display: flex; flex-direction: column; gap: 10px; background: #f6f9f7; border: 1px solid #dbe6de; border-radius: 10px; padding: 12px; }
+.carrossel-campo label.check small { font-weight: 400; }
+#slides { display: flex; flex-direction: column; gap: 10px; }
+#slides[hidden] { display: none; }
+.slides-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.slide-item { background: #fff; border: 1px solid #dbe6de; border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+.slide-cabeca { display: flex; align-items: center; justify-content: space-between; font-size: 14px; }
+.slide-campos { display: grid; grid-template-columns: 110px 1fr; gap: 8px; }
+#slide-mais { align-self: flex-start; }
+.slides-nav { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 14px; font-weight: 600; }
+.slides-nav[hidden] { display: none; }
+.slides-nav span { min-width: 140px; text-align: center; }
+.carrossel-galeria { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; border-radius: 10px; scrollbar-width: thin; }
+.carrossel-galeria > a { flex: 0 0 100%; scroll-snap-align: start; }
+.carrossel-galeria img { border-radius: 0; }
+.carrossel-conta { position: absolute; top: 8px; right: 8px; padding: 2px 9px; border-radius: 999px; background: rgba(0,0,0,.65);
+  color: #fff; font-size: 12px; font-weight: 600; pointer-events: none; }

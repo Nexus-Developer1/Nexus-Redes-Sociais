@@ -44,10 +44,20 @@ class PostRenderer
         return asset("imagens-posts/design/{$post->id}").'/';
     }
 
+    /** Slides de conteúdo num carrossel (o Instagram aceita 10 imagens: capa + 8 + contactos). */
+    public const MAX_SLIDES = 8;
+
+    /** Número de imagens do post: 1, ou capa + slides + contactos num carrossel. */
+    public static function totalImagens(array $design): int
+    {
+        return ! empty($design['carrossel']) && ! empty($design['slides']) ? count($design['slides']) + 2 : 1;
+    }
+
     /**
-     * Gera o PNG e devolve ['path' => caminho relativo a public/, 'avisos' => [...]].
+     * Gera o(s) PNG e devolve ['path' => capa, relativo a public/, 'slides' => [todas as imagens, por ordem,
+     * só num carrossel], 'avisos' => [...]].
      *
-     * @throws RuntimeException se o browser não existir ou não gerar a imagem
+     * @throws RuntimeException se o browser não existir ou não gerar as imagens
      */
     public function render(Post $post): array
     {
@@ -59,22 +69,79 @@ class PostRenderer
         File::ensureDirectoryExists($pasta);
         $trabalho = storage_path('app/render');
         File::ensureDirectoryExists($trabalho);
-
-        // Os dados entram como JSON (o modelos.js põe-nos sempre como texto, nunca como HTML).
-        // < > & escapados (<…): nenhum texto do post consegue fechar ou abrir tags dentro do <script>.
-        $json = json_encode($design, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP);
         $modelos = $this->fileUrl(public_path('modelos')).'/';
-        $html = '<!doctype html><html lang="pt"><head><meta charset="utf-8">'
-            .'<base href="'.$this->fileUrl($pasta).'/">'
-            .'<link href="'.$modelos.'modelos.css" rel="stylesheet"></head><body>'
-            .'<script>window.POST = '.$json.';</script>'
-            .'<script src="'.$modelos.'modelos.js"></script></body></html>';
-        $ficheiroHtml = "{$trabalho}/post-{$post->id}.html";
-        File::put($ficheiroHtml, $html);
+        $carimbo = now()->format('YmdHis');
+        $total = self::totalImagens($design);
 
-        $nome = 'post-'.now()->format('YmdHis').'.png';
-        $png = "{$pasta}/{$nome}";
+        // Uma página por imagem: o modelos.js desenha a capa (slide 0), os slides e os contactos.
+        $trabalhos = [];
+        for ($i = 0; $i < $total; $i++) {
+            // Os dados entram como JSON (o modelos.js põe-nos sempre como texto, nunca como HTML).
+            // < > & escapados (<…): nenhum texto do post consegue fechar ou abrir tags dentro do <script>.
+            $json = json_encode($design + ($total > 1 ? ['slide' => $i] : []),
+                JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP);
+            $html = '<!doctype html><html lang="pt"><head><meta charset="utf-8">'
+                .'<base href="'.$this->fileUrl($pasta).'/">'
+                .'<link href="'.$modelos.'modelos.css" rel="stylesheet"></head><body>'
+                .'<script>window.POST = '.$json.';</script>'
+                .'<script src="'.$modelos.'modelos.js"></script></body></html>';
+            $ficheiroHtml = "{$trabalho}/post-{$post->id}".($i ? "-{$i}" : '').'.html';
+            File::put($ficheiroHtml, $html);
+            $nome = "post-{$carimbo}".($i ? '-'.($i + 1) : '').'.png';
+            $trabalhos[$i] = [
+                'nome' => $nome,
+                'png' => "{$pasta}/{$nome}",
+                // cada browser com o seu perfil (dois ao mesmo tempo não podem usar o mesmo)
+                'comando' => $this->comando($browser, $ficheiroHtml, "{$pasta}/{$nome}", $largura, $altura, 'perfil'.($i % 3 ?: '')),
+            ];
+        }
 
+        // Até 3 browsers ao mesmo tempo: um carrossel de 10 imagens demora pouco mais do que 3.
+        $registos = [];
+        foreach (array_chunk($trabalhos, 3, true) as $grupo) {
+            $resultados = Process::pool(function ($pool) use ($grupo, $trabalho) {
+                foreach ($grupo as $i => $t) {
+                    $pool->as((string) $i)->timeout(90)
+                        ->env(['HOME' => $trabalho, 'XDG_CONFIG_HOME' => $trabalho, 'XDG_CACHE_HOME' => $trabalho])
+                        ->command($t['comando']);
+                }
+            })->start()->wait();
+            foreach ($grupo as $i => $t) {
+                $r = $resultados[(string) $i];
+                $registos[$i] = $r->output()."\n".$r->errorOutput();
+            }
+        }
+
+        $avisos = [];
+        foreach ($trabalhos as $i => $t) {
+            if (! is_file($t['png'])) {
+                throw new RuntimeException('O browser não gerou a imagem'.($total > 1 ? ' '.($i + 1) : '').'. '.trim(mb_substr($registos[$i], 0, 500)));
+            }
+            $prefixo = $total > 1 ? ($i === 0 ? 'Capa: ' : ($i === $total - 1 ? 'Contactos: ' : 'Slide '.($i + 1).': ')) : '';
+            if (! str_contains($registos[$i], 'NEXUS-ESTADO:pronto')) {
+                $avisos[] = $prefixo.'O modelo não terminou de montar o post. Confirme a imagem antes de a enviar.';
+            }
+            preg_match_all('/"NEXUS-AVISO:(.*?)", source/s', $registos[$i], $m);
+            foreach ($m[1] as $aviso) {
+                $avisos[] = $prefixo.$aviso;
+            }
+        }
+
+        // Apaga as imagens geradas antes destas (as imagens enviadas ficam).
+        $novas = array_map(fn ($t) => str_replace('\\', '/', $t['png']), $trabalhos);
+        foreach (File::glob("{$pasta}/post-*.png") as $antiga) {
+            if (! in_array(str_replace('\\', '/', $antiga), $novas, true)) {
+                File::delete($antiga);
+            }
+        }
+
+        $caminhos = array_map(fn ($t) => "imagens-posts/design/{$post->id}/{$t['nome']}", $trabalhos);
+
+        return ['path' => $caminhos[0], 'slides' => $total > 1 ? array_values($caminhos) : [], 'avisos' => $avisos];
+    }
+
+    private function comando(string $browser, string $html, string $png, int $largura, int $altura, string $perfil): array
+    {
         $comando = [$browser];
         if (str_contains(strtolower(basename($browser)), 'msedge') || str_contains(strtolower(basename($browser)), 'chrome.exe')) {
             $comando[] = '--headless=new';
@@ -84,41 +151,16 @@ class PostRenderer
             '--virtual-time-budget=10000', '--allow-file-access-from-files',
             "--window-size={$largura},{$altura}",
             '--enable-logging=stderr', '--v=0',
-            '--user-data-dir='.storage_path('app/render/perfil'),
+            '--user-data-dir='.storage_path('app/render/'.$perfil),
             '--screenshot='.$png,
         );
         if (PHP_OS_FAMILY !== 'Windows') {
             // O utilizador da app não tem as permissões que a sandbox do Chrome pede; o conteúdo é só o nosso modelo.
             $comando[] = '--no-sandbox';
         }
-        $comando[] = $this->fileUrl($ficheiroHtml);
+        $comando[] = $this->fileUrl($html);
 
-        $resultado = Process::timeout(90)
-            ->env(['HOME' => $trabalho, 'XDG_CONFIG_HOME' => $trabalho, 'XDG_CACHE_HOME' => $trabalho])
-            ->run($comando);
-        $registo = $resultado->output()."\n".$resultado->errorOutput();
-
-        if (! is_file($png)) {
-            throw new RuntimeException('O browser não gerou a imagem. '.trim(mb_substr($registo, 0, 500)));
-        }
-
-        // Apaga as imagens geradas antes desta (as imagens enviadas ficam).
-        foreach (File::glob("{$pasta}/post-*.png") as $antiga) {
-            if ($antiga !== $png) {
-                File::delete($antiga);
-            }
-        }
-
-        $avisos = [];
-        if (! str_contains($registo, 'NEXUS-ESTADO:pronto')) {
-            $avisos[] = 'O modelo não terminou de montar o post. Confirme a imagem antes de a enviar.';
-        }
-        preg_match_all('/"NEXUS-AVISO:(.*?)", source/s', $registo, $m);
-        foreach ($m[1] as $aviso) {
-            $avisos[] = $aviso;
-        }
-
-        return ['path' => "imagens-posts/design/{$post->id}/{$nome}", 'avisos' => $avisos];
+        return $comando;
     }
 
     /** Só guarda os campos que os modelos conhecem, com limites de tamanho (editor do painel e IA). */
@@ -131,7 +173,7 @@ class PostRenderer
             'formato' => isset(self::FORMATOS[$d['formato'] ?? '']) ? $d['formato'] : '4:5',
         ];
         foreach (['numero' => 4, 'titulo' => 300, 'texto' => 600, 'etiqueta' => 40, 'rodape' => 80, 'site' => 60,
-            'cta' => 80, 'data' => 80, 'hora' => 40] as $campo => $max) {
+            'cta' => 80, 'data' => 80, 'hora' => 40, 'fecho' => 80] as $campo => $max) {
             if (isset($d[$campo]) && ($v = $texto($d[$campo], $max)) !== '') {
                 $limpo[$campo] = $v;
             }
@@ -163,6 +205,30 @@ class PostRenderer
                     $limpo['evento'][$campo] = $v;
                 }
             }
+        }
+        // Carrossel (feed: 4:5 ou 1:1): capa + um slide por ponto + contactos.
+        if (! empty($d['carrossel']) && $limpo['formato'] !== '9:16' && is_array($d['slides'] ?? null)) {
+            $slides = [];
+            foreach (array_slice($d['slides'], 0, self::MAX_SLIDES) as $s) {
+                if (! is_array($s)) {
+                    continue;
+                }
+                $slide = array_filter([
+                    'destaque' => $texto($s['destaque'] ?? '', 12),
+                    'titulo' => $texto($s['titulo'] ?? '', 120),
+                    'texto' => $texto($s['texto'] ?? '', 400),
+                ], fn ($v) => $v !== '');
+                if (isset($slide['titulo']) || isset($slide['texto'])) {
+                    $slides[] = $slide;
+                }
+            }
+            if ($slides) {
+                $limpo['carrossel'] = true;
+                $limpo['slides'] = $slides;
+            }
+        }
+        if (empty($limpo['carrossel'])) {
+            unset($limpo['fecho']);
         }
         // Para o botão "Outra foto": a pesquisa usada e as fotos do banco já usadas neste post.
         if (isset($d['pesquisa']) && ($v = $texto($d['pesquisa'], 80)) !== '') {

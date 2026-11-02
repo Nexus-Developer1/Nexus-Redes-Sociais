@@ -61,6 +61,10 @@ Sistema que cria posts para as redes sociais da NEXUS de forma autónoma.
     faz cada ideia sozinha `IA_IDEIAS_DIAS_ANTES` (7) dias antes da data e, de segunda a sexta, propõe uma vez por semana as ideias da semana
     seguinte até `IA_IDEIAS_POR_SEMANA` (3), a pensar nos feriados e dias especiais (`App\Services\DatasEspeciais`). Botão "✨ Propor ideias" no calendário
     (ou `--propor`). 0 em qualquer das duas desliga essa parte. Ideias cujo pedido falhou não se repetem sozinhas (fica o botão).
+  - **Carrossel**: `design.carrossel` + `design.slides` (até 8: destaque, título, texto) + `design.fecho`. Capa = o modelo normal com "Deslize ›",
+    depois um slide por ponto e no fim os contactos (automático). O `PostRenderer` gera uma imagem por slide (3 browsers de cada vez);
+    a capa fica em `image_path` e todas em `posts.imagens_carrossel`. A IA usa-o em guias/passos/sinais; no editor é o visto "Carrossel".
+    Publicação: carrossel nativo no Instagram e post com várias fotos no Facebook. Só feed (4:5 ou 1:1), não Stories.
   - **Biblioteca da NEXUS** (`/biblioteca`, tabela `imagens_biblioteca`, ficheiros em `public/imagens-posts/biblioteca/`): fotos próprias, produtos e logótipos; a IA usa primeiro estas (fotos de fundo e "montra" com produto + parceiro).
   - Fotos de fundo grátis: **Pixabay** (`PIXABAY_CHAVE`; o Pexels suspendeu chaves novas, mas `PEXELS_CHAVE` também funciona e tem prioridade): botão "Procurar imagem" no editor e foto automática nos posts da IA (a IA dá as palavras em inglês).
   **PT-PT obrigatório e sem falhas**: todos os textos da IA passam por um revisor de português europeu (2.ª chamada) e pela lista fixa `PostWriter::PT_BR_PT`.

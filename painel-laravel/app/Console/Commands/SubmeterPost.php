@@ -80,6 +80,7 @@ class SubmeterPost extends Command
             File::ensureDirectoryExists(public_path('imagens-posts'));
             File::copy($image, public_path('imagens-posts/'.$name));
             $post->image_path = 'imagens-posts/'.$name;
+            $post->imagens_carrossel = null; // imagem feita à parte: deixa de ser carrossel
         }
 
         $networks = array_values(array_intersect(

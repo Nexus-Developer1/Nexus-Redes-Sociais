@@ -14,8 +14,8 @@
 
   var FORMATOS = { '4:5': 'f-4x5', '1:1': 'f-1x1', '9:16': 'f-9x16' };
   var ESCALA = { '4:5': 1, '1:1': 0.86, '9:16': 1.1 };
-  var TITULO = { dica: 88, produto: 80, aviso: 124, evento: 80, numero: 60, frase: 100, montra: 46 };
-  var ETIQUETA = { dica: 'Dica', aviso: 'Aviso', evento: 'Evento', produto: '', numero: '', frase: '', montra: '' };
+  var TITULO = { dica: 88, produto: 80, aviso: 124, evento: 80, numero: 60, frase: 100, montra: 46, slide: 72, fecho: 110 };
+  var ETIQUETA = { dica: 'Dica', aviso: 'Aviso', evento: 'Evento', produto: '', numero: '', frase: '', montra: '', slide: '', fecho: '' };
 
   var I = 'stroke-width="7"';
   var ICONES = {
@@ -29,7 +29,10 @@
     check: '<svg viewBox="0 0 24 24"><path stroke-width="3" d="M4.5 12.5l5 5L19.5 7"/></svg>',
     calendario: '<svg viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>',
     relogio: '<svg viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
-    local: '<svg viewBox="0 0 24 24" stroke-width="2"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>'
+    local: '<svg viewBox="0 0 24 24" stroke-width="2"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>',
+    site: '<svg viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.8 3.8 5.8 3.8 9s-1.2 6.2-3.8 9c-2.6-2.8-3.8-5.8-3.8-9S9.4 5.8 12 3z"/></svg>',
+    email: '<svg viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5l8.5 7 8.5-7"/></svg>',
+    telefone: '<svg viewBox="0 0 24 24" stroke-width="2"><path d="M5 3.5h3.2l1.6 4.3-2.1 1.4a11.5 11.5 0 0 0 7.1 7.1l1.4-2.1 4.3 1.6V19a1.8 1.8 0 0 1-1.9 1.8C10.4 20.3 3.7 13.6 3.2 5.4A1.8 1.8 0 0 1 5 3.5z"/></svg>'
   };
   var REDE_FUNDO = '<svg viewBox="0 0 1080 1080" fill="none" stroke="#fff" stroke-width="2"><path d="M700 120L980 300L860 560ZM860 560L1040 760L980 300M580 380L700 120M580 380L860 560"/><g fill="#fff"><circle cx="700" cy="120" r="10"/><circle cx="980" cy="300" r="14"/><circle cx="860" cy="560" r="12"/><circle cx="1040" cy="760" r="9"/><circle cx="580" cy="380" r="8"/></g></svg>';
 
@@ -106,13 +109,21 @@
   if (!TITULO[modelo]) { avisos.push('modelo desconhecido: "' + modelo + '" (use dica, produto, aviso, evento, numero, frase ou montra)'); modelo = 'aviso'; }
   var formato = P.formato || '4:5';
   if (!FORMATOS[formato]) { avisos.push('formato desconhecido: "' + formato + '"'); formato = '4:5'; }
+
+  // ---------- carrossel: slide 0 = capa (o post normal), depois um slide por ponto e no fim os contactos ----------
+  var SLIDES = P.carrossel && Array.isArray(P.slides) ? P.slides : [];
+  var N = SLIDES.length ? Math.max(0, Math.min(parseInt(P.slide, 10) || 0, SLIDES.length + 1)) : 0;
+  var TOTAL = SLIDES.length ? SLIDES.length + 2 : 1;
+  if (N > 0) modelo = N > SLIDES.length ? 'fecho' : 'slide';
+
   var etiqueta = P.etiqueta !== undefined ? P.etiqueta : ETIQUETA[modelo];
 
   var post = h('div', 'post ' + FORMATOS[formato] + ' m-' + modelo);
 
   // Foto de fundo (equipa, instalação, produto ou da IA de imagens), em qualquer tipo de post.
   // Na "frase" o tom verde forte é o habitual (foto toda verde, como no feed da NEXUS).
-  var foto = P.foto || P.fundo;
+  // Nos slides do carrossel o fundo é sempre o verde da marca, para o texto se ler bem.
+  var foto = N === 0 ? P.foto || P.fundo : null;
   if (foto) {
     var img = imagem(foto, 'fundo', 'foto');
     img.style.objectPosition = { topo: 'center 15%', baixo: 'center 85%' }[P.enquadramento] || 'center center';
@@ -127,9 +138,31 @@
 
   var logo = h('div', 'logo', [imagem(BASE + 'logo-nexus.png', '', 'logótipo'), h('div', 'sub', ['IT SOLUTIONS'])]);
 
-  // ---------- layouts do feed da NEXUS: número em destaque, frase, produto em destaque ----------
-  if (modelo === 'numero' || modelo === 'frase' || modelo === 'montra') {
-    var logoCentro = h('div', 'logo-centro', [imagem(BASE + 'logo-nexus.png', '', 'logótipo'), h('div', 'sub', ['IT SOLUTIONS'])]);
+  var logoCentro = h('div', 'logo-centro', [imagem(BASE + 'logo-nexus.png', '', 'logótipo'), h('div', 'sub', ['IT SOLUTIONS'])]);
+  var contador = (N + 1) + ' / ' + TOTAL;
+
+  if (modelo === 'slide') { // slide do carrossel: destaque grande, título e texto
+    var s = SLIDES[N - 1] || {};
+    if (!s.titulo && !s.texto) avisos.push('o slide está vazio');
+    post.appendChild(h('header', null, [logo, h('div', 'contador', [contador])]));
+    post.appendChild(h('main', null, [
+      s.destaque ? h('div', 'slide-destaque', [s.destaque]) : null,
+      s.titulo ? titulo(s.titulo) : null,
+      s.texto ? h('div', 'slide-texto', [rico(s.texto)]) : null,
+    ]));
+    post.appendChild(h('footer', null, [h('span', 'tema', [P.rodape || '']), h('span', 'site deslize-txt', ['Deslize ›'])]));
+    document.body.appendChild(post);
+  } else if (modelo === 'fecho') { // último slide: contactos da NEXUS
+    post.appendChild(h('header', 'cabeca-centro', [logoCentro]));
+    post.appendChild(h('main', 'centro', [
+      h('h1', 'frase-titulo', [rico(P.fecho || 'Fale com a\n*NEXUS*')]),
+      P.cta ? h('div', 'frase-sub', [P.cta]) : null,
+      linhas([['site', P.site || 'nexus-solutions.pt'], ['email', 'info@nexus-solutions.pt'], ['telefone', '229 437 980']]),
+    ]));
+    post.appendChild(h('footer', null, [h('span', 'tema', [P.rodape || '']), h('span', 'site', [contador])]));
+    document.body.appendChild(post);
+  } else if (modelo === 'numero' || modelo === 'frase' || modelo === 'montra') {
+    // ---------- layouts do feed da NEXUS: número em destaque, frase, produto em destaque ----------
     if (modelo === 'numero') {
       if (!P.numero) avisos.push('falta o número (ex.: 5)');
       if (!P.titulo) avisos.push('falta o título');
@@ -185,6 +218,13 @@
   document.body.appendChild(post);
   } // fim dos modelos dica / produto / aviso / evento
 
+  // Capa de um carrossel: convida a deslizar (no rodapé, onde estaria o site, que vai no último slide).
+  if (N === 0 && SLIDES.length) {
+    var site = post.querySelector('footer .site');
+    if (site) { site.textContent = 'Deslize ›'; site.className = 'site deslize-txt'; }
+    else post.appendChild(h('div', 'deslize', ['Deslize ›']));
+  }
+
   // ---------- ajustar o texto ao espaço ----------
   var t0 = TITULO[modelo] * ESCALA[formato];
   var t = t0;
@@ -207,7 +247,7 @@
     }
     var il = post.querySelector('.ilustracao');
     if (il && il.clientHeight < 200) return false;
-    var largos = post.querySelectorAll('.caixa, .grande, .ponto, .linha, .lista li, .numero-titulo, .frase-titulo, .montra-titulo');
+    var largos = post.querySelectorAll('.caixa, .grande, .ponto, .linha, .lista li, .numero-titulo, .frase-titulo, .montra-titulo, .slide-destaque');
     for (var i = 0; i < largos.length; i++) if (largos[i].scrollWidth > largos[i].clientWidth + 1) return false;
     if (inteiro) {
       var caixas = post.querySelectorAll('.caixa');

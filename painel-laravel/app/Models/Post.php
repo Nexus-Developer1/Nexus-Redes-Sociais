@@ -29,7 +29,7 @@ class Post extends Model
     public const NETWORKS = ['Instagram', 'Facebook', 'LinkedIn'];
 
     protected $fillable = [
-        'title', 'caption', 'image_path', 'image_alt', 'design', 'networks',
+        'title', 'caption', 'image_path', 'imagens_carrossel', 'image_alt', 'design', 'networks',
         'scheduled_at', 'status', 'source', 'change_request',
     ];
 
@@ -38,6 +38,7 @@ class Post extends Model
         return [
             'networks' => 'array',
             'design' => 'array',
+            'imagens_carrossel' => 'array',
             'scheduled_at' => 'datetime',
             'decided_at' => 'datetime',
             'published_at' => 'datetime',
@@ -49,6 +50,22 @@ class Post extends Model
 
     /** Redes que a publicação automática já cobre. O LinkedIn fica para depois. */
     public const AUTO_NETWORKS = ['Facebook', 'Instagram'];
+
+    /** Imagens a publicar, por ordem: as do carrossel ou só a imagem do post. */
+    public function imagens(): array
+    {
+        return $this->imagens_carrossel ?: array_values(array_filter([$this->image_path]));
+    }
+
+    /** Guarda o resultado do PostRenderer: a capa em image_path e, se for carrossel, todas as imagens. */
+    public function guardarImagens(array $render): void
+    {
+        $slides = $render['slides'] ?? [];
+        $this->update([
+            'image_path' => $render['path'],
+            'imagens_carrossel' => count($slides) > 1 ? array_values($slides) : null,
+        ]);
+    }
 
     public function reviews(): HasMany
     {

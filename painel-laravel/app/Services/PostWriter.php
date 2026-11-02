@@ -487,7 +487,7 @@ class PostWriter
     private function revisto(array $r): array
     {
         $textos = ['legenda' => $r['legenda'], 'titulo_interno' => $r['titulo_interno']];
-        foreach (['titulo', 'texto', 'cta', 'rodape', 'etiqueta', 'data', 'hora'] as $c) {
+        foreach (['titulo', 'texto', 'cta', 'rodape', 'etiqueta', 'data', 'hora', 'fecho'] as $c) {
             if (isset($r['design'][$c]) && is_string($r['design'][$c])) {
                 $textos['design.'.$c] = $r['design'][$c];
             }
@@ -503,6 +503,13 @@ class PostWriter
         if (! empty($r['design']['evento']['local'])) {
             $textos['evento.local'] = $r['design']['evento']['local'];
         }
+        foreach ((array) ($r['design']['slides'] ?? []) as $i => $sl) {
+            foreach (['destaque', 'titulo', 'texto'] as $c) {
+                if (is_array($sl) && is_string($sl[$c] ?? null)) {
+                    $textos["slide.$i.$c"] = $sl[$c];
+                }
+            }
+        }
 
         foreach ($this->revisorPt($textos) as $chave => $t) {
             if ($chave === 'legenda' || $chave === 'titulo_interno') {
@@ -513,6 +520,8 @@ class PostWriter
                 $r['design']['pontos'][(int) $m[1]][$m[2]] = $t;
             } elseif (preg_match('/^ponto\.(\d+)$/', $chave, $m)) {
                 $r['design']['pontos'][(int) $m[1]] = $t;
+            } elseif (preg_match('/^slide\.(\d+)\.(destaque|titulo|texto)$/', $chave, $m)) {
+                $r['design']['slides'][(int) $m[1]][$m[2]] = $t;
             } elseif ($chave === 'evento.local') {
                 $r['design']['evento']['local'] = $t;
             }
@@ -526,7 +535,19 @@ class PostWriter
         $d = $this->limparTexto($d);
         $design = array_intersect_key($d, array_flip([
             'modelo', 'formato', 'numero', 'titulo', 'texto', 'etiqueta', 'rodape', 'icone', 'cta', 'pontos', 'data', 'hora', 'evento',
+            'carrossel', 'slides', 'fecho',
         ]));
+        // Carrossel: só com slides e no feed (o limparDesign do PostRenderer confirma o resto).
+        $design['carrossel'] = ! empty($design['carrossel']) && ! empty($design['slides']) && is_array($design['slides'])
+            && in_array($design['modelo'] ?? '', ['dica', 'numero', 'produto', 'frase', 'montra'], true);
+        if (! $design['carrossel']) {
+            unset($design['carrossel'], $design['slides'], $design['fecho']);
+        } else {
+            $design['formato'] = ($design['formato'] ?? '') === '1:1' ? '1:1' : '4:5';
+            if (($design['modelo'] ?? '') === 'dica') {
+                unset($design['pontos']); // os pontos estão nos slides; a capa fica limpa
+            }
+        }
         $produtoBib = (int) ($d['produto_biblioteca'] ?? 0);
         $permitidos = ['dica', 'produto', 'aviso', 'evento', 'numero', 'frase'];
         if ($produtoBib > 0) {
@@ -627,6 +648,18 @@ class PostWriter
           Foto realista, sem texto, a combinar com o tema. NÃO uses siglas nem marcas (UPS, NVIDIA, Riello, Supermicro):
           descreve o que se vê (ex.: UPS → "office computers power backup", NVIDIA → "graphics card computer"). Num aviso de fecho ou feriado pode ser algo como "closed office door".
 
+        CARROSSEL (várias imagens no mesmo post: capa + um slide por ponto + slide de contactos, que é automático)
+        - Usa "carrossel": true quando o tema é um guia, passos, sinais, erros ou dicas em que cada ponto merece
+          1 ou 2 frases de explicação (ex.: "4 sinais de phishing", "5 passos para um backup seguro"). Prende mais a atenção
+          do que uma imagem só. Nos outros casos (avisos, eventos, produtos simples, frases) usa false.
+        - A capa é o modelo escolhido, normalmente "numero" (ex.: numero "4", titulo "sinais de um\\n*email* de\\nphishing")
+          ou "dica" SEM "pontos". Em carrossel, deixa "pontos" vazio: os pontos vão para "slides".
+        - "slides": 3 a 6, um por ponto. Cada um: "destaque" (o número do ponto "1", "2"… ou algo curto como "24h", "3-2-1"),
+          "titulo" (2 linhas curtas separadas por \\n, máx. ~20 caracteres por linha, 1 palavra entre *asteriscos*),
+          "texto" (1 ou 2 frases, máx. ~170 caracteres, que explicam o ponto).
+        - "fecho": título do último slide (contactos), ex.: "Fale com a\\n*NEXUS*" ou "Proteja a\\nsua *empresa*". Curto.
+        - Se o título da capa disser um número, tem de haver EXATAMENTE esse número de slides.
+
         A LEGENDA
         - 300 a 900 caracteres, em parágrafos curtos, a explicar o tema e porque interessa a uma empresa.
           Se a imagem tem pontos (sinais, passos, vantagens), a legenda desenvolve cada um numa linha.
@@ -655,6 +688,9 @@ class PostWriter
           "data": "",
           "hora": "",
           "evento": {"dia": "", "mes": "", "hora": "", "local": ""},
+          "carrossel": false,
+          "slides": [{"destaque": "1", "titulo": "...", "texto": "..."}],
+          "fecho": "",
           "legenda": "...",
           "redes": ["Instagram", "Facebook"],
           "publicar_em": "AAAA-MM-DD HH:MM",
