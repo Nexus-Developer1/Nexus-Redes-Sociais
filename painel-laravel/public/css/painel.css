@@ -521,3 +521,6 @@ body.ecra-editor { height: 100vh; height: 100dvh; display: flex; flex-direction:
 .post:target, .aviso.pronto { box-shadow: 0 0 0 3px var(--verde-neon); }
 .ia-a-fazer small { font-weight: 400; opacity: .8; }
 .bib-rotulo small { display: block; margin-top: 1px; }
+/* "Procurar imagem": fotos que já estão noutro post */
+.procura-foto.usada { position: relative; opacity: .45; }
+.procura-foto.usada::after { content: "Já usada"; position: absolute; left: 4px; bottom: 4px; padding: 1px 6px; border-radius: 4px; background: rgba(0,0,0,.7); color: #fff; font-size: 11px; font-weight: 600; }

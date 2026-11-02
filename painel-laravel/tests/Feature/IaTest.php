@@ -134,6 +134,34 @@ class IaTest extends TestCase
         $this->actingAs($user)->get(route('posts.edit', $post))->assertSee('Procurar imagem grátis');
     }
 
+    public function test_nao_repete_a_foto_de_outro_post(): void
+    {
+        config(['services.pexels.key' => null, 'services.pixabay.key' => 'pixabay-teste']);
+        $hit = fn (int $id) => ['id' => $id, 'tags' => 'server', 'user' => 'Rui', 'webformatURL' => "https://pixabay.com/get/w{$id}.jpg",
+            'largeImageURL' => "https://pixabay.com/get/large{$id}.jpg", 'imageWidth' => 3000, 'imageHeight' => 4000];
+        // Outro post já usa a foto 77 (e a da biblioteca 5); um rejeitado usa a 88, que fica livre.
+        Post::create(['title' => 'Outro', 'networks' => ['Instagram'], 'status' => Post::PENDING, 'design' => ['modelo' => 'dica', 'foto' => 'pixabay-77.jpg']]);
+        Post::create(['title' => 'Biblioteca', 'networks' => ['Instagram'], 'status' => Post::APPROVED, 'design' => ['modelo' => 'dica', 'foto' => 'bib-5.jpg']]);
+        Post::create(['title' => 'Rejeitado', 'networks' => ['Instagram'], 'status' => Post::REJECTED, 'design' => ['modelo' => 'dica', 'foto' => 'pixabay-88.jpg']]);
+        $this->assertSame(['banco' => ['pixabay-77'], 'biblioteca' => [5]], Post::fotosEmUso());
+
+        Http::fake([
+            'ia.teste/*' => Http::sequence()->push($this->respostaIa(['pesquisa_imagem' => 'server room']))
+                ->push(['choices' => [['message' => ['content' => '{}']]]])
+                ->push(['choices' => [['message' => ['content' => '88']]]]),
+            'pixabay.com/api/*' => Http::response(['hits' => [$hit(77), $hit(88)]]),
+            'pixabay.com/get/*' => Http::response('JPEGDATA', 200, ['Content-Type' => 'image/jpeg']),
+        ]);
+        PostRequest::create(['topic' => 'Servidores']);
+
+        $this->artisan('post:tratar-pedidos')->assertSuccessful();
+
+        $this->assertSame('pixabay-88.jpg', PostRequest::first()->post->design['foto']);
+        // A IA nem chegou a ver a foto 77 entre as candidatas.
+        Http::assertSent(fn ($r) => str_contains($r->url(), 'ia.teste') && str_contains($r['messages'][1]['content'] ?? '', '88')
+            && ! str_contains($r['messages'][1]['content'] ?? '', '"id":77') && ! preg_match('/\b77\b/', $r['messages'][1]['content'] ?? ''));
+    }
+
     public function test_sem_pexels_usa_o_pixabay(): void
     {
         config(['services.pexels.key' => null, 'services.pixabay.key' => 'pixabay-teste']);

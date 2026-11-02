@@ -377,7 +377,8 @@
           var b = document.createElement('button');
           b.type = 'button';
           b.className = 'procura-foto';
-          b.title = (f.alt ? f.alt + ' · ' : '') + 'Foto: ' + f.fotografo;
+          b.title = (f.alt ? f.alt + ' · ' : '') + 'Foto: ' + f.fotografo + (f.usada ? ' · Já usada noutro post' : '');
+          if (f.usada) b.classList.add('usada');
           var img = new Image();
           img.src = f.miniatura;
           img.alt = f.alt;

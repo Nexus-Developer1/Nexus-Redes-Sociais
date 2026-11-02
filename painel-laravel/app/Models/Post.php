@@ -80,6 +80,31 @@ class Post extends Model
         return array_values(array_intersect(self::NETWORKS, $redes));
     }
 
+    /**
+     * Fotos de fundo já usadas noutros posts (não rejeitados), para não repetir a mesma foto em posts diferentes.
+     * 'banco' = ['pixabay-123', 'pexels-456'…], 'biblioteca' = [ids da biblioteca].
+     *
+     * @return array{banco: string[], biblioteca: int[]}
+     */
+    public static function fotosEmUso(?int $exceto = null): array
+    {
+        $emUso = ['banco' => [], 'biblioteca' => []];
+        $designs = self::where('status', '!=', self::REJECTED)->whereNotNull('design')
+            ->when($exceto, fn ($q) => $q->whereKeyNot($exceto))->pluck('design');
+        foreach ($designs as $design) {
+            foreach (['foto', 'fundo'] as $campo) {
+                $nome = (string) ($design[$campo] ?? '');
+                if (preg_match('/^((?:pixabay|pexels)-\d+)\.jpg$/', $nome, $m)) {
+                    $emUso['banco'][] = $m[1];
+                } elseif (preg_match('/^bib-(\d+)\./', $nome, $m)) {
+                    $emUso['biblioteca'][] = (int) $m[1];
+                }
+            }
+        }
+
+        return array_map(fn ($l) => array_values(array_unique($l)), $emUso);
+    }
+
     /** Vai também para os Stories do Instagram? */
     public function temStories(): bool
     {

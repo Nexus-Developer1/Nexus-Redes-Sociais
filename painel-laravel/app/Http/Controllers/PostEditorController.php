@@ -204,7 +204,12 @@ class PostEditorController extends Controller
             }
         }
         try {
-            return response()->json(['pesquisa' => $pesquisa, 'fotos' => $pexels->procurar($pesquisa, $data['formato'] ?? '4:5')]);
+            // As que já estão noutros posts vêm marcadas, para não se repetir sem querer.
+            $emUso = \App\Models\Post::fotosEmUso()['banco'];
+            $fotos = array_map(fn ($f) => $f + ['usada' => in_array($pexels->chave($f['id']), $emUso, true)],
+                $pexels->procurar($pesquisa, $data['formato'] ?? '4:5'));
+
+            return response()->json(['pesquisa' => $pesquisa, 'fotos' => $fotos]);
         } catch (RuntimeException $e) {
             return response()->json(['message' => $e->getMessage()], 502);
         }
@@ -241,7 +246,7 @@ class PostEditorController extends Controller
             }
             $usadas = $design['fotos_usadas'] ?? [];
             $candidatas = array_values(array_filter(
-                $banco->procurar($pesquisa, $design['formato'] ?? '4:5', 24),
+                $banco->procurarNovas($pesquisa, $design['formato'] ?? '4:5', 24, $post),
                 fn ($f) => ! in_array($f['id'], $usadas, true)
             ));
             $id = $escritor->configurado() ? $escritor->escolherFoto($tema, array_slice($candidatas, 0, 12)) : ($candidatas[0]['id'] ?? null);

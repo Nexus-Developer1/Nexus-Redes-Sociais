@@ -29,6 +29,27 @@ class BancoFotos
         return $this->obrigatorio()->procurar($pesquisa, $formato, $quantos);
     }
 
+    /**
+     * Como procurar(), mas sem as fotos que já estão noutros posts: a mesma foto nunca aparece
+     * em dois posts diferentes. $post = o post para que é a foto (as dele contam como livres).
+     *
+     * @return list<array{id: int, miniatura: string, alt: string, fotografo: string}>
+     */
+    public function procurarNovas(string $pesquisa, string $formato = '4:5', int $quantos = 18, ?Post $post = null): array
+    {
+        $emUso = Post::fotosEmUso($post?->id)['banco'];
+        $fotos = array_filter($this->procurar($pesquisa, $formato, min(50, $quantos * 2)),
+            fn ($f) => ! in_array($this->chave($f['id']), $emUso, true));
+
+        return array_slice(array_values($fotos), 0, $quantos);
+    }
+
+    /** Nome com que a foto fica guardada no post, sem extensão (ex.: "pixabay-123"). */
+    public function chave(int $id): string
+    {
+        return strtolower($this->nome()).'-'.$id;
+    }
+
     /** @return array{nome: string, fotografo: string} */
     public function descarregar(int $id, Post $post): array
     {

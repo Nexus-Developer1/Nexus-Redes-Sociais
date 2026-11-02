@@ -155,7 +155,9 @@ class TratarPedidos extends Command
         $tom = ($design['modelo'] ?? '') === 'frase' ? 'forte' : 'suave';
 
         // 1.º as fotos da biblioteca da NEXUS (equipa, instalações…), se alguma servir para o tema.
-        $nossas = ImagemBiblioteca::where('tipo', 'foto')->latest()->limit(40)->get();
+        // (fotos já usadas noutros posts ficam de fora: a mesma foto não se repete em posts diferentes)
+        $nossas = ImagemBiblioteca::where('tipo', 'foto')->whereNotIn('id', Post::fotosEmUso($post->id)['biblioteca'])
+            ->latest()->limit(40)->get();
         if ($nossas->isNotEmpty()) {
             try {
                 $temaBib = trim($post->title.' — '.str_replace(['*', "\n"], ['', ' '], (string) ($design['titulo'] ?? '')));
@@ -182,7 +184,7 @@ class TratarPedidos extends Command
 
         try {
             // A IA vê as candidatas e escolhe a que serve (ou nenhuma): nunca fica a primeira à sorte.
-            $fotos = $pexels->procurar($pesquisa, $design['formato'] ?? '4:5', 12);
+            $fotos = $pexels->procurarNovas($pesquisa, $design['formato'] ?? '4:5', 12, $post);
             $tema = trim($post->title.' — '.str_replace(['*', "
 "], ['', ' '], (string) ($design['titulo'] ?? '')));
             $escolhida = app(PostWriter::class)->escolherFoto($tema, $fotos);
