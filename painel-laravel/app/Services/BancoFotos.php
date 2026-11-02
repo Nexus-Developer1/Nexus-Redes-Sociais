@@ -35,14 +35,39 @@ class BancoFotos
      *
      * @return list<array{id: int, miniatura: string, alt: string, fotografo: string}>
      */
-    public function procurarNovas(string $pesquisa, string $formato = '4:5', int $quantos = 18, ?Post $post = null): array
+    public function procurarNovas(string $pesquisa, string $formato = '4:5', int $quantos = 18, ?Post $post = null, array $tambemEvitar = []): array
     {
-        $emUso = Post::fotosEmUso($post?->id)['banco'];
+        // ids a evitar deste banco: os dos outros posts e os que este post já usou ($tambemEvitar)
+        $prefixo = strtolower($this->nome()).'-';
+        $evitar = $tambemEvitar;
+        foreach (Post::fotosEmUso($post?->id)['banco'] as $chave) {
+            if (str_starts_with($chave, $prefixo)) {
+                $evitar[] = (int) substr($chave, strlen($prefixo));
+            }
+        }
         $fotos = array_filter($this->procurar($pesquisa, $formato, min(50, $quantos * 2)),
-            fn ($f) => ! in_array($this->chave($f['id']), $emUso, true));
+            fn ($f) => ! self::parecida((int) $f['id'], $evitar));
 
         return array_slice(array_values($fotos), 0, $quantos);
     }
+
+    /**
+     * A mesma foto ou uma da mesma série: os fotógrafos publicam as séries seguidas, por isso fotos
+     * com números muito próximos são quase iguais (ex.: 838377 e 838378 = o mesmo cabo, outra cor).
+     */
+    public static function parecida(int $id, array $evitar): bool
+    {
+        foreach ($evitar as $outro) {
+            if (abs($id - (int) $outro) <= self::SERIE) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /** Distância máxima entre números de fotos da mesma série. */
+    public const SERIE = 40;
 
     /** Nome com que a foto fica guardada no post, sem extensão (ex.: "pixabay-123"). */
     public function chave(int $id): string

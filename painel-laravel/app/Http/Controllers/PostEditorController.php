@@ -139,7 +139,7 @@ class PostEditorController extends Controller
             $antigo = $post->design ?? [];
             $post->design = PostRenderer::limparDesign(json_decode($data['design'], true) ?: [], $post);
             // O editor não mostra estes campos: guardam-se para o botão "Outra foto".
-            $post->design = $post->design + array_intersect_key($antigo, array_flip(['pesquisa', 'fotos_usadas']));
+            $post->design = $post->design + array_intersect_key($antigo, array_flip(['pesquisa', 'pesquisas', 'fotos_usadas']));
             $post->image_alt = trim(str_replace(['*', "\n"], ['', ' '], $post->design['titulo'] ?? $post->title));
         }
         $post->save();
@@ -240,15 +240,20 @@ class PostEditorController extends Controller
         $pesquisa = $design['pesquisa'] ?? '';
         $tema = trim($post->title.' — '.str_replace(['*', "\n"], ['', ' '], (string) ($design['titulo'] ?? '')));
         try {
-            if ($pesquisa === '') {
-                // Post sem pesquisa guardada (feito à mão): a IA tira as palavras do tema.
-                $pesquisa = $escritor->configurado() ? $escritor->pesquisaEmIngles($tema) : $post->title;
-            }
+            // Cada "Outra foto" procura outra cena (a IA dá uma pesquisa diferente das anteriores);
+            // fora ficam as fotos já usadas aqui ou noutros posts e as da mesma série (quase iguais).
+            $pesquisas = $design['pesquisas'] ?? array_values(array_filter([$pesquisa]));
             $usadas = $design['fotos_usadas'] ?? [];
-            $candidatas = array_values(array_filter(
-                $banco->procurarNovas($pesquisa, $design['formato'] ?? '4:5', 24, $post),
-                fn ($f) => ! in_array($f['id'], $usadas, true)
-            ));
+            $atual = preg_match('/^(?:pixabay|pexels)-(\d+)\.jpg$/', (string) ($design['foto'] ?? ''), $m) ? [(int) $m[1]] : [];
+            $nova = $escritor->configurado() ? $escritor->pesquisaNova($tema, $pesquisas ?: [$post->title]) : '';
+            $candidatas = [];
+            foreach (array_unique(array_filter([$nova, $pesquisa, $post->title])) as $tentativa) {
+                $candidatas = $banco->procurarNovas($tentativa, $design['formato'] ?? '4:5', 24, $post, [...$usadas, ...$atual]);
+                if ($candidatas) {
+                    $pesquisa = $tentativa;
+                    break;
+                }
+            }
             $id = $escritor->configurado() ? $escritor->escolherFoto($tema, array_slice($candidatas, 0, 12)) : ($candidatas[0]['id'] ?? null);
             if (! $id) {
                 return back()->with('erro', 'Não encontrei outra foto adequada para “'.$post->title.'”. Experimente “Procurar imagem” no Editar.');
@@ -259,7 +264,8 @@ class PostEditorController extends Controller
             $design['foto'] = $foto['nome'];
             $design['tom'] = $design['tom'] ?? 'suave';
             $design['pesquisa'] = $pesquisa;
-            $design['fotos_usadas'] = array_merge($usadas, [$id]);
+            $design['pesquisas'] = array_slice(array_values(array_unique([...$pesquisas, $pesquisa])), -10);
+            $design['fotos_usadas'] = array_values(array_unique([...$usadas, ...$atual, $id]));
             unset($design['icone'], $design['fundo']);
             $post->design = PostRenderer::limparDesign($design, $post);
             $post->save();

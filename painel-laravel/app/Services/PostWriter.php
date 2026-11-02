@@ -317,6 +317,27 @@ class PostWriter
     }
 
     /** Passa uma pesquisa de fotos escrita em português para palavras-chave em inglês (os bancos de fotos funcionam melhor). */
+    /**
+     * "Outra foto": palavras em inglês para uma foto de fundo que mostre uma cena DIFERENTE das pesquisas já feitas
+     * (ex.: depois de "network cables" → "it technician server room"), para a foto nova não ser quase igual.
+     */
+    public function pesquisaNova(string $tema, array $jaUsadas): string
+    {
+        $resposta = $this->chamar(20, [
+            'messages' => [
+                ['role' => 'system', 'content' => 'Dás 2 a 4 palavras-chave em inglês para procurar uma fotografia de fundo num banco de imagens, '
+                    .'para um post de uma empresa de informática. A foto tem de mostrar uma cena claramente DIFERENTE das pesquisas já usadas '
+                    .'(outro objeto, outro sítio ou pessoas em vez de objetos), mas a combinar com o tema. Sem siglas nem marcas. '
+                    .'Responde só com as palavras, sem aspas nem pontuação.'],
+                ['role' => 'user', 'content' => 'Tema: '.mb_substr($tema, 0, 200)."\nPesquisas já usadas: ".implode('; ', array_slice($jaUsadas, -8))],
+            ],
+            'temperature' => 0.9,
+        ]);
+        $texto = trim((string) $resposta->json('choices.0.message.content'), " \t\n\r\"'.");
+
+        return $resposta->successful() && $texto !== '' ? mb_substr($texto, 0, 80) : '';
+    }
+
     public function pesquisaEmIngles(string $pesquisa): string
     {
         $resposta = $this->chamar(20, [

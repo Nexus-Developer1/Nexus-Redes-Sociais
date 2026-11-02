@@ -248,6 +248,9 @@ class PostRenderer
         if (isset($d['pesquisa']) && ($v = $texto($d['pesquisa'], 80)) !== '') {
             $limpo['pesquisa'] = $v;
         }
+        if (! empty($d['pesquisas']) && is_array($d['pesquisas'])) {
+            $limpo['pesquisas'] = array_values(array_slice(array_filter(array_map(fn ($p) => $texto($p, 80), $d['pesquisas'])), -10));
+        }
         if (! empty($d['fotos_usadas']) && is_array($d['fotos_usadas'])) {
             $limpo['fotos_usadas'] = array_values(array_slice(array_unique(array_filter(array_map('intval', $d['fotos_usadas']))), -50));
         }

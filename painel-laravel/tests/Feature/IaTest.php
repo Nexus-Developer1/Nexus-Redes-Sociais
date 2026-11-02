@@ -139,26 +139,26 @@ class IaTest extends TestCase
         config(['services.pexels.key' => null, 'services.pixabay.key' => 'pixabay-teste']);
         $hit = fn (int $id) => ['id' => $id, 'tags' => 'server', 'user' => 'Rui', 'webformatURL' => "https://pixabay.com/get/w{$id}.jpg",
             'largeImageURL' => "https://pixabay.com/get/large{$id}.jpg", 'imageWidth' => 3000, 'imageHeight' => 4000];
-        // Outro post já usa a foto 77 (e a da biblioteca 5); um rejeitado usa a 88, que fica livre.
+        // Outro post já usa a foto 77 (e a da biblioteca 5); um rejeitado usa a 9000, que fica livre.
         Post::create(['title' => 'Outro', 'networks' => ['Instagram'], 'status' => Post::PENDING, 'design' => ['modelo' => 'dica', 'foto' => 'pixabay-77.jpg']]);
         Post::create(['title' => 'Biblioteca', 'networks' => ['Instagram'], 'status' => Post::APPROVED, 'design' => ['modelo' => 'dica', 'foto' => 'bib-5.jpg']]);
-        Post::create(['title' => 'Rejeitado', 'networks' => ['Instagram'], 'status' => Post::REJECTED, 'design' => ['modelo' => 'dica', 'foto' => 'pixabay-88.jpg']]);
+        Post::create(['title' => 'Rejeitado', 'networks' => ['Instagram'], 'status' => Post::REJECTED, 'design' => ['modelo' => 'dica', 'foto' => 'pixabay-9000.jpg']]);
         $this->assertSame(['banco' => ['pixabay-77'], 'biblioteca' => [5]], Post::fotosEmUso());
 
         Http::fake([
             'ia.teste/*' => Http::sequence()->push($this->respostaIa(['pesquisa_imagem' => 'server room']))
                 ->push(['choices' => [['message' => ['content' => '{}']]]])
-                ->push(['choices' => [['message' => ['content' => '88']]]]),
-            'pixabay.com/api/*' => Http::response(['hits' => [$hit(77), $hit(88)]]),
+                ->push(['choices' => [['message' => ['content' => '9000']]]]),
+            'pixabay.com/api/*' => Http::response(['hits' => [$hit(77), $hit(9000)]]),
             'pixabay.com/get/*' => Http::response('JPEGDATA', 200, ['Content-Type' => 'image/jpeg']),
         ]);
         PostRequest::create(['topic' => 'Servidores']);
 
         $this->artisan('post:tratar-pedidos')->assertSuccessful();
 
-        $this->assertSame('pixabay-88.jpg', PostRequest::first()->post->design['foto']);
+        $this->assertSame('pixabay-9000.jpg', PostRequest::first()->post->design['foto']);
         // A IA nem chegou a ver a foto 77 entre as candidatas.
-        Http::assertSent(fn ($r) => str_contains($r->url(), 'ia.teste') && str_contains($r['messages'][1]['content'] ?? '', '88')
+        Http::assertSent(fn ($r) => str_contains($r->url(), 'ia.teste') && str_contains($r['messages'][1]['content'] ?? '', '9000')
             && ! str_contains($r['messages'][1]['content'] ?? '', '"id":77') && ! preg_match('/\b77\b/', $r['messages'][1]['content'] ?? ''));
     }
 
@@ -207,13 +207,14 @@ class IaTest extends TestCase
     public function test_outra_foto_escolhe_uma_ainda_nao_usada(): void
     {
         config(['services.pexels.key' => null, 'services.pixabay.key' => 'pixabay-teste']);
-        $hits = [
-            ['id' => 77, 'tags' => 'server', 'user' => 'Rui', 'webformatURL' => 'https://pixabay.com/get/w77.jpg', 'largeImageURL' => 'https://pixabay.com/get/l77.jpg', 'imageWidth' => 3000, 'imageHeight' => 4000],
-            ['id' => 88, 'tags' => 'data center', 'user' => 'Ana', 'webformatURL' => 'https://pixabay.com/get/w88.jpg', 'largeImageURL' => 'https://pixabay.com/get/l88.jpg', 'imageWidth' => 3000, 'imageHeight' => 4000],
-        ];
+        $hit = fn (int $id, string $tags) => ['id' => $id, 'tags' => $tags, 'user' => 'Ana', 'webformatURL' => "https://pixabay.com/get/w{$id}.jpg",
+            'largeImageURL' => "https://pixabay.com/get/l{$id}.jpg", 'imageWidth' => 3000, 'imageHeight' => 4000];
+        // 838377 é a atual; 838378 é da mesma série (quase igual); 5000 é outra foto a sério
+        $hits = [$hit(838377, 'cable'), $hit(838378, 'cable yellow'), $hit(5000, 'technician server room')];
         Http::fake([
-            // a IA só vê a 88 (a 77 já foi usada) e escolhe-a
-            'ia.teste/*' => Http::response(['choices' => [['message' => ['content' => '88']]]]),
+            'ia.teste/*' => Http::sequence()
+                ->push(['choices' => [['message' => ['content' => 'it technician server room']]]]) // pesquisa nova
+                ->push(['choices' => [['message' => ['content' => '5000']]]]),                     // escolha da foto
             'pixabay.com/api/*' => function ($r) use ($hits) {
                 return Http::response(['hits' => isset($r['id']) ? array_values(array_filter($hits, fn ($h) => $h['id'] == $r['id'])) : $hits]);
             },
@@ -221,21 +222,25 @@ class IaTest extends TestCase
         ]);
         $user = User::factory()->create();
         $post = Post::create(['title' => 'Backup', 'networks' => ['Instagram'], 'status' => Post::PENDING,
-            'design' => ['modelo' => 'dica', 'titulo' => 'Backup', 'pesquisa' => 'server room', 'fotos_usadas' => [77], 'foto' => 'pixabay-77.jpg']]);
+            'design' => ['modelo' => 'dica', 'titulo' => 'Backup', 'pesquisa' => 'network cables', 'fotos_usadas' => [838377], 'foto' => 'pixabay-838377.jpg']]);
         File::ensureDirectoryExists(PostRenderer::pasta($post));
-        File::put(PostRenderer::pasta($post).'/pixabay-77.jpg', 'x');
+        File::put(PostRenderer::pasta($post).'/pixabay-838377.jpg', 'x');
 
         $this->actingAs($user)->get('/')->assertSee('Outra foto');
         $this->actingAs($user)->post(route('posts.otherPhoto', $post))->assertSessionHas('ok');
 
         $post->refresh();
-        $this->assertSame('pixabay-88.jpg', $post->design['foto']);
-        $this->assertSame([77, 88], $post->design['fotos_usadas']);
+        $this->assertSame('pixabay-5000.jpg', $post->design['foto']);
+        $this->assertSame([838377, 5000], $post->design['fotos_usadas']);
+        $this->assertSame(['network cables', 'it technician server room'], $post->design['pesquisas']);
         $this->assertSame(Post::PENDING, $post->status);
-        $this->assertFileDoesNotExist(PostRenderer::pasta($post).'/pixabay-77.jpg'); // a antiga sai
+        $this->assertFileDoesNotExist(PostRenderer::pasta($post).'/pixabay-838377.jpg'); // a antiga sai
         $this->assertSame('photo_changed', $post->reviews()->first()->action);
-        Http::assertSent(fn ($r) => str_contains($r->url(), 'ia.teste') && str_contains($r['messages'][1]['content'] ?? '', '88:')
-            && ! str_contains($r['messages'][1]['content'] ?? '', '77:'));
+        // A pesquisa nova sabe o que já se procurou; a IA só vê a foto 5000 (a 838378 é da mesma série).
+        Http::assertSent(fn ($r) => str_contains($r->url(), 'ia.teste') && str_contains($r['messages'][1]['content'] ?? '', 'Pesquisas já usadas: network cables'));
+        Http::assertSent(fn ($r) => str_contains($r->url(), 'ia.teste') && str_contains($r['messages'][1]['content'] ?? '', '5000:')
+            && ! str_contains($r['messages'][1]['content'] ?? '', '838378:'));
+        Http::assertSent(fn ($r) => str_contains($r->url(), 'pixabay.com/api/') && ($r['q'] ?? '') === 'it technician server room');
     }
 
     public function test_ia_na_legenda_devolve_legenda_nova_sem_guardar(): void
