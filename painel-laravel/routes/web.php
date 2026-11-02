@@ -26,6 +26,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/posts/{post}/desfazer', [PostDecisionController::class, 'undo'])->name('posts.undo');
     Route::post('/posts/{post}/trocar-ideia', [PostDecisionController::class, 'swapIdea'])->name('posts.swap');
     Route::post('/posts/{post}/descartar', [PostDecisionController::class, 'discard'])->name('posts.discard');
+    Route::post('/posts/{post}/ia-fazer', [PostDecisionController::class, 'aiMake'])->name('posts.aiMake');
 
     Route::get('/calendario', [CalendarioController::class, 'index'])->name('calendario');
 

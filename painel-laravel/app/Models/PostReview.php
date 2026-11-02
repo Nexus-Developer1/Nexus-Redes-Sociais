@@ -21,6 +21,7 @@ class PostReview extends Model
         'rescheduled' => 'mudou a data',
         'photo_changed' => 'trocou a foto',
         'submitted' => 'enviou para aprovação',
+        'ai_requested' => 'pediu à IA para fazer o post',
         'auto_created' => 'criou o post com a IA, a partir de um pedido',
         'auto_revised' => 'refez o post com a IA, com a alteração pedida',
         'published' => 'publicou',

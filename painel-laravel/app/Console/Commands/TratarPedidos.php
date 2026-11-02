@@ -58,19 +58,28 @@ class TratarPedidos extends Command
     {
         $pedido->update(['status' => 'in_progress', 'error' => null]);
         $post = null;
+        // Pedido feito a partir de uma ideia do calendário ("A IA faz este post"): o post é essa ideia.
+        $ideia = $pedido->post_id ? Post::whereKey($pedido->post_id)->whereIn('status', [Post::IDEA, Post::CREATING])->first() : null;
 
         try {
             $r = $escritor->criar($pedido->topic, $pedido->publish_at);
 
-            $post = Post::create([
+            $dados = [
                 'title' => $r['titulo_interno'],
                 'caption' => $r['legenda'],
                 'networks' => $r['redes'],
                 'scheduled_at' => $r['publicar_em'],
                 'status' => Post::CREATING,
-                'source' => 'Pedido de '.($pedido->user?->name ?? 'alguém').': “'.$pedido->topic.'”',
+                'source' => ($ideia ? 'Ideia do calendário feita pela IA' : 'Pedido de '.($pedido->user?->name ?? 'alguém'))
+                    .': “'.$pedido->topic.'”',
                 'design' => ['formato' => $r['design']['formato'] ?? '4:5'],
-            ]);
+            ];
+            if ($ideia) {
+                $ideia->update($dados);
+                $post = $ideia;
+            } else {
+                $post = Post::create($dados);
+            }
             $design = $r['design'];
             // Produto e parceiro escolhidos pela IA na biblioteca: copia as imagens oficiais para o post.
             foreach (['produto' => $r['produto_biblioteca'] ?? 0, 'parceiro' => $r['parceiro_biblioteca'] ?? 0] as $campo => $id) {
@@ -93,7 +102,11 @@ class TratarPedidos extends Command
             $this->info("Pedido #{$pedido->id} → post #{$post->id}: {$post->title}");
         } catch (Throwable $e) {
             report($e);
-            $post?->delete();
+            if ($ideia) {
+                $ideia->refresh()->update(['status' => Post::IDEA]); // a ideia fica como estava
+            } else {
+                $post?->delete();
+            }
             if (str_contains($e->getMessage(), 'erro 429')) {
                 // Limite do plano gratuito: o pedido volta à fila e tenta-se de novo no minuto seguinte.
                 $pedido->update(['status' => 'new', 'error' => 'Limite da IA atingido; volta a tentar sozinho.']);

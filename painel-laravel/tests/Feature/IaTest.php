@@ -295,6 +295,31 @@ precisa de *renovar*', 'pontos' => []]))
         $this->assertSame([2], array_column($fotos, 'id'));
     }
 
+    public function test_ia_faz_o_post_a_partir_de_uma_ideia(): void
+    {
+        Http::fake(['ia.teste/*' => Http::sequence()
+            ->push($this->respostaIa(['publicar_em' => now()->addDays(30)->format('Y-m-d').' 09:00']))
+            ->push(['choices' => [['message' => ['content' => '{}']]]]),
+        ]);
+        $user = User::factory()->create();
+        $quando = now()->addDays(10)->setTime(10, 0);
+        $ideia = Post::create(['title' => 'UPS Riello', 'networks' => ['Instagram'], 'status' => Post::IDEA,
+            'scheduled_at' => $quando, 'source' => 'Tipo: produto. Inverno = mais cortes.']);
+
+        $this->actingAs($user)->get('/?ver=ideias')->assertSee('A IA faz este post');
+        $this->actingAs($user)->post(route('posts.aiMake', $ideia))->assertSessionHas('ok');
+        $this->actingAs($user)->get('/?ver=ideias')->assertSee('A IA está a fazer este post');
+
+        $this->artisan('post:tratar-pedidos')->assertSuccessful();
+
+        $ideia->refresh();
+        $this->assertSame(1, Post::count()); // não cria outro post: a ideia passa a ser o post
+        $this->assertSame(Post::PENDING, $ideia->status);
+        $this->assertNotNull($ideia->image_path);
+        $this->assertSame($quando->format('Y-m-d H:i'), $ideia->scheduled_at->format('Y-m-d H:i')); // mantém a data da ideia
+        Http::assertSent(fn ($r) => str_contains($r['messages'][1]['content'] ?? '', 'Inverno = mais cortes'));
+    }
+
     public function test_correcoes_fixas_de_brasileirismos(): void
     {
         $this->assertSame(

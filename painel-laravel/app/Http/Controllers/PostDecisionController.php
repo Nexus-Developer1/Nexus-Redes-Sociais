@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
+use App\Models\PostRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -69,6 +70,26 @@ class PostDecisionController extends Controller
         $post->decide('discarded', Post::REJECTED, $request->user());
 
         return back()->with('ok', "A ideia “{$post->title}” foi descartada.");
+    }
+
+    /** "A IA faz este post": a ideia vira um pedido para a IA, que faz o post nesse mesmo cartão (mantém a data). */
+    public function aiMake(Request $request, Post $post): RedirectResponse
+    {
+        $this->mustBe($post, [Post::IDEA, Post::CREATING]);
+        if (PostRequest::where('post_id', $post->id)->whereIn('status', ['new', 'in_progress'])->exists()) {
+            return back()->with('ok', 'A IA já está a fazer este post.');
+        }
+
+        $notas = $post->change_request ?: $post->source;
+        PostRequest::create([
+            'topic' => mb_substr($post->title.($notas ? '. Notas: '.$notas : ''), 0, 2000),
+            'publish_at' => $post->scheduled_at?->isFuture() ? $post->scheduled_at : null,
+            'user_id' => $request->user()->id,
+            'post_id' => $post->id,
+        ]);
+        $post->decide('ai_requested', Post::CREATING, $request->user());
+
+        return back()->with('ok', "A IA está a fazer “{$post->title}”: aparece em “Para aprovar” dentro de 1 a 2 minutos.");
     }
 
     private function mustBe(Post $post, array $statuses): void

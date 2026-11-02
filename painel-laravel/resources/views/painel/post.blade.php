@@ -98,7 +98,19 @@
                 <div class="pedido-alteracao"><strong>Pediu outro tema:</strong> {{ $post->change_request }}</div>
             @endif
             <div class="acoes">
-                <a class="btn btn-principal" href="{{ route('posts.edit', $post) }}">{{ $post->design ? 'Continuar a editar' : 'Fazer este post' }}</a>
+                @php($iaAFazer = \App\Models\PostRequest::where('post_id', $post->id)->whereIn('status', ['new', 'in_progress'])->exists())
+                @if ($iaAFazer)
+                    <span class="ia-a-fazer">⏳ A IA está a fazer este post…</span>
+                @elseif (app(\App\Services\PostWriter::class)->configurado())
+                    {{-- A IA faz o post a partir desta ideia (tema, notas e data) --}}
+                    <form method="POST" action="{{ route('posts.aiMake', $post) }}"
+                          onsubmit="var b = this.querySelector('button'); b.disabled = true; b.textContent = 'A pedir…';">
+                        @csrf
+                        <button type="submit" class="btn btn-principal">✨ A IA faz este post</button>
+                    </form>
+                @endif
+                <a class="btn {{ $iaAFazer || app(\App\Services\PostWriter::class)->configurado() ? 'btn-contorno' : 'btn-principal' }}"
+                   href="{{ route('posts.edit', $post) }}">{{ $post->design ? 'Continuar a editar' : 'Fazer à mão' }}</a>
                 @unless ($post->change_request)
                     <details class="alterar">
                         <summary class="btn btn-contorno">Trocar tema</summary>
