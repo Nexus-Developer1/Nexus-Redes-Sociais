@@ -11,11 +11,12 @@
     $fonte = "'Segoe UI', Arial, Helvetica, sans-serif";
 @endphp
 <!doctype html>
-<html lang="pt-PT">
+<html lang="pt-PT" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Post para aprovar</title>
+<!--[if mso]><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml><![endif]-->
 </head>
 <body style="margin:0;padding:0;background:#eef2ef;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#eef2ef;">
@@ -94,16 +95,31 @@
     {{-- Botões --}}
     @if ($aprovar)
         <tr><td align="center" style="padding:30px 32px 0;">
+            {{-- Botões "à prova de Outlook": no Outlook para Windows desenhados em VML (tamanho fixo e cantos
+                 redondos); nos outros programas, um link com o mesmo aspeto. --}}
+            @php
+                $botoes = [
+                    ['url' => $aprovar, 'texto' => '✓ Aprovar', 'fundo' => $verde, 'borda' => $verde, 'cor' => '#ffffff'],
+                    ['url' => $alterar, 'texto' => 'Pedir alteração', 'fundo' => '#ffffff', 'borda' => $verdeEscuro, 'cor' => $verdeEscuro],
+                ];
+            @endphp
             <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                <td align="center" bgcolor="{{ $verde }}" style="border-radius:8px;">
-                    <a href="{{ $aprovar }}" target="_blank"
-                       style="display:inline-block;padding:14px 34px;font-family:{{ $fonte }};font-size:16px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:8px;">✓&nbsp;Aprovar</a>
-                </td>
-                <td width="14">&nbsp;</td>
-                <td align="center" bgcolor="#ffffff" style="border:2px solid {{ $verdeEscuro }};border-radius:8px;">
-                    <a href="{{ $alterar }}" target="_blank"
-                       style="display:inline-block;padding:12px 26px;font-family:{{ $fonte }};font-size:16px;font-weight:700;color:{{ $verdeEscuro }};text-decoration:none;border-radius:8px;">Pedir&nbsp;alteração</a>
-                </td>
+                @foreach ($botoes as $i => $b)
+                    @if ($i)<td width="14" style="font-size:0;line-height:0;">&nbsp;</td>@endif
+                    <td align="center">
+                        <!--[if mso]>
+                        <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="{{ $b['url'] }}"
+                            style="height:50px;v-text-anchor:middle;width:210px;" arcsize="16%" strokecolor="{{ $b['borda'] }}" strokeweight="2px" fillcolor="{{ $b['fundo'] }}">
+                            <w:anchorlock/>
+                            <center style="color:{{ $b['cor'] }};font-family:'Segoe UI',Arial,sans-serif;font-size:16px;font-weight:bold;">{{ $b['texto'] }}</center>
+                        </v:roundrect>
+                        <![endif]-->
+                        <!--[if !mso]><!-- -->
+                        <a href="{{ $b['url'] }}" target="_blank"
+                           style="display:inline-block;width:206px;line-height:46px;text-align:center;background:{{ $b['fundo'] }};border:2px solid {{ $b['borda'] }};border-radius:8px;font-family:{{ $fonte }};font-size:16px;font-weight:700;color:{{ $b['cor'] }};text-decoration:none;-webkit-text-size-adjust:none;mso-hide:all;">{{ $b['texto'] }}</a>
+                        <!--<![endif]-->
+                    </td>
+                @endforeach
             </tr></table>
         </td></tr>
         <tr><td align="center" style="padding:12px 40px 0;font-family:{{ $fonte }};font-size:12px;line-height:18px;color:{{ $cinza }};">
