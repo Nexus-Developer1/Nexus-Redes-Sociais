@@ -405,3 +405,21 @@ body.ecra-editor { height: 100vh; height: 100dvh; display: flex; flex-direction:
 .vista-previa button:first-child { border-radius: 999px 0 0 999px; }
 .vista-previa button:last-child { border-radius: 0 999px 999px 0; border-left: 0; }
 .vista-previa button.ativo { background: var(--verde); color: #fff; border-color: var(--verde); }
+
+/* ---------- decidir a partir do email (sem sessão) ---------- */
+.decisao-email { min-height: 100vh; display: flex; justify-content: center; align-items: flex-start; padding: 32px 16px; background: var(--escuro); }
+.decisao-cartao { background: #fff; border-radius: 14px; padding: 24px; width: 100%; max-width: 620px; display: flex; flex-direction: column; gap: 14px; }
+.decisao-topo { display: flex; align-items: center; gap: 12px; font-family: Rajdhani, sans-serif; font-weight: 700; font-size: 20px; color: var(--texto-2); }
+.decisao-cartao h1 { margin: 0; font-size: 28px; }
+.decisao-meta { margin: -8px 0 0; color: var(--texto-2); font-size: 14px; }
+.decisao-imagens { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 4px; }
+.decisao-imagens a { flex: 0 0 min(100%, 300px); scroll-snap-align: start; }
+.decisao-imagens a.decisao-story { flex-basis: 160px; }
+.decisao-imagens img { display: block; width: 100%; height: auto; border-radius: 10px; border: 1px solid #e3e8e4; }
+.decisao-legenda { white-space: pre-line; background: #f6f9f7; border: 1px solid #dbe6de; border-radius: 10px; padding: 12px 14px; font-size: 15px; }
+.decisao-form { display: flex; flex-direction: column; gap: 10px; }
+.decisao-form p { margin: 0; }
+.decisao-form label { font-weight: 600; }
+.decisao-form textarea { font: inherit; border: 1px solid #b9c6bd; border-radius: 8px; padding: 10px 12px; }
+.decisao-form .btn { align-self: flex-start; }
+.decisao-rodape { margin: 0; font-size: 13px; color: var(--texto-2); }

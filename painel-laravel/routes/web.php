@@ -3,6 +3,7 @@
 use App\Http\Controllers\BibliotecaController;
 use App\Http\Controllers\CalendarioController;
 use App\Http\Controllers\ContaController;
+use App\Http\Controllers\EmailDecisionController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\PainelController;
 use App\Http\Controllers\PostDecisionController;
@@ -14,6 +15,14 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('guest')->group(function () {
     Route::get('/entrar', [LoginController::class, 'show'])->name('login');
     Route::post('/entrar', [LoginController::class, 'login'])->middleware('throttle:10,1');
+});
+
+// Aprovar / pedir alteração a partir do email: link assinado (válido 7 dias), sem entrar no painel.
+Route::middleware(['signed:relative', 'throttle:30,1'])->group(function () {
+    Route::get('/email/posts/{post}/{acao}', [EmailDecisionController::class, 'show'])
+        ->whereIn('acao', EmailDecisionController::ACOES)->name('email.decisao');
+    Route::post('/email/posts/{post}/{acao}', [EmailDecisionController::class, 'store'])
+        ->whereIn('acao', EmailDecisionController::ACOES);
 });
 
 // auth.session: quando a palavra-passe muda, as sessões abertas noutros computadores terminam.

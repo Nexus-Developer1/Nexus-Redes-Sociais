@@ -71,7 +71,9 @@ Sistema que cria posts para as redes sociais da NEXUS de forma autónoma.
   - **Biblioteca da NEXUS** (`/biblioteca`, tabela `imagens_biblioteca`, ficheiros em `public/imagens-posts/biblioteca/`): fotos próprias, produtos e logótipos; a IA usa primeiro estas (fotos de fundo e "montra" com produto + parceiro).
   - Fotos de fundo grátis: **Pixabay** (`PIXABAY_CHAVE`; o Pexels suspendeu chaves novas, mas `PEXELS_CHAVE` também funciona e tem prioridade): botão "Procurar imagem" no editor e foto automática nos posts da IA (a IA dá as palavras em inglês).
   **PT-PT obrigatório e sem falhas**: todos os textos da IA passam por um revisor de português europeu (2.ª chamada) e pela lista fixa `PostWriter::PT_BR_PT`.
-  Email ao aprovador quando há post para aprovar: Microsoft 365 pela API Graph (`MSGRAPH_*` no `.env`).
+  Email ao aprovador quando há post para aprovar: Microsoft 365 pela API Graph (`MSGRAPH_*` no `.env`), com botões "Aprovar" e
+  "Pedir alteração" (`EmailDecisionController`): links assinados, válidos 7 dias e só para aquela versão do post, que abrem
+  uma página de confirmação (o M365 abre os links para os verificar, por isso abrir o link nunca decide nada).
   Estas funcionalidades foram feitas diretamente no servidor a 28 out 2026 e depois trazidas para o Git: **alterações ao código devem passar sempre pelo repositório**.
 - **Servidor (instalado a 27 out 2026):** http://192.168.1.69:8091 (só rede interna). Ubuntu 24.04, servidor partilhado com
   outras apps (nexus-ops, nexus-tempos, portal, advocacia): **não mexer nelas**.

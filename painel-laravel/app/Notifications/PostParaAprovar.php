@@ -2,17 +2,21 @@
 
 namespace App\Notifications;
 
+use App\Http\Controllers\EmailDecisionController;
 use App\Models\Post;
+use App\Models\User;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 /**
  * Email ao aprovador quando um post fica "À espera de aprovação".
- * Leva a imagem em anexo e a legenda, porque o painel só abre na rede interna.
+ * Leva as imagens em anexo, a legenda e os botões "Aprovar" e "Pedir alteração"
+ * (links assinados que abrem uma página de confirmação, sem ter de entrar no painel).
  */
 class PostParaAprovar extends Notification
 {
-    public function __construct(public Post $post) {}
+    /** $emNomeDe: quem decide pelos botões quando o email vai para um endereço sem conta (ex.: email de teste). */
+    public function __construct(public Post $post, public ?User $emNomeDe = null) {}
 
     public function via(object $notifiable): array
     {
@@ -22,29 +26,18 @@ class PostParaAprovar extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         $post = $this->post;
+        $quem = $notifiable instanceof User ? $notifiable : $this->emNomeDe;
 
         $mail = (new MailMessage)
             ->subject('Post para aprovar: '.$post->title)
-            ->greeting('Olá '.$notifiable->name.',')
-            ->line('Há um post novo à espera da sua aprovação (imagem em anexo).')
-            ->line('**'.$post->title.'**')
-            ->line('Data prevista: '.$post->whenLabel().' · Redes: '.implode(', ', $post->networks ?? []));
-        if ($post->imagens_carrossel) {
-            $mail->line('Carrossel com '.count($post->imagens_carrossel).' imagens (vão todas em anexo, por ordem).');
-        }
-
-        if ($post->caption) {
-            $mail->line('**Legenda:**');
-            foreach (preg_split('/\R/', $post->caption) as $linha) {
-                if (trim($linha) !== '') {
-                    $mail->line($linha);
-                }
-            }
-        }
-
-        $mail->action('Abrir no painel', url('/').'#post-'.$post->id)
-            ->line('Nada é publicado sem a sua aprovação. O painel só abre na rede da NEXUS.')
-            ->salutation('Painel de Redes Sociais NEXUS');
+            ->markdown('emails.post-para-aprovar', [
+                'post' => $post,
+                'nome' => $notifiable->name ?? $quem?->name,
+                'aprovar' => $quem ? EmailDecisionController::link($post, $quem, 'aprovar') : null,
+                'alterar' => $quem ? EmailDecisionController::link($post, $quem, 'alterar') : null,
+                'painel' => url('/').'#post-'.$post->id,
+                'dias' => EmailDecisionController::VALIDADE_DIAS,
+            ]);
 
         // Todas as imagens (num carrossel, pela ordem em que aparecem) e a versão dos Stories.
         foreach (array_unique(array_filter([...$post->imagens(), $post->temStories() ? $post->imagem_story : null])) as $imagem) {

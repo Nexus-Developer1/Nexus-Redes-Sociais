@@ -123,9 +123,13 @@ class PainelTest extends TestCase
         Notification::assertSentTo($aprovador, PostParaAprovar::class, function ($n) use ($aprovador) {
             $mail = $n->toMail($aprovador);
 
+            $html = (string) $mail->render();
+
             return $mail->subject === 'Post para aprovar: Dica de redes'
-                && in_array('Linha 2', $mail->introLines, true)
-                && str_ends_with($mail->actionUrl, '#post-'.$n->post->id);
+                && str_contains($html, 'Linha 1<br>Linha 2')
+                && str_contains($html, '#post-'.$n->post->id)
+                && str_contains($html, '/email/posts/'.$n->post->id.'/aprovar?')
+                && str_contains($html, '/email/posts/'.$n->post->id.'/alterar?');
         });
     }
     public function test_pagina_expirada_volta_atras_com_o_texto(): void
