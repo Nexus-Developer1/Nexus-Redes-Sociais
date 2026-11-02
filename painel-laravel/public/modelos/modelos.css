@@ -157,3 +157,7 @@ footer.rodape-parceiro { background: transparent; border-top: 1px solid rgba(255
 footer .deslize-txt { color: var(--verde); font-weight: 700; letter-spacing: 2px; }
 .deslize { position: absolute; right: 44px; bottom: 40px; padding: 10px 26px 8px; border-radius: 999px; background: var(--verde);
   color: var(--verde-escuro); font-size: 28px; font-weight: 700; letter-spacing: 2px; box-shadow: 0 0 24px rgba(61,255,122,.4); }
+
+/* Stories (9:16): o fundo fica tapado pela caixa de resposta, também nos layouts sem rodapé normal. */
+.f-9x16.m-numero main { padding-bottom: 260px; }
+.f-9x16 footer.rodape-logo { height: auto; padding-bottom: 250px; }

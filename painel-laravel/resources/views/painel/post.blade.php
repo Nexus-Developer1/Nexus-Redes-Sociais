@@ -56,7 +56,13 @@
             @endif
             <span class="sep">·</span>
             @foreach ($post->networks as $net)
-                <span class="rede">{{ $net }}</span>
+                @if ($net === 'Stories' && $post->imagemStory())
+                    {{-- Abre a versão 9:16 que vai para os Stories --}}
+                    <a class="rede rede-link" href="{{ asset($post->imagemStory()) }}" target="_blank" rel="noopener"
+                       title="Ver a versão dos Stories (9:16)">Stories ↗</a>
+                @else
+                    <span class="rede">{{ $net }}</span>
+                @endif
             @endforeach
         </div>
 

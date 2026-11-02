@@ -26,10 +26,11 @@ class Post extends Model
         self::PUBLISHED => 'Publicado',
     ];
 
-    public const NETWORKS = ['Instagram', 'Facebook', 'LinkedIn'];
+    /** "Stories" = Stories do Instagram, com a versão 9:16 do post que o servidor gera sozinho. */
+    public const NETWORKS = ['Instagram', 'Stories', 'Facebook', 'LinkedIn'];
 
     protected $fillable = [
-        'title', 'caption', 'image_path', 'imagens_carrossel', 'image_alt', 'design', 'networks',
+        'title', 'caption', 'image_path', 'imagens_carrossel', 'imagem_story', 'image_alt', 'design', 'networks',
         'scheduled_at', 'status', 'source', 'change_request',
     ];
 
@@ -49,7 +50,7 @@ class Post extends Model
     public const MAX_PUBLISH_ATTEMPTS = 3;
 
     /** Redes que a publicação automática já cobre. O LinkedIn fica para depois. */
-    public const AUTO_NETWORKS = ['Facebook', 'Instagram'];
+    public const AUTO_NETWORKS = ['Facebook', 'Instagram', 'Stories'];
 
     /** Imagens a publicar, por ordem: as do carrossel ou só a imagem do post. */
     public function imagens(): array
@@ -64,7 +65,31 @@ class Post extends Model
         $this->update([
             'image_path' => $render['path'],
             'imagens_carrossel' => count($slides) > 1 ? array_values($slides) : null,
+            'imagem_story' => $render['story'] ?? null,
         ]);
+    }
+
+    /** Redes pela ordem do painel; com $stories, os posts do Instagram vão também para os Stories (sem, saem). */
+    public static function comStories(array $redes, bool $stories = true): array
+    {
+        $redes = array_diff($redes, ['Stories']);
+        if ($stories && in_array('Instagram', $redes, true)) {
+            $redes[] = 'Stories';
+        }
+
+        return array_values(array_intersect(self::NETWORKS, $redes));
+    }
+
+    /** Vai também para os Stories do Instagram? */
+    public function temStories(): bool
+    {
+        return in_array('Stories', $this->networks ?? [], true);
+    }
+
+    /** Imagem para os Stories: a versão 9:16 gerada, ou a do post (que já é 9:16 ou foi feita à parte). */
+    public function imagemStory(): ?string
+    {
+        return $this->imagem_story ?: $this->image_path;
     }
 
     public function reviews(): HasMany

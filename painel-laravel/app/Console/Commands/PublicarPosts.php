@@ -66,6 +66,7 @@ class PublicarPosts extends Command
         $targets = [
             'Facebook' => ['facebook_post_id', fn () => $meta->publishFacebook($post)],
             'Instagram' => ['instagram_media_id', fn () => $meta->publishInstagram($post)],
+            'Stories' => ['instagram_story_id', fn () => $meta->publishStory($post)],
         ];
 
         $done = [];

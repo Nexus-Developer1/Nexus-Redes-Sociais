@@ -55,7 +55,7 @@ class PostRenderer
 
     /**
      * Gera o(s) PNG e devolve ['path' => capa, relativo a public/, 'slides' => [todas as imagens, por ordem,
-     * só num carrossel], 'avisos' => [...]].
+     * só num carrossel], 'story' => versão 9:16 para os Stories (ou null), 'avisos' => [...]].
      *
      * @throws RuntimeException se o browser não existir ou não gerar as imagens
      */
@@ -74,25 +74,35 @@ class PostRenderer
         $total = self::totalImagens($design);
 
         // Uma página por imagem: o modelos.js desenha a capa (slide 0), os slides e os contactos.
-        $trabalhos = [];
+        $paginas = [];
         for ($i = 0; $i < $total; $i++) {
+            $paginas[$i] = [$design + ($total > 1 ? ['slide' => $i] : []), $largura, $altura, $i ? '-'.($i + 1) : ''];
+        }
+        // Stories: a mesma capa em 9:16 (sem o "Deslize", que nos Stories não faz sentido).
+        if ($post->temStories() && ($design['formato'] ?? '4:5') !== '9:16') {
+            $story = array_diff_key($design, array_flip(['carrossel', 'slides', 'fecho']));
+            $story['formato'] = '9:16';
+            $paginas['story'] = [$story, ...self::FORMATOS['9:16'], '-story'];
+        }
+
+        $trabalhos = [];
+        foreach ($paginas as $i => [$dados, $w, $h, $sufixo]) {
             // Os dados entram como JSON (o modelos.js põe-nos sempre como texto, nunca como HTML).
             // < > & escapados (<…): nenhum texto do post consegue fechar ou abrir tags dentro do <script>.
-            $json = json_encode($design + ($total > 1 ? ['slide' => $i] : []),
-                JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP);
+            $json = json_encode($dados, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP);
             $html = '<!doctype html><html lang="pt"><head><meta charset="utf-8">'
                 .'<base href="'.$this->fileUrl($pasta).'/">'
                 .'<link href="'.$modelos.'modelos.css" rel="stylesheet"></head><body>'
                 .'<script>window.POST = '.$json.';</script>'
                 .'<script src="'.$modelos.'modelos.js"></script></body></html>';
-            $ficheiroHtml = "{$trabalho}/post-{$post->id}".($i ? "-{$i}" : '').'.html';
+            $ficheiroHtml = "{$trabalho}/post-{$post->id}{$sufixo}.html";
             File::put($ficheiroHtml, $html);
-            $nome = "post-{$carimbo}".($i ? '-'.($i + 1) : '').'.png';
+            $nome = "post-{$carimbo}{$sufixo}.png";
             $trabalhos[$i] = [
                 'nome' => $nome,
                 'png' => "{$pasta}/{$nome}",
                 // cada browser com o seu perfil (dois ao mesmo tempo não podem usar o mesmo)
-                'comando' => $this->comando($browser, $ficheiroHtml, "{$pasta}/{$nome}", $largura, $altura, 'perfil'.($i % 3 ?: '')),
+                'comando' => $this->comando($browser, $ficheiroHtml, "{$pasta}/{$nome}", $w, $h, 'perfil'.(count($trabalhos) % 3 ?: '')),
             ];
         }
 
@@ -115,9 +125,11 @@ class PostRenderer
         $avisos = [];
         foreach ($trabalhos as $i => $t) {
             if (! is_file($t['png'])) {
-                throw new RuntimeException('O browser não gerou a imagem'.($total > 1 ? ' '.($i + 1) : '').'. '.trim(mb_substr($registos[$i], 0, 500)));
+                $qual = $i === 'story' ? ' dos Stories' : ($total > 1 ? ' '.($i + 1) : '');
+                throw new RuntimeException('O browser não gerou a imagem'.$qual.'. '.trim(mb_substr($registos[$i], 0, 500)));
             }
-            $prefixo = $total > 1 ? ($i === 0 ? 'Capa: ' : ($i === $total - 1 ? 'Contactos: ' : 'Slide '.($i + 1).': ')) : '';
+            $prefixo = $i === 'story' ? 'Stories: '
+                : ($total > 1 ? ($i === 0 ? 'Capa: ' : ($i === $total - 1 ? 'Contactos: ' : 'Slide '.($i + 1).': ')) : '');
             if (! str_contains($registos[$i], 'NEXUS-ESTADO:pronto')) {
                 $avisos[] = $prefixo.'O modelo não terminou de montar o post. Confirme a imagem antes de a enviar.';
             }
@@ -136,8 +148,10 @@ class PostRenderer
         }
 
         $caminhos = array_map(fn ($t) => "imagens-posts/design/{$post->id}/{$t['nome']}", $trabalhos);
+        $story = $caminhos['story'] ?? null;
+        unset($caminhos['story']);
 
-        return ['path' => $caminhos[0], 'slides' => $total > 1 ? array_values($caminhos) : [], 'avisos' => $avisos];
+        return ['path' => $caminhos[0], 'slides' => $total > 1 ? array_values($caminhos) : [], 'story' => $story, 'avisos' => $avisos];
     }
 
     private function comando(string $browser, string $html, string $png, int $largura, int $altura, string $perfil): array

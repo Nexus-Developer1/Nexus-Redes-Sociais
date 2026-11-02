@@ -235,6 +235,12 @@
   // ---------- pré-visualização ----------
   var temporizador = null;
   var formato = '4:5';
+  var vista = 'feed'; // "feed" ou "stories"
+  $$('#vista-previa button').forEach(function (b) {
+    b.addEventListener('click', function () { vista = b.dataset.vista; previa(); });
+  });
+  // Marcar ou tirar "Stories" nas redes mostra ou esconde a escolha Feed | Stories.
+  $$('input[name="networks[]"]').forEach(function (c) { c.addEventListener('change', previaDepois); });
 
   // O post (1080 px de largura) é encolhido para caber no espaço livre, sem obrigar a fazer scroll.
   function ajustaEscala() {
@@ -256,6 +262,15 @@
 
   function previa() {
     var d = ler();
+    // Stories: o servidor faz a versão 9:16 da capa (sem carrossel); aqui mostra-se igual.
+    var comStories = !!$('input[name="networks[]"][value="Stories"]:checked') && d.formato !== '9:16';
+    $('#vista-previa').hidden = !comStories;
+    if (!comStories) vista = 'feed';
+    $$('#vista-previa button').forEach(function (b) { b.classList.toggle('ativo', b.dataset.vista === vista); });
+    if (vista === 'stories') {
+      d.formato = '9:16';
+      delete d.carrossel; delete d.slides; delete d.fecho;
+    }
     formato = d.formato;
     // Carrossel: mostra a imagem escolhida nas setas (capa, slides ou contactos).
     var total = d.carrossel ? d.slides.length + 2 : 1;

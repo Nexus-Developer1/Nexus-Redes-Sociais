@@ -71,7 +71,8 @@
                         <span class="rotulo">Redes</span>
                         @foreach (\App\Models\Post::NETWORKS as $net)
                             <label class="check"><input type="checkbox" name="networks[]" value="{{ $net }}"
-                                @checked(in_array($net, old('networks', $post->networks ?? []), true))> {{ $net }}</label>
+                                @checked(in_array($net, old('networks', $post->networks ?? []), true))> {{ $net }}@if ($net === 'Stories')
+                                <small title="Stories do Instagram: o servidor faz sozinho a versão 9:16 do post">(9:16)</small>@endif</label>
                         @endforeach
                     </div>
                     <div class="campo-legenda">
@@ -234,6 +235,11 @@
 
         <aside class="editor-lado">
             @if ($post->design)
+                {{-- Ver a versão do feed ou a dos Stories (9:16), que o servidor gera ao guardar --}}
+                <div class="vista-previa" id="vista-previa" role="group" aria-label="Pré-visualização" hidden>
+                    <button type="button" class="ativo" data-vista="feed">Feed</button>
+                    <button type="button" data-vista="stories">Stories</button>
+                </div>
                 <div class="slides-nav" id="slides-nav" hidden>
                     <button type="button" class="btn pequeno" id="slide-ant" aria-label="Imagem anterior">‹</button>
                     <span id="slide-qual" aria-live="polite"></span>

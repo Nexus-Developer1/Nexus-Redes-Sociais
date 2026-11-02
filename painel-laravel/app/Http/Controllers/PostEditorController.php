@@ -43,7 +43,7 @@ class PostEditorController extends Controller
         $post = Post::create([
             'title' => $data['title'],
             'design' => PostRenderer::exemplo($data['modelo']),
-            'networks' => ['Instagram', 'Facebook'],
+            'networks' => ['Instagram', 'Stories', 'Facebook'],
             'scheduled_at' => ! empty($data['data']) ? Carbon::parse($data['data'].' 10:00') : null,
             'status' => Post::CREATING,
             'source' => 'Criado no painel por '.$request->user()->name,

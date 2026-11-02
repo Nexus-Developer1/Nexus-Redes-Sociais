@@ -108,6 +108,37 @@ class MetaPublisher
         }
     }
 
+    /** Publica a versão 9:16 nos Stories do Instagram. Devolve o ID da Story. */
+    public function publishStory(Post $post): string
+    {
+        if (! $this->instagramConfigured()) {
+            throw new RuntimeException('Falta META_IG_USER_ID no .env.');
+        }
+        $ig = config('services.meta.instagram_user_id');
+        $file = $post->imagemStory() ? public_path($post->imagemStory()) : null;
+        if (! $file || ! is_file($file)) {
+            throw new RuntimeException('Falta a imagem dos Stories. Gere a imagem outra vez no editor.');
+        }
+
+        // Como no feed: foto temporária no Facebook, só para ter um endereço público da imagem.
+        $photoId = $this->uploadPhoto($file, published: false)['id'];
+        try {
+            $images = $this->check($this->api()->get($photoId, ['fields' => 'images']))['images'] ?? [];
+            $url = $images[0]['source'] ?? throw new RuntimeException('A Meta não devolveu o endereço da imagem.');
+            $container = $this->check($this->api()->asForm()->post("{$ig}/media", [
+                'media_type' => 'STORIES',
+                'image_url' => $url,
+            ]))['id'];
+            $this->waitUntilReady($container);
+
+            return (string) $this->check($this->api()->asForm()->post("{$ig}/media_publish", [
+                'creation_id' => $container,
+            ]))['id'];
+        } finally {
+            rescue(fn () => $this->api()->delete($photoId), report: false);
+        }
+    }
+
     /** As imagens do post (num carrossel, todas, por ordem), que têm de existir no disco. */
     private function files(Post $post): array
     {

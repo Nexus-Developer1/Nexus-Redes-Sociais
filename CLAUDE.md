@@ -65,6 +65,9 @@ Sistema que cria posts para as redes sociais da NEXUS de forma autónoma.
     depois um slide por ponto e no fim os contactos (automático). O `PostRenderer` gera uma imagem por slide (3 browsers de cada vez);
     a capa fica em `image_path` e todas em `posts.imagens_carrossel`. A IA usa-o em guias/passos/sinais; no editor é o visto "Carrossel".
     Publicação: carrossel nativo no Instagram e post com várias fotos no Facebook. Só feed (4:5 ou 1:1), não Stories.
+  - **Stories**: rede "Stories" (Instagram). Com ela marcada, o `PostRenderer` gera também a capa em 9:16 (`posts.imagem_story`);
+    os posts novos da IA e do painel com Instagram levam-na por defeito. Publica com `media_type=STORIES` (`instagram_story_id`).
+    No editor: botões "Feed | Stories" na pré-visualização; no cartão, a etiqueta "Stories ↗" abre a versão 9:16.
   - **Biblioteca da NEXUS** (`/biblioteca`, tabela `imagens_biblioteca`, ficheiros em `public/imagens-posts/biblioteca/`): fotos próprias, produtos e logótipos; a IA usa primeiro estas (fotos de fundo e "montra" com produto + parceiro).
   - Fotos de fundo grátis: **Pixabay** (`PIXABAY_CHAVE`; o Pexels suspendeu chaves novas, mas `PEXELS_CHAVE` também funciona e tem prioridade): botão "Procurar imagem" no editor e foto automática nos posts da IA (a IA dá as palavras em inglês).
   **PT-PT obrigatório e sem falhas**: todos os textos da IA passam por um revisor de português europeu (2.ª chamada) e pela lista fixa `PostWriter::PT_BR_PT`.

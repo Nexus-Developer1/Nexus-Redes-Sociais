@@ -46,8 +46,8 @@ class PostParaAprovar extends Notification
             ->line('Nada é publicado sem a sua aprovação. O painel só abre na rede da NEXUS.')
             ->salutation('Painel de Redes Sociais NEXUS');
 
-        // Todas as imagens (num carrossel, pela ordem em que aparecem).
-        foreach ($post->imagens() as $imagem) {
+        // Todas as imagens (num carrossel, pela ordem em que aparecem) e a versão dos Stories.
+        foreach (array_unique(array_filter([...$post->imagens(), $post->temStories() ? $post->imagem_story : null])) as $imagem) {
             if (is_file(public_path($imagem))) {
                 $mail->attach(public_path($imagem));
             }

@@ -143,7 +143,7 @@ class CalendarioIa extends Command
         foreach ($ideias as $i) {
             $post = Post::create([
                 'title' => $i['titulo'],
-                'networks' => ['Instagram', 'Facebook'],
+                'networks' => ['Instagram', 'Stories', 'Facebook'],
                 'scheduled_at' => $i['quando'],
                 'source' => 'Tipo: '.$i['tipo'].'. '.$i['notas'],
                 'status' => Post::IDEA,

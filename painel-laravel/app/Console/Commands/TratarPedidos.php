@@ -67,7 +67,7 @@ class TratarPedidos extends Command
             $dados = [
                 'title' => $r['titulo_interno'],
                 'caption' => $r['legenda'],
-                'networks' => $r['redes'],
+                'networks' => Post::comStories($r['redes']), // posts novos do Instagram vão também para os Stories
                 'scheduled_at' => $r['publicar_em'],
                 'status' => Post::CREATING,
                 'source' => ($ideia ? 'Ideia do calendário feita pela IA' : 'Pedido de '.($pedido->user?->name ?? 'alguém'))
@@ -130,7 +130,7 @@ class TratarPedidos extends Command
             $post->fill([
                 'title' => $r['titulo_interno'],
                 'caption' => $r['legenda'],
-                'networks' => $r['redes'],
+                'networks' => Post::comStories($r['redes'], $post->temStories()), // os Stories ficam como estavam
                 'scheduled_at' => $r['publicar_em'],
             ]);
             // As imagens que alguém pôs no post (fundo, foto, parceiro) mantêm-se.
