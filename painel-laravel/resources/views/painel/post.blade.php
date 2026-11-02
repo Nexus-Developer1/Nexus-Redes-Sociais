@@ -3,14 +3,18 @@
         @if ($post->imagens_carrossel)
             {{-- Carrossel: as imagens passam para o lado, como no Instagram --}}
             @php($totalImagens = count($post->imagens_carrossel))
-            <div class="carrossel-galeria" tabindex="0" aria-label="Carrossel com {{ $totalImagens }} imagens: deslize para o lado">
+            <div class="carrossel" data-carrossel>
+            <div class="carrossel-galeria" tabindex="0" aria-label="Carrossel com {{ $totalImagens }} imagens: use as setas ou deslize para o lado">
                 @foreach ($post->imagens_carrossel as $i => $img)
                     <a href="{{ asset($img) }}" target="_blank" rel="noopener" title="Abrir a imagem {{ $i + 1 }} em tamanho real">
                         <img src="{{ asset($img) }}" alt="{{ $i ? 'Imagem '.($i + 1).' de '.$totalImagens : ($post->image_alt ?? $post->title) }}" loading="lazy">
                     </a>
                 @endforeach
             </div>
-            <span class="carrossel-conta">Carrossel · {{ $totalImagens }} imagens ›</span>
+            <button type="button" class="carrossel-seta ant" aria-label="Imagem anterior" hidden>‹</button>
+            <button type="button" class="carrossel-seta seg" aria-label="Imagem seguinte">›</button>
+            <span class="carrossel-conta">Carrossel · 1 / {{ $totalImagens }}</span>
+            </div>
         @elseif ($post->image_path)
             <a href="{{ asset($post->image_path) }}" target="_blank" rel="noopener" title="Abrir a imagem em tamanho real">
                 <img src="{{ asset($post->image_path) }}" alt="{{ $post->image_alt ?? $post->title }}" loading="lazy">

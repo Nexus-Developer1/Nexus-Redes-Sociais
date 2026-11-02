@@ -84,7 +84,7 @@ class CarrosselTest extends TestCase
         $this->assertCount(4, $post->imagens_carrossel);
         $this->assertSame($post->imagens_carrossel[0], $post->image_path);
         $this->assertSame($post->imagens_carrossel, $post->imagens());
-        $this->actingAs($user)->get(route('painel'))->assertSee('Carrossel · 4 imagens')->assertSee('Imagem 4 de 4');
+        $this->actingAs($user)->get(route('painel'))->assertSee('Carrossel · 1 / 4')->assertSee('Imagem 4 de 4');
 
         // Volta a ser uma imagem só.
         $this->actingAs($user)->post(route('posts.update', $post), $dados(['modelo' => 'numero', 'numero' => '2', 'titulo' => 'sinais']));
