@@ -34,6 +34,19 @@
             @endforeach
         </fieldset>
 
+        <fieldset class="tipos formato-criar">
+            <legend>Formato</legend>
+            <label class="tipo">
+                <input type="radio" name="formato" value="imagem" @checked(old('formato', 'imagem') === 'imagem')>
+                <span><b>Imagem única</b><small>Uma imagem só, no tipo escolhido acima.</small></span>
+            </label>
+            <label class="tipo" data-carrossel>
+                <input type="radio" name="formato" value="carrossel" @checked(old('formato') === 'carrossel')>
+                <span><b>Carrossel</b><small>A imagem acima é a capa; depois um slide por ponto e, no fim, os contactos. Não existe para avisos e eventos.</small></span>
+            </label>
+        </fieldset>
+        @error('formato')<div class="erro">{{ $message }}</div>@enderror
+
         <label for="title">Nome do post <small>(só aparece no painel)</small></label>
         <input id="title" name="title" required maxlength="150" value="{{ old('title') }}"
                placeholder="Ex.: UPS Riello para servidores">
@@ -42,4 +55,19 @@
         <button type="submit" class="btn btn-principal">Criar e editar</button>
     </form>
 </div>
+<script>
+// Avisos e eventos não têm carrossel: a opção fica desligada para esses tipos.
+(function () {
+    var opcao = document.querySelector('[data-carrossel] input');
+    function atualiza() {
+        var tipo = (document.querySelector('input[name=modelo]:checked') || {}).value;
+        var semCarrossel = tipo === 'aviso' || tipo === 'evento';
+        opcao.disabled = semCarrossel;
+        opcao.closest('label').classList.toggle('desligado', semCarrossel);
+        if (semCarrossel && opcao.checked) document.querySelector('input[name=formato][value=imagem]').checked = true;
+    }
+    document.querySelectorAll('input[name=modelo]').forEach(function (r) { r.addEventListener('change', atualiza); });
+    atualiza();
+})();
+</script>
 @endsection

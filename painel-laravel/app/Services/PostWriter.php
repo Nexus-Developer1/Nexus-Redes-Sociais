@@ -28,15 +28,25 @@ class PostWriter
         return filled(config('ia.chave'));
     }
 
-    /** Post novo a partir do tema escrito em "Pedir um post" (e, se escolhida, a data de publicação). */
-    public function criar(string $tema, ?Carbon $publicarEm = null): array
+    /**
+     * Carrossel ou não: decide sempre quem pede, nunca a IA.
+     * 'sim' = tem de ser carrossel; 'nao' = imagem única; 'livre' = alteração a um carrossel (pode mantê-lo ou tirá-lo).
+     */
+    private string $carrossel = 'nao';
+
+    /** Post novo a partir do tema escrito em "Pedir um post" (a data de publicação e o formato, se escolhidos). */
+    public function criar(string $tema, ?Carbon $publicarEm = null, bool $carrossel = false): array
     {
         $data = $publicarEm
             ? "\nA data de publicação já está decidida: ".$publicarEm->locale('pt_PT')->translatedFormat('l, j \d\e F \d\e Y, H:i')
               .'. Usa-a em "publicar_em" e não a mudes. (A data do acontecimento, se houver, é a que vem no tema.)'
             : '';
+        $this->carrossel = $carrossel ? 'sim' : 'nao';
+        $formato = $carrossel
+            ? "\nFORMATO: carrossel (obrigatório). \"carrossel\": true, com 3 a 6 \"slides\", um por ponto."
+            : "\nFORMATO: imagem única. \"carrossel\": false e \"slides\": [].";
 
-        $r = $this->pedir("Pedido de post: \"{$tema}\"{$data}\n".$this->catalogo()."\nCria o post completo.");
+        $r = $this->pedir("Pedido de post: \"{$tema}\"{$data}{$formato}\n".$this->catalogo()."\nCria o post completo.");
         if ($publicarEm) {
             $r['publicar_em'] = $publicarEm->copy(); // a escolha de quem pediu manda sempre
         }
@@ -76,8 +86,18 @@ class PostWriter
             'publicar_em' => $post->scheduled_at?->format('Y-m-d H:i'),
         ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
 
+        // Só passa a carrossel se a alteração o pedir; um carrossel mantém-se (ou sai, se a alteração o pedir).
+        $eraCarrossel = ! empty($post->design['carrossel']);
+        $pedeCarrossel = str_contains(mb_strtolower($alteracao), 'carross');
+        $this->carrossel = $eraCarrossel ? 'livre' : ($pedeCarrossel ? 'sim' : 'nao');
+        $formato = match ($this->carrossel) {
+            'sim' => "\nFORMATO: a alteração pede carrossel: \"carrossel\": true, com 3 a 6 \"slides\".",
+            'nao' => "\nFORMATO: imagem única. \"carrossel\": false e \"slides\": [].",
+            default => "\nFORMATO: é um carrossel. Mantém-no, a não ser que a alteração peça uma imagem única.",
+        };
+
         return $this->pedir(
-            "Post atual:\n{$atual}\n\nO aprovador pediu esta alteração: \"{$alteracao}\"\n\n"
+            "Post atual:\n{$atual}\n\nO aprovador pediu esta alteração: \"{$alteracao}\"\n{$formato}\n\n"
             .'Devolve o post completo com a alteração feita. Mantém tudo o resto igual, a não ser que a alteração o obrigue a mudar.'
         );
     }
@@ -538,16 +558,34 @@ class PostWriter
             'modelo', 'formato', 'numero', 'titulo', 'texto', 'etiqueta', 'rodape', 'icone', 'cta', 'pontos', 'data', 'hora', 'evento',
             'carrossel', 'slides', 'fecho',
         ]));
-        // Carrossel: só com slides e no feed (o limparDesign do PostRenderer confirma o resto).
-        $design['carrossel'] = ! empty($design['carrossel']) && ! empty($design['slides']) && is_array($design['slides'])
-            && in_array($design['modelo'] ?? '', ['dica', 'numero', 'produto', 'frase', 'montra'], true);
-        if (! $design['carrossel']) {
-            unset($design['carrossel'], $design['slides'], $design['fecho']);
-        } else {
+        // Carrossel: decide quem pediu, nunca a IA (ver $this->carrossel). Só no feed; o limparDesign confirma o resto.
+        $querCarrossel = match ($this->carrossel) {
+            'sim' => true,
+            'nao' => false,
+            default => ! empty($design['carrossel']),
+        };
+        $slides = $querCarrossel && is_array($design['slides'] ?? null) ? array_values(array_filter($design['slides'], 'is_array')) : [];
+        if ($querCarrossel && ! $slides) {
+            // Pediram carrossel mas a IA não fez os slides: cada ponto da capa passa a um slide.
+            foreach (array_values((array) ($design['pontos'] ?? [])) as $i => $p) {
+                $texto = trim(is_array($p) ? (string) ($p['texto'] ?? '') : (string) $p);
+                if ($texto !== '') {
+                    $slides[] = ['destaque' => is_array($p) && ! empty($p['destaque']) ? $p['destaque'] : (string) ($i + 1), 'titulo' => $texto];
+                }
+            }
+        }
+        if ($querCarrossel && $slides) {
+            $design['carrossel'] = true;
+            $design['slides'] = $slides;
             $design['formato'] = ($design['formato'] ?? '') === '1:1' ? '1:1' : '4:5';
+            if (! in_array($design['modelo'] ?? '', ['dica', 'numero', 'produto', 'frase', 'montra'], true)) {
+                $design['modelo'] = 'dica'; // aviso e evento não têm carrossel
+            }
             if (($design['modelo'] ?? '') === 'dica') {
                 unset($design['pontos']); // os pontos estão nos slides; a capa fica limpa
             }
+        } else {
+            unset($design['carrossel'], $design['slides'], $design['fecho']);
         }
         $produtoBib = (int) ($d['produto_biblioteca'] ?? 0);
         $permitidos = ['dica', 'produto', 'aviso', 'evento', 'numero', 'frase'];
@@ -650,9 +688,9 @@ class PostWriter
           descreve o que se vê (ex.: UPS → "office computers power backup", NVIDIA → "graphics card computer"). Num aviso de fecho ou feriado pode ser algo como "closed office door".
 
         CARROSSEL (várias imagens no mesmo post: capa + um slide por ponto + slide de contactos, que é automático)
-        - Usa "carrossel": true quando o tema é um guia, passos, sinais, erros ou dicas em que cada ponto merece
-          1 ou 2 frases de explicação (ex.: "4 sinais de phishing", "5 passos para um backup seguro"). Prende mais a atenção
-          do que uma imagem só. Nos outros casos (avisos, eventos, produtos simples, frases) usa false.
+        - NUNCA decides sozinho se é carrossel: segue a linha "FORMATO" do pedido. "FORMATO: carrossel" → "carrossel": true;
+          "FORMATO: imagem única" → "carrossel": false e "slides": [] (os pontos, se houver, vão em "pontos").
+        - Num carrossel, cada slide explica um ponto em 1 ou 2 frases (ex.: "4 sinais de phishing", "5 passos para um backup seguro").
         - A capa é o modelo escolhido, normalmente "numero" (ex.: numero "4", titulo "sinais de um\\n*email* de\\nphishing")
           ou "dica" SEM "pontos". Em carrossel, deixa "pontos" vazio: os pontos vão para "slides".
         - "slides": 3 a 6, um por ponto. Cada um: "destaque" (o número do ponto "1", "2"… ou algo curto como "24h", "3-2-1"),

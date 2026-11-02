@@ -109,7 +109,7 @@ class CarrosselTest extends TestCase
         Http::fake(['ia.teste/*' => Http::sequence()
             ->push(['choices' => [['message' => ['content' => json_encode($resposta)]]]])
             ->push(['choices' => [['message' => ['content' => '{}']]]])]); // revisor: nada a corrigir
-        PostRequest::create(['topic' => 'sinais de phishing']);
+        PostRequest::create(['topic' => 'sinais de phishing', 'carrossel' => true]);
 
         $this->artisan('post:tratar-pedidos')->assertSuccessful();
 
@@ -122,8 +122,75 @@ class CarrosselTest extends TestCase
         $this->assertSame('Saiba detetar o domínio falso.', $post->design['slides'][0]['texto']); // PT-PT
         $this->assertCount(4, $post->imagens_carrossel);
 
-        // O revisor de português recebeu os textos dos slides.
+        // O revisor de português recebeu os textos dos slides; a IA soube que tinha de ser carrossel.
         Http::assertSent(fn (Request $r) => str_contains($r['messages'][1]['content'] ?? '', 'slide.1.titulo'));
+        Http::assertSent(fn (Request $r) => str_contains($r['messages'][1]['content'] ?? '', 'FORMATO: carrossel'));
+    }
+
+    /** Resposta da IA (escrever o post) + revisor sem correções. */
+    private function fingirIa(array $post): void
+    {
+        config(['ia.chave' => 'chave-de-teste', 'ia.endereco' => 'https://ia.teste/v1']);
+        Http::fake(['ia.teste/*' => Http::sequence()
+            ->push(['choices' => [['message' => ['content' => json_encode($post + [
+                'titulo_interno' => 'Phishing', 'titulo' => 'Sinais de
+*phishing*', 'legenda' => 'Legenda #NEXUS',
+                'redes' => ['Instagram'], 'publicar_em' => now()->addDays(3)->format('Y-m-d').' 10:00',
+            ])]]]])
+            ->push(['choices' => [['message' => ['content' => '{}']]]])]);
+    }
+
+    public function test_a_ia_nao_faz_carrossel_se_nao_foi_pedido(): void
+    {
+        $this->fingirIa(['modelo' => 'dica', 'carrossel' => true, 'slides' => $this->slides(3), 'pontos' => ['a', 'b']]);
+        PostRequest::create(['topic' => 'sinais de phishing']); // imagem única (o normal)
+
+        $this->artisan('post:tratar-pedidos')->assertSuccessful();
+
+        $post = Post::sole();
+        $this->assertArrayNotHasKey('carrossel', $post->design);
+        $this->assertArrayNotHasKey('slides', $post->design);
+        $this->assertSame(['a', 'b'], $post->design['pontos']);
+        $this->assertNull($post->imagens_carrossel);
+        Http::assertSent(fn (Request $r) => str_contains($r['messages'][1]['content'] ?? '', 'FORMATO: imagem única'));
+    }
+
+    public function test_carrossel_pedido_sem_slides_usa_os_pontos(): void
+    {
+        $this->fingirIa(['modelo' => 'aviso', 'carrossel' => false, 'slides' => [],
+            'pontos' => [['destaque' => '', 'texto' => 'Remetente estranho'], ['destaque' => '24h', 'texto' => 'Urgência']]]);
+        PostRequest::create(['topic' => 'sinais de phishing', 'carrossel' => true]);
+
+        $this->artisan('post:tratar-pedidos')->assertSuccessful();
+
+        $d = Post::sole()->design;
+        $this->assertTrue($d['carrossel']);
+        $this->assertSame('dica', $d['modelo']); // aviso não tem carrossel
+        $this->assertSame([['destaque' => '1', 'titulo' => 'Remetente estranho'], ['destaque' => '24h', 'titulo' => 'Urgência']], $d['slides']);
+    }
+
+    public function test_pedir_um_post_escolhe_o_formato(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user)->post(route('requests.store'), ['topic' => 'x'])->assertSessionHasErrors('formato');
+        $this->actingAs($user)->post(route('requests.store'), ['topic' => 'Guia de backup', 'formato' => 'carrossel'])
+            ->assertSessionHasNoErrors();
+        $this->assertTrue(PostRequest::sole()->carrossel);
+        $this->actingAs($user)->get(route('painel'))->assertSee('Imagem única')->assertSee('Carrossel');
+    }
+
+    public function test_criar_post_a_mao_em_carrossel(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user)->post(route('posts.store'), ['modelo' => 'aviso', 'title' => 'x', 'formato' => 'carrossel'])
+            ->assertSessionHasErrors('formato');
+
+        $this->actingAs($user)->post(route('posts.store'), ['modelo' => 'numero', 'title' => 'Guia', 'formato' => 'carrossel'])
+            ->assertRedirect();
+        $d = Post::sole()->design;
+        $this->assertTrue($d['carrossel']);
+        $this->assertCount(3, $d['slides']);
+        $this->assertArrayNotHasKey('pontos', $d);
     }
 
     public function test_publica_carrossel_no_instagram_e_no_facebook(): void

@@ -86,8 +86,8 @@ class PainelTest extends TestCase
     public function test_pedir_um_post(): void
     {
         $user = User::factory()->create();
-        $this->actingAs($user)->post('/pedidos', ['topic' => 'Feriado de 1 de dezembro'])->assertRedirect();
-        $this->assertDatabaseHas('post_requests', ['topic' => 'Feriado de 1 de dezembro', 'status' => 'new']);
+        $this->actingAs($user)->post('/pedidos', ['topic' => 'Feriado de 1 de dezembro', 'formato' => 'imagem'])->assertRedirect();
+        $this->assertDatabaseHas('post_requests', ['topic' => 'Feriado de 1 de dezembro', 'status' => 'new', 'carrossel' => false]);
         $this->actingAs($user)->get('/?ver=pedidos')->assertOk()->assertSee('Feriado de 1 de dezembro');
     }
 

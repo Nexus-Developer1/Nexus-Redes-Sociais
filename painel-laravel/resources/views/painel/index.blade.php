@@ -105,6 +105,12 @@
             <input type="datetime-local" id="publish_at" name="publish_at" value="{{ old('publish_at') }}"
                    min="{{ now()->format('Y-m-d\TH:i') }}">
             @error('publish_at')<div class="erro">{{ $message }}</div>@enderror
+            <fieldset class="formato-pedido">
+                <legend>Formato</legend>
+                <label><input type="radio" name="formato" value="imagem" @checked(old('formato', 'imagem') === 'imagem')> Imagem única</label>
+                <label><input type="radio" name="formato" value="carrossel" @checked(old('formato') === 'carrossel')> Carrossel
+                    <small>(capa + um slide por ponto)</small></label>
+            </fieldset>
             <button type="submit">Pedir post</button>
         </form>
     </aside>

@@ -14,6 +14,7 @@ class PostRequestController extends Controller
         $data = $request->validate([
             'topic' => ['required', 'string', 'max:2000'],
             'publish_at' => ['nullable', 'date', 'after:now'],
+            'formato' => ['required', 'in:imagem,carrossel'],
         ], [
             'topic.required' => 'Escreva o tema do post.',
             'publish_at.after' => 'A data de publicação tem de ser no futuro.',
@@ -22,6 +23,7 @@ class PostRequestController extends Controller
         PostRequest::create([
             'topic' => $data['topic'],
             'publish_at' => $data['publish_at'] ?? null,
+            'carrossel' => $data['formato'] === 'carrossel', // escolha de quem pede; a IA não decide
             'user_id' => $request->user()->id,
         ]);
 

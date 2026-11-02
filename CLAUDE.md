@@ -63,7 +63,9 @@ Sistema que cria posts para as redes sociais da NEXUS de forma autónoma.
     (ou `--propor`). 0 em qualquer das duas desliga essa parte. Ideias cujo pedido falhou não se repetem sozinhas (fica o botão).
   - **Carrossel**: `design.carrossel` + `design.slides` (até 8: destaque, título, texto) + `design.fecho`. Capa = o modelo normal com "Deslize ›",
     depois um slide por ponto e no fim os contactos (automático). O `PostRenderer` gera uma imagem por slide (3 browsers de cada vez);
-    a capa fica em `image_path` e todas em `posts.imagens_carrossel`. A IA usa-o em guias/passos/sinais; no editor é o visto "Carrossel".
+    a capa fica em `image_path` e todas em `posts.imagens_carrossel`. **A IA nunca decide sozinha**: quem pede escolhe "Imagem única"
+    ou "Carrossel" em "Pedir um post" (`post_requests.carrossel`) e em "+ Criar post"; ideias automáticas = imagem única;
+    "Pedir alteração" só passa a carrossel se o pedido o disser. No editor é o visto "Carrossel".
     Publicação: carrossel nativo no Instagram e post com várias fotos no Facebook. Só feed (4:5 ou 1:1), não Stories.
   - **Stories**: rede "Stories" (Instagram). Com ela marcada, o `PostRenderer` gera também a capa em 9:16 (`posts.imagem_story`);
     os posts novos da IA e do painel com Instagram levam-na por defeito. Publica com `media_type=STORIES` (`instagram_story_id`).

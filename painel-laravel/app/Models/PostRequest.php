@@ -14,11 +14,11 @@ class PostRequest extends Model
         'failed' => 'Falhou',
     ];
 
-    protected $fillable = ['topic', 'publish_at', 'status', 'user_id', 'post_id', 'error'];
+    protected $fillable = ['topic', 'publish_at', 'carrossel', 'status', 'user_id', 'post_id', 'error'];
 
     protected function casts(): array
     {
-        return ['publish_at' => 'datetime'];
+        return ['publish_at' => 'datetime', 'carrossel' => 'boolean'];
     }
 
     /** Pedido para a IA fazer o post de uma ideia do calendário (tema + notas + data da ideia). */

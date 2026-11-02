@@ -62,7 +62,7 @@ class TratarPedidos extends Command
         $ideia = $pedido->post_id ? Post::whereKey($pedido->post_id)->whereIn('status', [Post::IDEA, Post::CREATING])->first() : null;
 
         try {
-            $r = $escritor->criar($pedido->topic, $pedido->publish_at);
+            $r = $escritor->criar($pedido->topic, $pedido->publish_at, (bool) $pedido->carrossel);
 
             $dados = [
                 'title' => $r['titulo_interno'],
@@ -71,7 +71,8 @@ class TratarPedidos extends Command
                 'scheduled_at' => $r['publicar_em'],
                 'status' => Post::CREATING,
                 'source' => ($ideia ? 'Ideia do calendário feita pela IA' : 'Pedido de '.($pedido->user?->name ?? 'alguém'))
-                    .': “'.$pedido->topic.'”',
+                    .': “'.$pedido->topic.'”'
+                    .($pedido->carrossel && empty($r['design']['carrossel']) ? ' · Foi pedido em carrossel, mas a IA não fez os slides: use “Carrossel” no Editar.' : ''),
                 'design' => ['formato' => $r['design']['formato'] ?? '4:5'],
             ];
             if ($ideia) {

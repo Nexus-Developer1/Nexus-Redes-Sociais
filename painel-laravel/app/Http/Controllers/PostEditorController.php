@@ -38,11 +38,20 @@ class PostEditorController extends Controller
             'modelo' => ['required', Rule::in(PostRenderer::MODELOS)],
             'title' => ['required', 'string', 'max:150'],
             'data' => ['nullable', 'date_format:Y-m-d'],
+            'formato' => ['nullable', 'in:imagem,carrossel'],
         ], ['title.required' => 'Dê um nome ao post (só aparece no painel).']);
+
+        $design = PostRenderer::exemplo($data['modelo']);
+        if (($data['formato'] ?? 'imagem') === 'carrossel') {
+            if (in_array($data['modelo'], ['aviso', 'evento'], true)) {
+                return back()->withInput()->withErrors(['formato' => 'Avisos e eventos não têm carrossel: escolha “Imagem única” ou outro tipo.']);
+            }
+            $design = self::comoCarrossel($design);
+        }
 
         $post = Post::create([
             'title' => $data['title'],
-            'design' => PostRenderer::exemplo($data['modelo']),
+            'design' => $design,
             'networks' => ['Instagram', 'Stories', 'Facebook'],
             'scheduled_at' => ! empty($data['data']) ? Carbon::parse($data['data'].' 10:00') : null,
             'status' => Post::CREATING,
@@ -52,6 +61,30 @@ class PostEditorController extends Controller
 
         return redirect()->route('posts.edit', $post)
             ->with('ok', 'Post criado a partir do modelo. Mude os textos e carregue em “Guardar e gerar imagem”.');
+    }
+
+    /** Exemplo de um modelo em carrossel: os pontos do exemplo (ou 3 slides de exemplo) passam a slides. */
+    private static function comoCarrossel(array $design): array
+    {
+        $slides = [];
+        foreach (array_values((array) ($design['pontos'] ?? [])) as $i => $p) {
+            $texto = is_array($p) ? (string) ($p['texto'] ?? '') : (string) $p;
+            if ($texto !== '') {
+                $slides[] = ['destaque' => is_array($p) && ! empty($p['destaque']) ? $p['destaque'] : (string) ($i + 1),
+                    'titulo' => $texto, 'texto' => 'Explique este ponto numa ou duas frases.'];
+            }
+        }
+        if (! $slides) {
+            foreach ([1, 2, 3] as $n) {
+                $slides[] = ['destaque' => (string) $n, 'titulo' => "Ponto {$n}", 'texto' => 'Explique este ponto numa ou duas frases.'];
+            }
+        }
+        unset($design['pontos']);
+        if (($design['formato'] ?? '4:5') === '9:16') {
+            $design['formato'] = '4:5';
+        }
+
+        return $design + ['carrossel' => true, 'slides' => $slides];
     }
 
     public function edit(Post $post): View

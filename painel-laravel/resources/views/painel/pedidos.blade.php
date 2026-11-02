@@ -5,7 +5,7 @@
         @foreach ($requests as $req)
             <div class="caixa">
                 <div class="pedido-texto">
-                    <div style="font-weight:600">{{ $req->topic }}</div>
+                    <div style="font-weight:600">{{ $req->topic }}@if ($req->carrossel) <span class="rede">Carrossel</span>@endif</div>
                     <div class="origem">
                         {{ $req->user?->name ?? '—' }} · pedido a {{ $req->created_at->locale('pt_PT')->translatedFormat('j M, H:i') }}
                         @if ($req->publish_at)

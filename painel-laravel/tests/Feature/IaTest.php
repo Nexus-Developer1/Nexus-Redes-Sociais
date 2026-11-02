@@ -338,6 +338,7 @@ precisa de *renovar*', 'pontos' => []]))
         $this->actingAs($user)->post(route('requests.store'), [
             'topic' => 'Aviso: fechados no feriado',
             'publish_at' => $quando->format('Y-m-d\TH:i'),
+            'formato' => 'imagem',
         ])->assertSessionHasNoErrors();
         $this->artisan('post:tratar-pedidos')->assertSuccessful();
 
@@ -350,7 +351,7 @@ precisa de *renovar*', 'pontos' => []]))
     {
         $user = User::factory()->create();
         $this->actingAs($user)->post(route('requests.store'), [
-            'topic' => 'tema', 'publish_at' => now()->subDay()->format('Y-m-d\TH:i'),
+            'topic' => 'tema', 'publish_at' => now()->subDay()->format('Y-m-d\TH:i'), 'formato' => 'imagem',
         ])->assertSessionHasErrors('publish_at');
         $this->assertSame(0, PostRequest::count());
     }
