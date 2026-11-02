@@ -70,6 +70,8 @@ Sistema que cria posts para as redes sociais da NEXUS de forma autónoma.
   Atualizar: empacotar `painel-laravel` (sem vendor/.env/sqlite), copiar para `/tmp` e correr
   `sudo bash deploy/instalar-servidor.sh /tmp/painel.tgz` (mantém .env e dados).
   No servidor, os comandos do Claude correm com `sudo -u app-social php artisan ...` dentro da pasta.
+  Permissões (padrão da advocacia): código `root:app-social` só de leitura para a app; a app só escreve em `storage/`, `bootstrap/cache/` e `public/imagens-posts/`.
+  Para o tinker como app-social usar um HOME temporário: `H=$(sudo -u app-social mktemp -d); sudo -u app-social env HOME=$H php artisan tinker`.
 
 ## Próximos passos / em aberto
 - Receber o logótipo em alta resolução e, se possível, fundos sem texto dos posts atuais.

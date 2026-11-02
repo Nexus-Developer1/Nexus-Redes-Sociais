@@ -60,7 +60,7 @@ if [ ! -f "$DIR/.env" ]; then
     set_env APROVADOR_PASSWORD ""
 fi
 
-echo "== permissões"
+echo "== permissões durante a instalação (o composer e o artisan, como $USR, precisam de escrever)"
 chown -R "$USR":www-data "$DIR"
 find "$DIR" -type d -exec chmod 750 {} +
 find "$DIR" -type f -exec chmod 640 {} +
@@ -78,6 +78,26 @@ as_app php artisan migrate --force -n
 as_app env APROVADOR_PASSWORD="${APROVADOR_PASSWORD:-}" php artisan db:seed --force -n
 
 as_app php artisan optimize -n
+
+echo "== permissões finais: o código fica só de leitura para a app (mesmo padrão da advocacia)"
+# Dono root, grupo $USR: o PHP-FPM e o cron (que correm como $USR) leem o código e o .env,
+# mas não os conseguem alterar. Se um dia houver uma falha que deixe escrever ficheiros
+# através do site, não dá para mexer no código do painel.
+chown -R root:"$USR" "$DIR"
+find "$DIR" -type d -exec chmod 750 {} +
+find "$DIR" -type f -exec chmod 640 {} +
+chmod 751 "$DIR"            # o Apache só atravessa a pasta (não lista nem lê o código)
+chmod 640 "$DIR/.env"
+# public/: servida pelo Apache (www-data); tem só o que o site já mostra (CSS, JS, modelos, imagens).
+find "$DIR/public" -type d -exec chmod 755 {} +
+find "$DIR/public" -type f -exec chmod 644 {} +
+# Onde a app escreve: logs e cache (storage, bootstrap/cache) e imagens dos posts e da biblioteca.
+for w in storage bootstrap/cache public/imagens-posts; do
+    mkdir -p "$DIR/$w"
+    chown -R "$USR":"$USR" "$DIR/$w"
+done
+find "$DIR/storage" "$DIR/bootstrap/cache" -type d -exec chmod 750 {} +
+find "$DIR/storage" "$DIR/bootstrap/cache" -type f -exec chmod 640 {} +
 
 echo "== browser para gerar as imagens dos posts (chrome-headless-shell em /opt, só para esta app)"
 CHS=/opt/chrome-headless-shell
