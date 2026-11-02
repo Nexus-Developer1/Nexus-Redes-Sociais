@@ -39,6 +39,54 @@ document.querySelectorAll('[data-carrossel]').forEach(function (c) {
     mostra();
 });
 
+@auth
+// Quando a IA está a trabalhar (fazer um post, refazer, trocar tema, propor ideias), a página pergunta ao
+// servidor de 4 em 4 segundos como está. Quando acaba, salta sozinha para o post em "Para aprovar"
+// (ou atualiza-se), sem ser preciso carregar em F5.
+(function () {
+    var marcas = Array.prototype.slice.call(document.querySelectorAll('[data-espera]'));
+    if (!marcas.length) return;
+    var ESTADO = @json(route('ia.estado'));
+    var FILA = @json(route('painel'));
+    var ids = function (tipos) {
+        return marcas.filter(function (m) { return tipos.indexOf(m.dataset.espera) >= 0; }).map(function (m) { return m.dataset.id; }).join(',');
+    };
+    var url = ESTADO + '?posts=' + ids(['post', 'tema']) + '&pedidos=' + ids(['pedido']);
+    var inicio = Date.now();
+
+    function abrePronto(id) { window.location.href = FILA + '?pronto=' + id + '#post-' + id; }
+
+    function verifica() {
+        if (Date.now() - inicio > 15 * 60 * 1000) return; // desiste ao fim de 15 minutos
+        fetch(url, { headers: { 'Accept': 'application/json' } })
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (j) {
+                if (!j) return setTimeout(verifica, 8000);
+                for (var k = 0; k < marcas.length; k++) {
+                    var m = marcas[k], id = m.dataset.id, s;
+                    if (m.dataset.espera === 'post') {
+                        s = j.posts[id];
+                        if (s && s.estado === 'pending') return abrePronto(id);       // pronto para aprovar
+                        if (!s || s.estado !== m.dataset.estado) return location.reload(); // falhou ou mudou
+                    } else if (m.dataset.espera === 'tema') {
+                        s = j.posts[id];
+                        if (!s || !s.troca) return location.reload();                // tema novo
+                    } else if (m.dataset.espera === 'pedido') {
+                        s = j.pedidos[id];
+                        if (s && s.estado === 'done' && s.post) return abrePronto(s.post);
+                        if (!s || s.estado === 'failed') return location.reload();
+                    } else if (m.dataset.espera === 'propor') {
+                        if (!j.propor) return location.reload();                     // ideias novas no calendário
+                    }
+                }
+                setTimeout(verifica, 4000);
+            })
+            .catch(function () { setTimeout(verifica, 8000); });
+    }
+    setTimeout(verifica, 3000);
+})();
+@endauth
+
 // Visor: clicar numa imagem de um post abre-a em grande, sem sair do painel. Num carrossel passa-se
 // às outras arrastando (rato ou dedo), com as setas ou com ← →. Esc ou clicar fora fecha.
 (function () {

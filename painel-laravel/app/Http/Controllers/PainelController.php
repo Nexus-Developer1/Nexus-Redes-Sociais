@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Console\Commands\CalendarioIa;
 use App\Models\Post;
 use App\Models\PostRequest;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 class PainelController extends Controller
@@ -66,6 +69,24 @@ class PainelController extends Controller
             'posts' => $posts,
             'requests' => $requests,
             'upcoming' => $upcoming,
+            'pronto' => $request->integer('pronto') ? Post::find($request->integer('pronto')) : null,
+        ]);
+    }
+
+    /**
+     * Para a página se atualizar sozinha quando a IA acaba: estado dos posts e pedidos que a página
+     * está à espera (?posts=1,2&pedidos=3), e se ainda está a propor as ideias da semana.
+     */
+    public function estadoIa(Request $request): JsonResponse
+    {
+        $ids = fn (string $campo) => array_slice(array_filter(array_map('intval', explode(',', (string) $request->query($campo)))), 0, 50);
+
+        return response()->json([
+            'posts' => Post::whereIn('id', $ids('posts'))->get(['id', 'status', 'change_request'])
+                ->mapWithKeys(fn ($p) => [$p->id => ['estado' => $p->status, 'troca' => filled($p->change_request)]]),
+            'pedidos' => PostRequest::whereIn('id', $ids('pedidos'))->get(['id', 'status', 'post_id'])
+                ->mapWithKeys(fn ($r) => [$r->id => ['estado' => $r->status, 'post' => $r->post_id]]),
+            'propor' => Cache::has(CalendarioIa::PEDIDO_PROPOR) || Cache::has(CalendarioIa::A_PROPOR),
         ]);
     }
 }

@@ -20,15 +20,15 @@ class PostRequestController extends Controller
             'publish_at.after' => 'A data de publicação tem de ser no futuro.',
         ]);
 
-        PostRequest::create([
+        $pedido = PostRequest::create([
             'topic' => $data['topic'],
             'publish_at' => $data['publish_at'] ?? null,
             'carrossel' => $data['formato'] === 'carrossel', // escolha de quem pede; a IA não decide
             'user_id' => $request->user()->id,
         ]);
 
-        return back()->with('ok', $escritor->configurado()
-            ? 'Pedido registado. A IA está a preparar o post: aparece em “Para aprovar” dentro de 1 a 2 minutos.'
+        return back()->with('pedido_em_curso', $escritor->configurado() ? $pedido->id : null)->with('ok', $escritor->configurado()
+            ? '⏳ Pedido registado. A IA está a preparar o post: quando estiver pronto, esta página abre-o em “Para aprovar” sozinha.'
             : 'Pedido registado. Fica na lista “Pedidos de posts” até ser tratado (a IA automática ainda não está ligada).');
     }
 

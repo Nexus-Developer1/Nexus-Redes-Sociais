@@ -3,7 +3,7 @@
 @else
     <div class="pedidos">
         @foreach ($requests as $req)
-            <div class="caixa">
+            <div class="caixa" @if (in_array($req->status, ['new', 'in_progress'], true)) data-espera="pedido" data-id="{{ $req->id }}" @endif>
                 <div class="pedido-texto">
                     <div style="font-weight:600">{{ $req->topic }}@if ($req->carrossel) <span class="rede">Carrossel</span>@endif</div>
                     <div class="origem">

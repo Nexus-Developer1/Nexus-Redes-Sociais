@@ -28,6 +28,7 @@ Route::middleware(['signed:relative', 'throttle:30,1'])->group(function () {
 // auth.session: quando a palavra-passe muda, as sessões abertas noutros computadores terminam.
 Route::middleware(['auth', 'auth.session'])->group(function () {
     Route::get('/', [PainelController::class, 'index'])->name('painel');
+    Route::get('/ia/estado', [PainelController::class, 'estadoIa'])->name('ia.estado');
     Route::post('/sair', [LoginController::class, 'logout'])->name('logout');
 
     Route::post('/posts/{post}/aprovar', [PostDecisionController::class, 'approve'])->name('posts.approve');

@@ -462,3 +462,7 @@ body.ecra-editor { height: 100vh; height: 100dvh; display: flex; flex-direction:
 .visor-original { color: #9fe0b3; text-decoration: none; }
 .visor-original:hover { text-decoration: underline; }
 @media (max-width: 600px) { .visor-seta { display: none; } } /* no telemóvel arrasta-se com o dedo */
+
+/* Post que a IA acabou de fazer (a página saltou para ele) */
+.post:target, .aviso.pronto { box-shadow: 0 0 0 3px var(--verde-neon); }
+.ia-a-fazer small { font-weight: 400; opacity: .8; }

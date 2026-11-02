@@ -29,6 +29,9 @@ class CalendarioIa extends Command
     /** Pedido feito pelo botão "Propor ideias" do calendário. */
     public const PEDIDO_PROPOR = 'calendario-ia:propor-agora';
 
+    /** Enquanto a IA está a propor as ideias (para o calendário se atualizar sozinho no fim). */
+    public const A_PROPOR = 'calendario-ia:a-propor';
+
     public function handle(PostWriter $escritor): int
     {
         if (! $escritor->configurado()) {
@@ -39,7 +42,17 @@ class CalendarioIa extends Command
 
         $this->trocarTemas($escritor);
         $this->fazerIdeias();
-        $this->proporSemana($escritor, $this->option('propor') || Cache::pull(self::PEDIDO_PROPOR));
+        // Botão "Propor ideias": a marca A_PROPOR fica até ao fim, para o calendário só se atualizar com as ideias feitas.
+        $pedido = Cache::has(self::PEDIDO_PROPOR);
+        if ($pedido) {
+            Cache::put(self::A_PROPOR, 1, now()->addMinutes(5));
+            Cache::forget(self::PEDIDO_PROPOR);
+        }
+        try {
+            $this->proporSemana($escritor, $this->option('propor') || $pedido);
+        } finally {
+            Cache::forget(self::A_PROPOR);
+        }
 
         return self::SUCCESS;
     }

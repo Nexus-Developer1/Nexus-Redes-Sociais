@@ -67,9 +67,9 @@ class CalendarioController extends Controller
         Cache::put(CalendarioIa::PEDIDO_PROPOR, 1, now()->addMinutes(10));
         $inicio = now()->startOfWeek()->addWeek();
 
-        return redirect()->route('calendario', ['mes' => $inicio->format('Y-m')])
+        return redirect()->route('calendario', ['mes' => $inicio->format('Y-m')])->with('a_propor', true)
             ->with('ok', 'A IA está a pensar nas ideias da semana de '.$inicio->locale('pt_PT')->translatedFormat('j \d\e F')
-                .' (até '.config('ia.ideias_por_semana').' posts por semana). Aparecem aqui dentro de 1 a 2 minutos: atualize a página.');
+                .' (até '.config('ia.ideias_por_semana').' posts por semana). Aparecem aqui sozinhas dentro de 1 a 2 minutos.');
     }
 
     /** Feriados nacionais de Portugal (data => nome). */

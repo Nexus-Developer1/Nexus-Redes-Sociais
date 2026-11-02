@@ -37,15 +37,20 @@
             @if ($ver === 'fila')
                 <p class="sub">Posts feitos pela IA, pelo Claude ou pela equipa. Nada é publicado sem a sua aprovação.</p>
             @elseif ($ver === 'ideias')
-                <p class="sub">Calendário de temas (1 post por semana). Cada ideia vira um post que chega à fila para aprovar. Pode trocar o tema ou descartar.</p>
+                @php($diasAntesIa = app(\App\Services\PostWriter::class)->configurado() ? (int) config('ia.ideias_dias_antes') : 0)
+                <p class="sub">Temas do calendário. Cada ideia vira um post que chega à fila para aprovar{{ $diasAntesIa > 0 ? ' (a IA faz cada uma '.$diasAntesIa.' dias antes da data)' : '' }}. Pode trocar o tema ou descartar.</p>
             @endif
         </div>
 
         @if (session('erro'))
             <div class="aviso erro" role="alert">{{ session('erro') }}</div>
         @endif
+        @if ($pronto && $pronto->status === \App\Models\Post::PENDING)
+            <div class="aviso pronto" role="status">✓ “{{ $pronto->title }}” está pronto para aprovar.</div>
+        @endif
         @if (session('ok'))
-            <div class="aviso" role="status">{{ session('ok') }}</div>
+            <div class="aviso" role="status"
+                 @if (session('pedido_em_curso')) data-espera="pedido" data-id="{{ session('pedido_em_curso') }}" @endif>{{ session('ok') }}</div>
         @endif
         @if ($errors->has('scheduled_at'))
             <div class="aviso erro" role="alert">{{ $errors->first('scheduled_at') }}</div>

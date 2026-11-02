@@ -1,4 +1,18 @@
-<article class="post" id="post-{{ $post->id }}">
+@php
+    // A IA está a trabalhar neste post? A página atualiza-se sozinha quando acabar (layout.blade.php).
+    $esperaIa = null;
+    if (app(\App\Services\PostWriter::class)->configurado()) {
+        if ($post->status === \App\Models\Post::CREATING && \App\Models\PostRequest::where('post_id', $post->id)->whereIn('status', ['new', 'in_progress'])->exists()) {
+            $esperaIa = 'post';      // "A IA faz este post"
+        } elseif ($post->status === \App\Models\Post::IDEA && $post->change_request) {
+            $esperaIa = 'tema';      // "Trocar tema"
+        } elseif ($post->status === \App\Models\Post::REVISING && $post->design && $post->change_request) {
+            $esperaIa = 'post';      // "Pedir alteração"
+        }
+    }
+@endphp
+<article class="post" id="post-{{ $post->id }}"
+         @if ($esperaIa) data-espera="{{ $esperaIa }}" data-id="{{ $post->id }}" data-estado="{{ $post->status }}" @endif>
     <div class="post-imagem">
         @if ($post->imagens_carrossel)
             {{-- Carrossel: as imagens passam para o lado, como no Instagram --}}
@@ -133,7 +147,7 @@
                 @php($iaAFazer = \App\Models\PostRequest::where('post_id', $post->id)->whereIn('status', ['new', 'in_progress'])->exists())
                 @php($iaLigada = app(\App\Services\PostWriter::class)->configurado())
                 @if ($iaAFazer)
-                    <span class="ia-a-fazer">⏳ A IA está a fazer este post…</span>
+                    <span class="ia-a-fazer">⏳ A IA está a fazer este post… <small>(a página atualiza-se sozinha)</small></span>
                 @elseif ($iaLigada && $post->status === \App\Models\Post::IDEA && $post->change_request)
                     <span class="ia-a-fazer">⏳ A IA está a escolher outro tema…</span>
                 @elseif ($iaLigada)
@@ -173,7 +187,7 @@
                     @switch($post->status)
                         @case(\App\Models\Post::APPROVED) Vai ser publicado sozinho à hora marcada. @break
                         @case(\App\Models\Post::REJECTED) Não vai ser publicado. @break
-                        @default A nova versão está a ser preparada e volta à fila sozinha.
+                        @default {{ $esperaIa ? '⏳ A IA está a refazer o post. Esta página atualiza-se sozinha quando estiver pronto.' : 'A nova versão está a ser preparada e volta à fila sozinha.' }}
                     @endswitch
                 </span>
                 @if ($post->isEditable())
