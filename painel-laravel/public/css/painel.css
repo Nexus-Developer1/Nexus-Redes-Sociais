@@ -439,3 +439,26 @@ body.ecra-editor { height: 100vh; height: 100dvh; display: flex; flex-direction:
 .pedir .formato-pedido label { display: flex; align-items: center; gap: 8px; color: #e6efe8; font-size: 14px; cursor: pointer; }
 .formato-pedido input { accent-color: var(--verde-neon); margin: 0; }
 .tipo.desligado { opacity: .45; cursor: not-allowed; }
+
+/* ---------- visor: imagens dos posts em grande (arrastar para o lado num carrossel) ---------- */
+.visor { border: 0; padding: 0; margin: 0; width: 100vw; height: 100vh; max-width: 100vw; max-height: 100vh; background: transparent; overflow: hidden; }
+.visor[open] { display: flex; align-items: center; justify-content: center; }
+.visor::backdrop { background: rgba(4, 10, 6, .92); }
+.visor img { max-width: min(92vw, 1080px); max-height: calc(100vh - 110px); object-fit: contain; border-radius: 6px;
+  box-shadow: 0 10px 40px rgba(0,0,0,.6); user-select: none; -webkit-user-select: none; touch-action: pan-y; transition: transform .2s ease; }
+.visor img.arrastavel { cursor: grab; }
+.visor img.a-arrastar { cursor: grabbing; transition: none; }
+.visor-seta, .visor-fechar { position: fixed; border: 0; border-radius: 50%; background: rgba(255,255,255,.12); color: #fff; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; padding: 0; }
+.visor-seta:hover, .visor-fechar:hover { background: rgba(255,255,255,.24); }
+.visor-seta { top: 50%; transform: translateY(-50%); width: 52px; height: 52px; font-size: 34px; line-height: 1; }
+.visor-seta.ant { left: 24px; }
+.visor-seta.seg { right: 24px; }
+.visor-seta[hidden] { display: none; }
+.visor-fechar { top: 18px; right: 22px; width: 44px; height: 44px; font-size: 30px; line-height: 1; }
+.visor-baixo { position: fixed; left: 0; right: 0; bottom: 18px; display: flex; justify-content: center; align-items: center; gap: 18px; color: #d8e6dc; font-size: 14px; }
+.visor-conta:empty { display: none; }
+.visor-conta { background: rgba(255,255,255,.12); padding: 4px 12px; border-radius: 999px; font-weight: 600; }
+.visor-original { color: #9fe0b3; text-decoration: none; }
+.visor-original:hover { text-decoration: underline; }
+@media (max-width: 600px) { .visor-seta { display: none; } } /* no telemóvel arrasta-se com o dedo */
