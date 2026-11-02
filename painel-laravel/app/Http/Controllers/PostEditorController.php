@@ -334,7 +334,7 @@ class PostEditorController extends Controller
 
         // Avisa os outros aprovadores. Se o email falhar, o post fica na fila na mesma.
         try {
-            Notification::send(User::whereKeyNot($request->user()->id)->get(), new PostParaAprovar($post));
+            PostParaAprovar::enviar($post, exceto: $request->user());
         } catch (Throwable $e) {
             report($e);
         }

@@ -48,7 +48,7 @@
                   onsubmit="var b = this.querySelector('button[type=submit]'); b.disabled = true; b.textContent = 'A enviar…';">
                 @csrf
                 @if ($acao === 'aprovar')
-                    <p>Ao confirmar, o post fica aprovado em nome de <b>{{ $user->name }}</b> e é publicado à hora marcada.</p>
+                    <p>Ao confirmar, o post fica aprovado em nome de <b>{{ $email ?: $user->name }}</b> e é publicado à hora marcada.</p>
                     <button type="submit" class="btn btn-principal">✓ Confirmar aprovação</button>
                 @else
                     @if ($errors->any())<div class="aviso erro" role="alert">{{ $errors->first() }}</div>@endif

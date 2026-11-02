@@ -223,7 +223,7 @@ class TratarPedidos extends Command
         $post->reviews()->create(['user_id' => null, 'action' => $acao]);
 
         try {
-            Notification::send(User::all(), new PostParaAprovar($post));
+            PostParaAprovar::enviar($post);
         } catch (Throwable $e) {
             report($e); // o post fica na fila na mesma
         }

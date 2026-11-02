@@ -22,14 +22,23 @@ class EmailDecisionController extends Controller
     public const VALIDADE_DIAS = 7;
 
     /** Link assinado (relativo ao painel, para funcionar com o IP ou com um nome) para o email. */
-    public static function link(Post $post, User $user, string $acao): string
+    public static function link(Post $post, User $user, string $acao, ?string $email = null): string
     {
-        return url(URL::temporarySignedRoute('email.decisao', now()->addDays(self::VALIDADE_DIAS), [
+        return url(URL::temporarySignedRoute('email.decisao', now()->addDays(self::VALIDADE_DIAS), array_filter([
             'post' => $post->id,
             'acao' => $acao,
             'u' => $user->id,
             'v' => (string) $post->updated_at?->timestamp,
-        ], absolute: false));
+            'e' => $email, // endereço sem conta que recebeu o email (vai para o histórico)
+        ], fn ($v) => $v !== null), absolute: false));
+    }
+
+    /** Nota do histórico: "pelo email" e, se quem recebeu não tem conta, o endereço. */
+    private function nota(Request $request): string
+    {
+        $email = $request->query('e');
+
+        return 'pelo email'.($email ? ' ('.$email.')' : '');
     }
 
     public function show(Request $request, Post $post, string $acao): View
@@ -45,7 +54,7 @@ class EmailDecisionController extends Controller
         }
 
         if ($acao === 'aprovar') {
-            $post->decide('approved', Post::APPROVED, $user, 'pelo email');
+            $post->decide('approved', Post::APPROVED, $user, $this->nota($request));
 
             return $this->pagina($request, $post, $acao, "“{$post->title}” foi aprovado e agendado para {$post->whenLabel()}.");
         }
@@ -55,6 +64,8 @@ class EmailDecisionController extends Controller
             ['comment.required' => 'Escreva o que quer mudar.']
         );
         $post->decide('change_requested', Post::REVISING, $user, $dados['comment']);
+        // no histórico fica também por onde veio (a IA lê só o pedido, em change_request)
+        $post->reviews()->latest('id')->first()?->update(['comment' => $dados['comment'].' · '.$this->nota($request)]);
 
         return $this->pagina($request, $post, $acao, 'Pedido de alteração enviado. Quando o post estiver refeito, recebe outro email.');
     }
@@ -84,6 +95,7 @@ class EmailDecisionController extends Controller
             'post' => $post,
             'acao' => $acao,
             'user' => $user,
+            'email' => $request->query('e'), // quem recebeu o email, se não tiver conta no painel
             'problema' => $problema,
             'feito' => $feito,
             // o formulário volta ao mesmo link assinado

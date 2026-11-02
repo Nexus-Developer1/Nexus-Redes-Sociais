@@ -5,7 +5,9 @@ namespace Tests\Feature;
 use App\Http\Controllers\EmailDecisionController;
 use App\Models\Post;
 use App\Models\User;
+use App\Notifications\PostParaAprovar;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 class EmailDecisaoTest extends TestCase
@@ -85,5 +87,28 @@ class EmailDecisaoTest extends TestCase
 
         $this->post($link)->assertOk()->assertSee('foi alterado depois');
         $this->assertSame(Post::PENDING, $this->post->fresh()->status);
+    }
+
+    public function test_emails_de_aprovacao_so_para_os_enderecos_definidos(): void
+    {
+        Notification::fake();
+        config(['painel.emails_aprovacao' => ['rmoreira@nxs.pt']]);
+        $suporte = User::factory()->create(['email' => 'suporte@nxs.pt', 'is_admin' => true]);
+
+        PostParaAprovar::enviar($this->post);
+
+        Notification::assertNotSentTo([$suporte, $this->user], PostParaAprovar::class);
+        Notification::assertSentOnDemand(PostParaAprovar::class, function ($n, $canais, $destino) {
+            return $destino->routes['mail'] === 'rmoreira@nxs.pt' && $n->paraEmail === 'rmoreira@nxs.pt';
+        });
+    }
+
+    public function test_quem_nao_tem_conta_fica_no_historico_pelo_endereco(): void
+    {
+        $link = EmailDecisionController::link($this->post, $this->user, 'aprovar', 'rmoreira@nxs.pt');
+        $this->get($link)->assertOk()->assertSee('rmoreira@nxs.pt');
+        $this->post($link)->assertOk();
+
+        $this->assertSame('pelo email (rmoreira@nxs.pt)', $this->post->reviews()->first()->comment);
     }
 }

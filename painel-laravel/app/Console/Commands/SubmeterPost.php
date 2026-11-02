@@ -113,7 +113,7 @@ class SubmeterPost extends Command
 
         // Avisa o(s) aprovador(es). Se o email falhar, o post fica na fila na mesma.
         try {
-            Notification::send(User::all(), new PostParaAprovar($post));
+            PostParaAprovar::enviar($post);
             $this->info('Aviso enviado por email.');
         } catch (Throwable $e) {
             report($e);
