@@ -99,11 +99,23 @@
             @if ($post->change_request)
                 <div class="pedido-alteracao"><strong>Pediu outro tema:</strong> {{ $post->change_request }}</div>
             @endif
+            @php($diasAntes = (int) config('ia.ideias_dias_antes'))
+            @if ($post->status === \App\Models\Post::IDEA && $diasAntes > 0 && $post->scheduled_at?->isFuture()
+                 && app(\App\Services\PostWriter::class)->configurado()
+                 && ! \App\Models\PostRequest::where('post_id', $post->id)->where('status', 'failed')->exists())
+                @php($quandoIa = $post->scheduled_at->copy()->subDays($diasAntes))
+                <p class="nota-auto">✨ A IA faz este post sozinha
+                    {{ $quandoIa->isPast() ? 'dentro de 1 a 2 minutos' : 'a '.$quandoIa->locale('pt_PT')->translatedFormat('j \d\e F') }}
+                    ({{ $diasAntes }} dias antes da data). Pode trocar o tema ou fazê-lo já.</p>
+            @endif
             <div class="acoes">
                 @php($iaAFazer = \App\Models\PostRequest::where('post_id', $post->id)->whereIn('status', ['new', 'in_progress'])->exists())
+                @php($iaLigada = app(\App\Services\PostWriter::class)->configurado())
                 @if ($iaAFazer)
                     <span class="ia-a-fazer">⏳ A IA está a fazer este post…</span>
-                @elseif (app(\App\Services\PostWriter::class)->configurado())
+                @elseif ($iaLigada && $post->status === \App\Models\Post::IDEA && $post->change_request)
+                    <span class="ia-a-fazer">⏳ A IA está a escolher outro tema…</span>
+                @elseif ($iaLigada)
                     {{-- A IA faz o post a partir desta ideia (tema, notas e data) --}}
                     <form method="POST" action="{{ route('posts.aiMake', $post) }}"
                           onsubmit="var b = this.querySelector('button'); b.disabled = true; b.textContent = 'A pedir…';">

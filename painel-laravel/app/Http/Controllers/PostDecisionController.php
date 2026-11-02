@@ -65,7 +65,9 @@ class PostDecisionController extends Controller
 
         $post->decide('idea_swap', Post::IDEA, $request->user(), $data['comment']);
 
-        return back()->with('ok', 'Pedido de troca de tema enviado ao Claude.');
+        return back()->with('ok', app(\App\Services\PostWriter::class)->configurado()
+            ? 'A IA vai propor outro tema para esta data dentro de 1 a 2 minutos.'
+            : 'Pedido de troca de tema enviado ao Claude.');
     }
 
     public function discard(Request $request, Post $post): RedirectResponse
@@ -84,13 +86,7 @@ class PostDecisionController extends Controller
             return back()->with('ok', 'A IA já está a fazer este post.');
         }
 
-        $notas = $post->change_request ?: $post->source;
-        PostRequest::create([
-            'topic' => mb_substr($post->title.($notas ? '. Notas: '.$notas : ''), 0, 2000),
-            'publish_at' => $post->scheduled_at?->isFuture() ? $post->scheduled_at : null,
-            'user_id' => $request->user()->id,
-            'post_id' => $post->id,
-        ]);
+        PostRequest::paraIdeia($post, $request->user()->id);
         $post->decide('ai_requested', Post::CREATING, $request->user());
 
         return back()->with('ok', "A IA está a fazer “{$post->title}”: aparece em “Para aprovar” dentro de 1 a 2 minutos.");

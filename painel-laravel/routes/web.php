@@ -30,6 +30,7 @@ Route::middleware(['auth', 'auth.session'])->group(function () {
     Route::post('/posts/{post}/ia-fazer', [PostDecisionController::class, 'aiMake'])->name('posts.aiMake');
 
     Route::get('/calendario', [CalendarioController::class, 'index'])->name('calendario');
+    Route::post('/calendario/propor-ideias', [CalendarioController::class, 'proporIdeias'])->name('calendario.propor');
 
     // Biblioteca da NEXUS (fotos próprias, produtos, logótipos de parceiros).
     Route::get('/biblioteca', [BibliotecaController::class, 'index'])->name('biblioteca');

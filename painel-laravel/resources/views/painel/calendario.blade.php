@@ -21,9 +21,16 @@
                 {{ $totalMes }} {{ $totalMes === 1 ? 'post' : 'posts' }} este mês
                 @if ($semData) · <a href="{{ route('painel', ['ver' => 'ideias']) }}">{{ $semData }} sem data</a>@endif
             </span>
+            @if ($podeProporIdeias)
+                <form method="post" action="{{ route('calendario.propor') }}">
+                    @csrf
+                    <button class="btn" title="A IA propõe os temas da próxima semana (feriados, dias especiais e produtos). Também o faz sozinha à segunda-feira.">✨ Propor ideias</button>
+                </form>
+            @endif
             <a class="btn btn-principal" href="{{ route('posts.create') }}">+ Criar post</a>
         </div>
     </div>
+    @if (session('ok'))<div class="aviso" role="status">{{ session('ok') }}</div>@endif
 
     <div class="legenda-estados" aria-label="Legenda">
         @foreach ([\App\Models\Post::IDEA, \App\Models\Post::CREATING, \App\Models\Post::PENDING, \App\Models\Post::APPROVED, \App\Models\Post::PUBLISHED, \App\Models\Post::REJECTED] as $e)

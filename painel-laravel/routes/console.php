@@ -12,3 +12,6 @@ Illuminate\Support\Facades\Schedule::command('post:publicar')->everyFiveMinutes(
 
 // A IA trata dos pedidos de post e das alterações pedidas (sem IA_CHAVE não faz nada).
 Illuminate\Support\Facades\Schedule::command('post:tratar-pedidos')->everyMinute()->withoutOverlapping(15);
+
+// Calendário automático: troca temas pedidos, faz as ideias uns dias antes da data e propõe as da semana seguinte.
+Illuminate\Support\Facades\Schedule::command('post:calendario-ia')->everyMinute()->withoutOverlapping(15);
