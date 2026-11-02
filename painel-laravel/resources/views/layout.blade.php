@@ -156,11 +156,12 @@ document.querySelectorAll('[data-carrossel]').forEach(function (c) {
     }
 
     document.addEventListener('click', function (e) {
-        var a = e.target.closest('.post-imagem a[href], .decisao-imagens a[href]');
+        var a = e.target.closest('.post-imagem a[href], .decisao-imagens a[href], a.bib-imagem[href]');
         if (!a || e.ctrlKey || e.metaKey || e.shiftKey || e.button) return; // Ctrl+clique continua a abrir noutro separador
         e.preventDefault();
         galeria = a.closest('.carrossel-galeria');
-        var links = Array.prototype.slice.call((galeria || a.closest('.decisao-imagens') || a.parentNode).querySelectorAll('a[href]'));
+        var grupo = galeria || a.closest('.decisao-imagens, .biblioteca-grelha') || a.parentNode;
+        var links = Array.prototype.slice.call(grupo.querySelectorAll(a.classList.contains('bib-imagem') ? 'a.bib-imagem[href]' : 'a[href]'));
         lista = links.map(function (l) { return l.href; });
         if (!dlg) cria();
         dlg.showModal();

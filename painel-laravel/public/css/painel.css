@@ -337,23 +337,77 @@ body.ecra-editor { height: 100vh; height: 100dvh; display: flex; flex-direction:
 .filtros a { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--borda); background: #fff; color: #33443a; text-decoration: none; font-size: 14px; }
 .filtros a:hover { border-color: var(--verde); color: var(--verde); }
 .filtros a.ativo { background: var(--verde); border-color: var(--verde); color: #fff; font-weight: 600; }
-.biblioteca { display: grid; grid-template-columns: minmax(300px, 380px) minmax(0, 1fr); gap: 24px; padding: 20px 24px 40px; align-items: start; }
-.biblioteca-lado { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 16px; }
-.formulario select { font: inherit; font-weight: 400; padding: 9px 11px; border: 1px solid #c8cfca; border-radius: 8px; background: #fff; }
-.dicas-biblioteca ul { margin: 0; padding-left: 18px; font-size: 14px; color: #33443a; display: flex; flex-direction: column; gap: 6px; }
-.dicas-biblioteca h2 { margin: 0 0 8px; }
-.biblioteca-grelha { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; align-items: start; }
-.biblioteca-grelha .vazio { grid-column: 1 / -1; }
-.bib-item { background: #fff; border: 1px solid var(--borda); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
-.bib-imagem { display: block; height: 180px; overflow: hidden; background: #eef3ef; }
+/* ---------- biblioteca da NEXUS ---------- */
+.bib-titulo { display: flex; flex-direction: column; min-width: 0; }
+.bib-titulo span { font-size: 13px; color: var(--texto-2); }
+.filtros a b { font-weight: 700; margin-left: 2px; opacity: .75; }
+.biblioteca { display: grid; grid-template-columns: minmax(320px, 400px) minmax(0, 1fr); gap: 24px; padding: 20px 24px 40px; align-items: start; }
+.biblioteca-lado { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 16px; min-width: 0; }
+.biblioteca-conteudo { min-width: 0; }
+
+.bib-adicionar { display: flex; flex-direction: column; gap: 16px; }
+.bib-adicionar h2 { margin: 0; }
+.bib-tipos { border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.bib-tipos legend, .bib-rotulo { padding: 0; margin-bottom: 8px; font-size: 14px; font-weight: 600; color: #33443a; }
+.bib-rotulo small { font-weight: 400; color: var(--texto-2); }
+.bib-tipo { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--borda); border-radius: 10px; cursor: pointer; background: #fff; transition: border-color .15s, background .15s; }
+.bib-tipo:hover { border-color: #9cc7aa; }
+.bib-tipo input { position: absolute; opacity: 0; pointer-events: none; }
+.bib-tipo:has(input:checked) { border-color: var(--verde); background: #eef7f1; box-shadow: 0 0 0 1px var(--verde); }
+.bib-tipo:has(input:focus-visible) { outline: 2px solid var(--verde); outline-offset: 2px; }
+.bib-tipo-icone { flex: none; width: 38px; height: 38px; border-radius: 10px; background: #e6f2ea; color: var(--verde); display: flex; align-items: center; justify-content: center; }
+.bib-tipo-icone svg { width: 22px; height: 22px; }
+.bib-tipo:has(input:checked) .bib-tipo-icone { background: var(--verde); color: #fff; }
+.bib-tipo-texto { display: flex; flex-direction: column; font-size: 14px; }
+.bib-tipo-texto small { color: var(--texto-2); font-size: 12.5px; }
+
+.bib-passo { display: flex; flex-direction: column; }
+.bib-passo input[name=descricao] { font: inherit; padding: 10px 12px; border: 1px solid #c8cfca; border-radius: 8px; }
+.bib-largar { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 22px 16px; text-align: center;
+  border: 2px dashed #b9d3c1; border-radius: 12px; background: #f6faf7; color: #33443a; cursor: pointer; transition: border-color .15s, background .15s; }
+.bib-largar:hover, .bib-largar.a-largar { border-color: var(--verde); background: #eaf6ee; }
+.bib-largar input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.bib-largar svg { width: 30px; height: 30px; color: var(--verde); margin-bottom: 4px; }
+.bib-largar span { font-size: 13px; color: var(--texto-2); }
+.bib-largar.com-ficheiros { padding: 12px 16px; }
+.bib-largar.com-ficheiros svg { display: none; }
+.bib-escolhidas { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
+.bib-escolhidas p { grid-column: 1 / -1; margin: 0; font-size: 13px; font-weight: 600; color: var(--verde); }
+.bib-escolhidas figure { margin: 0; min-width: 0; }
+.bib-escolhidas img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; border: 1px solid var(--borda); display: block; background: #fff; }
+.bib-escolhidas figcaption { font-size: 11px; color: var(--texto-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+.bib-guardar { justify-content: center; width: 100%; min-height: 44px; }
+
+.bib-vazia { background: #fff; border: 1px solid var(--borda); border-radius: 14px; padding: 36px 32px; text-align: center; }
+.bib-vazia h2 { margin: 0 0 6px; font-size: 24px; }
+.bib-vazia > p { margin: 0 auto 26px; max-width: 560px; color: var(--texto-2); }
+.bib-vazia-tipos { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; text-align: left; }
+.bib-vazia-tipo { border: 1px solid var(--borda); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 4px; background: #fbfdfb; }
+.bib-vazia-tipo .bib-tipo-icone { margin-bottom: 8px; }
+.bib-vazia-tipo small { color: var(--texto-2); }
+.bib-vazia-tipo p { margin: 8px 0 0; font-size: 14px; color: #33443a; }
+
+.biblioteca-grelha { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; align-items: start; }
+.bib-item { background: #fff; border: 1px solid var(--borda); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; transition: box-shadow .15s; }
+.bib-item:hover { box-shadow: 0 4px 16px rgba(11,26,16,.08); }
+.bib-imagem { position: relative; display: block; height: 190px; overflow: hidden; background: #eef3ef; }
 .bib-imagem img { width: 100%; height: 100%; object-fit: cover; display: block; }
-/* produtos e logótipos: mostrar inteiros, sobre fundo neutro */
-.bib-imagem.tipo-produto, .bib-imagem.tipo-logo { background: repeating-conic-gradient(#f2f4f2 0% 25%, #fff 0% 50%) 50% / 18px 18px; padding: 10px; }
+.bib-imagem.tipo-produto, .bib-imagem.tipo-logo { background: repeating-conic-gradient(#f2f4f2 0% 25%, #fff 0% 50%) 50% / 18px 18px; padding: 12px; }
 .bib-imagem.tipo-produto img, .bib-imagem.tipo-logo img { object-fit: contain; }
-.bib-form { padding: 10px; display: flex; flex-direction: column; gap: 6px; }
+.bib-etiqueta { position: absolute; top: 8px; left: 8px; display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px 3px 7px; border-radius: 999px;
+  background: rgba(11,26,16,.78); color: #fff; font-size: 12px; font-weight: 600; }
+.bib-etiqueta svg { width: 13px; height: 13px; }
+.bib-corpo { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 6px; }
+.bib-descricao { margin: 0; font-size: 14px; color: #24382b; line-height: 1.35; }
+.bib-editar summary { cursor: pointer; font-size: 13px; font-weight: 600; color: var(--verde); list-style: none; }
+.bib-editar summary::-webkit-details-marker { display: none; }
+.bib-editar summary::before { content: "✎ "; }
+.bib-editar[open] summary { margin-bottom: 8px; }
+.bib-form { display: flex; flex-direction: column; gap: 6px; }
 .bib-form select, .bib-form textarea { font: inherit; font-size: 13px; padding: 6px 8px; border: 1px solid #c8cfca; border-radius: 6px; width: 100%; resize: vertical; }
 .bib-acoes { display: flex; justify-content: space-between; gap: 6px; }
-@media (max-width: 900px) { .biblioteca { grid-template-columns: 1fr; } .biblioteca-lado { position: static; } }
+@media (max-width: 900px) { .biblioteca { grid-template-columns: 1fr; padding: 16px; } .biblioteca-lado { position: static; } }
+.formulario select { font: inherit; font-weight: 400; padding: 9px 11px; border: 1px solid #c8cfca; border-radius: 8px; background: #fff; }
 
 /* "Da biblioteca…" no editor */
 #dlg-biblioteca { border: 0; border-radius: 14px; padding: 0; width: min(860px, 94vw); }
@@ -466,3 +520,4 @@ body.ecra-editor { height: 100vh; height: 100dvh; display: flex; flex-direction:
 /* Post que a IA acabou de fazer (a página saltou para ele) */
 .post:target, .aviso.pronto { box-shadow: 0 0 0 3px var(--verde-neon); }
 .ia-a-fazer small { font-weight: 400; opacity: .8; }
+.bib-rotulo small { display: block; margin-top: 1px; }
