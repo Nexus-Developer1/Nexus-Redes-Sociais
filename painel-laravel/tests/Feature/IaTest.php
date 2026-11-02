@@ -182,6 +182,9 @@ class IaTest extends TestCase
         $this->assertSame('pixabay-77.jpg', $post->design['foto']);
         $this->assertStringContainsString('Foto: Rui (Pixabay)', $post->source);
         Http::assertSent(fn ($r) => str_contains($r->url(), 'pixabay.com/api/') && $r['key'] === 'pixabay-teste');
+        // primeiro na categoria de informática do Pixabay
+        $this->assertSame('computer', collect(Http::recorded())->map(fn ($p) => $p[0])
+            ->first(fn ($r) => str_contains($r->url(), 'pixabay.com/api/'))['category'] ?? null);
     }
 
     public function test_se_nenhuma_foto_serve_fica_sem_foto(): void

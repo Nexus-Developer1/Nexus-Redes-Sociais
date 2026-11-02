@@ -117,10 +117,14 @@ class PostWriter
         $resposta = $this->chamar(30, [
                 'messages' => [
                     ['role' => 'system', 'content' => 'Escolhes a fotografia de fundo para um post de uma empresa portuguesa de informática '
-                        .'(servidores, computadores, redes, energia/UPS, cibersegurança, escritórios). Cada linha é "id: palavras que descrevem a foto". '
-                        .'Escolhe a que melhor combina com o tema e que mostre claramente tecnologia, equipamento, escritórios ou pessoas a trabalhar. '
-                        .'Comida, animais, paisagens, desporto ou qualquer coisa sem relação NÃO servem. Se nenhuma servir, responde 0. '
-                        .'Responde só com o número.'],
+                        .'(servidores, computadores, redes, energia/UPS, cibersegurança, backup, escritórios). Cada linha é "id: palavras que descrevem a foto". '
+                        .'REGRAS: 1) A foto TEM de mostrar informática: computadores, portáteis, ecrãs, servidores, datacenter, cabos e equipamento de rede, '
+                        .'discos, técnicos a trabalhar com equipamento ou escritórios com computadores. '
+                        .'2) TEM de combinar com o assunto do post (ex.: num post de backup, discos, servidores ou armazenamento; uma foto de VPN, '
+                        .'de telemóvel ou de uma aplicação não serve para backup). '
+                        .'3) NÃO servem: pessoas ou interiores sem tecnologia à vista, comida, animais, plantas, paisagens, desporto, dinheiro, '
+                        .'nem fotos de uma marca ou aplicação concreta (vpn, logo, brand, app, nomes de marcas). '
+                        .'Se nenhuma cumprir as três regras, responde 0. Responde só com o número.'],
                     ['role' => 'user', 'content' => "Tema do post: {$tema}\n\nFotos:\n{$lista}"],
                 ],
                 'temperature' => 0,
@@ -326,8 +330,9 @@ class PostWriter
         $resposta = $this->chamar(20, [
             'messages' => [
                 ['role' => 'system', 'content' => 'Dás 2 a 4 palavras-chave em inglês para procurar uma fotografia de fundo num banco de imagens, '
-                    .'para um post de uma empresa de informática. A foto tem de mostrar uma cena claramente DIFERENTE das pesquisas já usadas '
-                    .'(outro objeto, outro sítio ou pessoas em vez de objetos), mas a combinar com o tema. Sem siglas nem marcas. '
+                    .'para um post de uma empresa de informática. A foto tem de mostrar SEMPRE informática ligada ao tema (computadores, '
+                    .'servidores, datacenter, discos, redes e cabos, técnicos com equipamento, escritório com computadores) e uma cena claramente '
+                    .'DIFERENTE das pesquisas já usadas (outro equipamento, outro sítio, ou um técnico em vez de só objetos). Sem siglas, marcas nem aplicações. '
                     .'Responde só com as palavras, sem aspas nem pontuação.'],
                 ['role' => 'user', 'content' => 'Tema: '.mb_substr($tema, 0, 200)."\nPesquisas já usadas: ".implode('; ', array_slice($jaUsadas, -8))],
             ],
@@ -704,9 +709,11 @@ class PostWriter
         - "formato": "4:5" (normal) ou "1:1" (avisos curtos).
         - Sem emojis no texto da imagem.
         - "pesquisa_imagem": 2 a 4 palavras EM INGLÊS para procurar uma foto de fundo num banco de fotos
-          (ex.: "server room", "it technician laptop", "office team meeting", "data center cables").
-          Foto realista, sem texto, a combinar com o tema. NÃO uses siglas nem marcas (UPS, NVIDIA, Riello, Supermicro):
-          descreve o que se vê (ex.: UPS → "office computers power backup", NVIDIA → "graphics card computer"). Num aviso de fecho ou feriado pode ser algo como "closed office door".
+          (ex.: "server room", "it technician laptop", "office computers desk", "data center cables", "hard drive storage").
+          Foto realista, sem texto, que mostre SEMPRE informática (computadores, servidores, redes, discos, técnicos com equipamento)
+          ligada ao tema. NÃO uses siglas, marcas nem aplicações (UPS, NVIDIA, Riello, Supermicro, VPN):
+          descreve o que se vê (ex.: UPS → "office computers power backup", NVIDIA → "graphics card computer").
+          Num aviso de fecho ou feriado, um escritório com computadores (ex.: "empty office computers").
 
         CARROSSEL (várias imagens no mesmo post: capa + um slide por ponto + slide de contactos, que é automático)
         - NUNCA decides sozinho se é carrossel: segue a linha "FORMATO" do pedido. "FORMATO: carrossel" → "carrossel": true;

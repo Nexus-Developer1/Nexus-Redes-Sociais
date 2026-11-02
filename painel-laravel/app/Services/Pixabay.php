@@ -37,13 +37,20 @@ class Pixabay
         // Pesquisa primeiro na língua que parece ser a da pesquisa e completa com a outra se vier pouco.
         // Primeiro só fotos verticais (ficam nítidas no post 4:5); depois as outras, que passam pelo filtro de nitidez.
         [$primeira, $segunda] = self::parecePortugues($pesquisa) ? ['pt', 'en'] : ['en', 'pt'];
+        // Primeiro só na categoria "computer" do Pixabay (fotos de informática); fora dela só se vier muito pouco.
+        $voltas = [];
+        foreach (['computer', null] as $categoria) {
+            foreach ([[$primeira, 'vertical'], [$primeira, 'all'], [$segunda, 'vertical'], [$segunda, 'all']] as [$lang, $orientacao]) {
+                $voltas[] = [$lang, $orientacao, $categoria];
+            }
+        }
         $hits = [];
-        foreach ([[$primeira, 'vertical'], [$primeira, 'all'], [$segunda, 'vertical'], [$segunda, 'all']] as [$lang, $orientacao]) {
+        foreach ($voltas as [$lang, $orientacao, $categoria]) {
             $nitidas = collect($hits)->filter(fn ($f) => self::ampliacao($f, $formato) <= self::AMPLIACAO_NITIDA)->count();
-            if ($nitidas >= $quantos) {
+            if ($nitidas >= ($categoria ? $quantos : min($quantos, 6))) {
                 break;
             }
-            $hits = array_merge($hits, $this->pedido($parametros + ['lang' => $lang, 'orientation' => $orientacao])['hits'] ?? []);
+            $hits = array_merge($hits, $this->pedido($parametros + array_filter(['lang' => $lang, 'orientation' => $orientacao, 'category' => $categoria]))['hits'] ?? []);
         }
 
         // Só fotos que ficam nítidas no tamanho do post; as que obrigariam a ampliar muito ficam de fora.
