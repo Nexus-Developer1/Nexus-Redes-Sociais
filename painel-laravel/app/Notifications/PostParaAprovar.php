@@ -28,24 +28,52 @@ class PostParaAprovar extends Notification
         $post = $this->post;
         $quem = $notifiable instanceof User ? $notifiable : $this->emNomeDe;
 
+        // Todas as imagens (num carrossel, pela ordem em que aparecem) e a versão dos Stories, em anexo.
+        $anexos = array_values(array_filter(
+            array_unique(array_filter([...$post->imagens(), $post->temStories() ? $post->imagem_story : null])),
+            fn ($imagem) => is_file(public_path($imagem))
+        ));
+        $logo = public_path('modelos/logo-nexus.png');
+
         $mail = (new MailMessage)
             ->subject('Post para aprovar: '.$post->title)
-            ->markdown('emails.post-para-aprovar', [
+            ->view('emails.post-para-aprovar', [
                 'post' => $post,
                 'nome' => $notifiable->name ?? $quem?->name,
                 'aprovar' => $quem ? EmailDecisionController::link($post, $quem, 'aprovar') : null,
                 'alterar' => $quem ? EmailDecisionController::link($post, $quem, 'alterar') : null,
                 'painel' => url('/').'#post-'.$post->id,
                 'dias' => EmailDecisionController::VALIDADE_DIAS,
+                'logo' => is_file($logo) ? $logo : null,
+                'capa' => $anexos ? $this->miniatura(public_path($anexos[0])) : null,
+                'anexos' => count($anexos),
             ]);
 
-        // Todas as imagens (num carrossel, pela ordem em que aparecem) e a versão dos Stories.
-        foreach (array_unique(array_filter([...$post->imagens(), $post->temStories() ? $post->imagem_story : null])) as $imagem) {
-            if (is_file(public_path($imagem))) {
-                $mail->attach(public_path($imagem));
-            }
+        foreach ($anexos as $imagem) {
+            $mail->attach(public_path($imagem));
         }
 
         return $mail;
+    }
+
+    /** Capa reduzida (600 px, JPEG) para aparecer dentro do email sem o tornar pesado. */
+    private function miniatura(string $ficheiro): string
+    {
+        $destino = storage_path('app/email/capa-'.md5($ficheiro.'|'.filemtime($ficheiro)).'.jpg');
+        if (is_file($destino)) {
+            return $destino;
+        }
+        $original = function_exists('imagecreatefromstring') ? @imagecreatefromstring((string) file_get_contents($ficheiro)) : false;
+        if (! $original) {
+            return $ficheiro; // sem GD: vai a imagem inteira
+        }
+        $largura = 600;
+        $altura = (int) round(imagesy($original) * $largura / imagesx($original));
+        $nova = imagecreatetruecolor($largura, $altura);
+        imagecopyresampled($nova, $original, 0, 0, 0, 0, $largura, $altura, imagesx($original), imagesy($original));
+        \Illuminate\Support\Facades\File::ensureDirectoryExists(dirname($destino));
+        imagejpeg($nova, $destino, 85);
+
+        return $destino;
     }
 }

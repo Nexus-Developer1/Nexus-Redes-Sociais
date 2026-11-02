@@ -126,7 +126,7 @@ class PainelTest extends TestCase
             $html = (string) $mail->render();
 
             return $mail->subject === 'Post para aprovar: Dica de redes'
-                && str_contains($html, 'Linha 1<br>Linha 2')
+                && str_contains($html, 'Linha 1<br />')
                 && str_contains($html, '#post-'.$n->post->id)
                 && str_contains($html, '/email/posts/'.$n->post->id.'/aprovar?')
                 && str_contains($html, '/email/posts/'.$n->post->id.'/alterar?');

@@ -51,14 +51,19 @@ class EmailGraphTest extends TestCase
                 return false;
             }
             $m = $r['message'];
+            $anexos = collect($m['attachments']);
+            $emAnexo = $anexos->first(fn ($a) => empty($a['isInline']));
+            $logo = $anexos->first(fn ($a) => ($a['isInline'] ?? false) && $a['name'] === 'logo-nexus.png');
 
             return $r->hasHeader('Authorization', 'Bearer TOKEN1')
                 && $m['subject'] === 'Post para aprovar: Dica de teste'
                 && $m['toRecipients'][0]['emailAddress']['address'] === 'aprovador@exemplo.pt'
                 && $m['body']['contentType'] === 'HTML'
                 && str_contains($m['body']['content'], 'Abrir no painel')
-                && $m['attachments'][0]['name'] === 'teste-email.png'
-                && base64_decode($m['attachments'][0]['contentBytes']) === 'png-falso';
+                // o logótipo vai dentro do email (cid:), a imagem do post vai em anexo
+                && $logo && str_contains($m['body']['content'], 'cid:'.$logo['contentId'])
+                && $emAnexo['name'] === 'teste-email.png'
+                && base64_decode($emAnexo['contentBytes']) === 'png-falso';
         });
     }
 }

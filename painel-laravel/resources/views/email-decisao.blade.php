@@ -8,8 +8,9 @@
     <div class="decisao-cartao">
         <div class="decisao-topo">
             <img src="{{ asset('modelos/logo-nexus.png') }}" alt="NEXUS" width="150" height="28">
-            <span>Redes sociais</span>
+            <span>REDES SOCIAIS</span>
         </div>
+        <div class="decisao-conteudo">
 
         @if ($feito)
             <div class="aviso" role="status">✓ {{ $feito }}</div>
@@ -17,9 +18,13 @@
             <div class="aviso amarelo" role="alert">{{ $problema }}</div>
         @endif
 
+        <div class="decisao-kicker">{{ $acao === 'aprovar' ? 'APROVAR POST' : 'PEDIR ALTERAÇÃO' }}</div>
         <h1>{{ $post->title }}</h1>
-        <p class="decisao-meta">{{ $post->whenLabel() }} · {{ implode(', ', $post->networks ?? []) }}
-            @if ($post->imagens_carrossel) · Carrossel com {{ count($post->imagens_carrossel) }} imagens @endif</p>
+        <div class="decisao-chips">
+            <span><b>{{ $post->whenLabel() }}</b></span>
+            <span>{{ implode(' · ', $post->networks ?? []) }}</span>
+            @if ($post->imagens_carrossel)<span class="forte">Carrossel · {{ count($post->imagens_carrossel) }} imagens</span>@endif
+        </div>
 
         @if ($post->image_path)
             <div class="decisao-imagens">
@@ -34,6 +39,7 @@
         @endif
 
         @if ($post->caption)
+            <div class="decisao-rotulo">LEGENDA</div>
             <div class="decisao-legenda">{{ $post->caption }}</div>
         @endif
 
@@ -56,6 +62,7 @@
 
         <p class="decisao-rodape"><a href="{{ url('/').'#post-'.$post->id }}">Abrir no painel</a>
             · Nada é publicado sem aprovação de uma pessoa.</p>
+        </div>
     </div>
 </div>
 @endsection

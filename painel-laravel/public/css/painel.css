@@ -406,20 +406,29 @@ body.ecra-editor { height: 100vh; height: 100dvh; display: flex; flex-direction:
 .vista-previa button:last-child { border-radius: 0 999px 999px 0; border-left: 0; }
 .vista-previa button.ativo { background: var(--verde); color: #fff; border-color: var(--verde); }
 
-/* ---------- decidir a partir do email (sem sessão) ---------- */
-.decisao-email { min-height: 100vh; display: flex; justify-content: center; align-items: flex-start; padding: 32px 16px; background: var(--escuro); }
-.decisao-cartao { background: #fff; border-radius: 14px; padding: 24px; width: 100%; max-width: 620px; display: flex; flex-direction: column; gap: 14px; }
-.decisao-topo { display: flex; align-items: center; gap: 12px; font-family: Rajdhani, sans-serif; font-weight: 700; font-size: 20px; color: var(--texto-2); }
-.decisao-cartao h1 { margin: 0; font-size: 28px; }
-.decisao-meta { margin: -8px 0 0; color: var(--texto-2); font-size: 14px; }
-.decisao-imagens { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 4px; }
-.decisao-imagens a { flex: 0 0 min(100%, 300px); scroll-snap-align: start; }
-.decisao-imagens a.decisao-story { flex-basis: 160px; }
-.decisao-imagens img { display: block; width: 100%; height: auto; border-radius: 10px; border: 1px solid #e3e8e4; }
-.decisao-legenda { white-space: pre-line; background: #f6f9f7; border: 1px solid #dbe6de; border-radius: 10px; padding: 12px 14px; font-size: 15px; }
-.decisao-form { display: flex; flex-direction: column; gap: 10px; }
-.decisao-form p { margin: 0; }
-.decisao-form label { font-weight: 600; }
-.decisao-form textarea { font: inherit; border: 1px solid #b9c6bd; border-radius: 8px; padding: 10px 12px; }
-.decisao-form .btn { align-self: flex-start; }
-.decisao-rodape { margin: 0; font-size: 13px; color: var(--texto-2); }
+/* ---------- decidir a partir do email (sem sessão): mesmo aspeto do email ---------- */
+.decisao-email { min-height: 100vh; display: flex; justify-content: center; align-items: flex-start; padding: 32px 16px; background: #eef2ef; }
+.decisao-cartao { background: #fff; border-radius: 12px; width: 100%; max-width: 640px; overflow: hidden; box-shadow: 0 2px 14px rgba(11,26,16,.08); }
+.decisao-topo { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: #0b1a10; padding: 22px 32px;
+  border-bottom: 4px solid #00b147; font-size: 11px; font-weight: 600; letter-spacing: 3px; color: #8fd3a5; }
+.decisao-topo img { display: block; }
+.decisao-conteudo { padding: 28px 32px 26px; display: flex; flex-direction: column; gap: 16px; }
+.decisao-kicker { font-size: 12px; font-weight: 700; letter-spacing: 2px; color: #00b147; margin-bottom: -8px; }
+.decisao-cartao h1 { margin: 0; font-size: 26px; line-height: 1.2; }
+.decisao-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.decisao-chips span { background: #eef7f1; border-radius: 6px; padding: 6px 12px; font-size: 13px; }
+.decisao-chips span.forte { background: #0b6e31; color: #fff; }
+.decisao-imagens { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 6px; }
+.decisao-imagens a { flex: 0 0 min(100%, 280px); scroll-snap-align: start; }
+.decisao-imagens a:only-child { flex-basis: min(100%, 400px); margin: 0 auto; }
+.decisao-imagens a.decisao-story { flex-basis: 158px; }
+.decisao-imagens img { display: block; width: 100%; height: auto; border-radius: 8px; border: 1px solid #dfe7e1; }
+.decisao-rotulo { font-size: 12px; font-weight: 700; letter-spacing: 2px; color: var(--texto-2); margin-bottom: -8px; }
+.decisao-legenda { white-space: pre-line; background: #f4f8f5; border-left: 4px solid #00b147; padding: 14px 18px; font-size: 14px; line-height: 1.5; }
+.decisao-form { display: flex; flex-direction: column; gap: 10px; align-items: center; text-align: center; padding-top: 6px; }
+.decisao-form p { margin: 0; color: var(--texto-2); font-size: 14px; }
+.decisao-form label { font-weight: 600; align-self: flex-start; }
+.decisao-form textarea { font: inherit; border: 1px solid #b9c6bd; border-radius: 8px; padding: 10px 12px; width: 100%; text-align: left; }
+.decisao-form .btn { min-width: 240px; justify-content: center; font-size: 16px; min-height: 46px; background: #00b147; border-color: #00b147; }
+.decisao-rodape { margin: 4px 0 0; padding-top: 14px; border-top: 1px solid #e3e9e5; text-align: center; font-size: 12px; color: var(--texto-2); }
+.decisao-rodape a { color: #0b6e31; font-weight: 700; text-decoration: none; }
