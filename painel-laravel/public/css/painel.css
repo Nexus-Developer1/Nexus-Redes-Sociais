@@ -21,7 +21,6 @@ h1, h2.titulo { font-family: 'Rajdhani', sans-serif; font-weight: 700; }
 .topo { background: var(--escuro); color: #fff; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 24px; }
 .marca { display: flex; flex-direction: column; align-items: center; gap: 6px; text-decoration: none; }
 .marca img { display: block; width: 150px; height: 28px; }
-.marca b { font-family: 'Rajdhani', sans-serif; font-size: 28px; letter-spacing: 4px; color: var(--verde-neon); }
 .marca span { font-size: 11px; line-height: 1; font-weight: 500; color: #8fb39a; letter-spacing: 5px; text-transform: uppercase; padding-left: 5px; }
 .utilizador { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #dfe9e2; }
 .avatar { width: 34px; height: 34px; border-radius: 50%; background: #1d3a27; color: var(--verde-neon); display: flex; align-items: center; justify-content: center; font-weight: 600; }
@@ -41,7 +40,7 @@ h1, h2.titulo { font-family: 'Rajdhani', sans-serif; font-weight: 700; }
 
 .principal { min-width: 0; display: flex; flex-direction: column; gap: 20px; }
 /* Posts em 2 colunas quando há largura (ecrãs grandes). */
-.lista-posts { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 560px), 1fr)); gap: 20px; align-items: start; }
+.lista-posts { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 560px), 1fr)); gap: 20px; align-items: stretch; }
 .principal h1 { margin: 0; font-size: 34px; letter-spacing: .5px; }
 .principal .sub { margin: 4px 0 0; color: var(--texto-2); }
 
@@ -49,12 +48,11 @@ h1, h2.titulo { font-family: 'Rajdhani', sans-serif; font-weight: 700; }
 .aviso.erro { background: #fbe4e1; color: #7a2016; }
 .vazio { background: #fff; border: 1px dashed #c9d6cd; border-radius: 14px; padding: 28px; color: var(--texto-2); text-align: center; }
 
-.post { background: #fff; border: 1px solid var(--borda); border-radius: 14px; padding: 20px; display: flex; flex-wrap: wrap; gap: 22px; }
-.post > img, .post > .sem-imagem { flex: 0 1 240px; width: 240px; max-width: 100%; height: auto; border-radius: 10px; align-self: flex-start; border: 1px solid #e3e8e4; }
+.post { background: #fff; border: 1px solid var(--borda); border-radius: 14px; padding: 18px; display: grid; grid-template-columns: 160px minmax(0, 1fr); gap: 18px; align-items: start; }
 .sem-imagem { aspect-ratio: 4/5; display: flex; align-items: center; justify-content: center; background: #eef4ef; color: var(--texto-2); }
-.post .corpo { flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+.post .corpo { min-width: 0; display: flex; flex-direction: column; gap: 10px; }
 .post .cabeca { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; align-items: center; }
-.post h2 { margin: 0; font-size: 20px; font-weight: 600; }
+.post h2 { margin: 0; font-size: 18px; line-height: 1.3; font-weight: 600; }
 .estado { font-size: 13px; font-weight: 600; border-radius: 999px; padding: 4px 12px; }
 .estado-pending { background: #fff4d6; color: #6b4a00; }
 .estado-revising, .estado-creating { background: #e6eefc; color: #1f3f86; }
@@ -109,8 +107,7 @@ details.alterar[open] > summary { display: none; }
 
 .login { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px; background: var(--escuro); }
 .login form { background: #fff; border-radius: 14px; padding: 28px; width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 12px; }
-.login h1 { margin: 0; font-size: 30px; }
-.login h1 { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.login h1 { margin: 0; font-size: 30px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .login h1 img { display: block; }
 .login label { font-weight: 600; font-size: 14px; }
 .login input[type=email], .login input[type=password] { border: 1px solid #b9c6bd; border-radius: 8px; padding: 10px 12px; min-height: 44px; }
@@ -123,7 +120,6 @@ details.alterar[open] > summary { display: none; }
 a.btn { display: inline-flex; align-items: center; text-decoration: none; }
 .voltar { display: inline-flex; align-items: center; gap: 4px; align-self: flex-start; height: 36px; padding: 0 14px 0 9px; border: 1px solid #c8cfca; border-radius: 8px; background: #fff; color: #33443a; font-size: 14px; font-weight: 600; text-decoration: none; white-space: nowrap; }
 .voltar:hover { border-color: var(--verde); background: #f1f8f3; color: var(--verde); }
-.aviso.erro { background: #fbe4e1; color: #7a2016; }
 .aviso.amarelo { background: #fff2d6; color: #6b4a00; }
 
 .pagina-estreita { max-width: 720px; margin: 0 auto; padding: 24px 16px; display: flex; flex-direction: column; gap: 12px; }
@@ -245,13 +241,9 @@ body.ecra-editor { height: 100vh; height: 100dvh; display: flex; flex-direction:
 .pedido-erro { margin-top: 6px; font-size: 13px; color: #7a2016; background: #fbe4e1; border-radius: 8px; padding: 6px 10px; }
 
 /* ---------- Cartão do post (listas do painel): compacto e arrumado ---------- */
-.lista-posts { align-items: stretch; }
-.post { display: grid; grid-template-columns: 160px minmax(0, 1fr); gap: 18px; padding: 18px; align-items: start; }
-.post-imagem a, .post-imagem img, .post-imagem .sem-imagem { display: block; }
+.post-imagem a, .post-imagem img { display: block; }
 .post-imagem img, .post-imagem .sem-imagem { width: 100%; height: auto; border-radius: 10px; border: 1px solid #e3e8e4; }
-.post-imagem .sem-imagem { aspect-ratio: 4 / 5; }
-.post .corpo { gap: 10px; }
-.post h2 { font-size: 18px; line-height: 1.3; }
+.post-imagem .sem-imagem { text-align: center; font-size: 14px; }
 .post .meta { font-size: 13px; gap: 6px; }
 .post .meta .sep { color: #9aa79f; }
 .post .legenda { font-size: 14px; line-height: 1.45; padding: 10px 12px; }
@@ -372,6 +364,5 @@ body.ecra-editor { height: 100vh; height: 100dvh; display: flex; flex-direction:
 .dlg-item img { width: 100%; aspect-ratio: 4 / 3; object-fit: contain; background: #f2f4f2; display: block; }
 .dlg-item span { display: block; padding: 6px 8px; font-size: 12.5px; color: #33443a; }
 .dlg-item.a-carregar { opacity: .5; cursor: wait; }
-/* Ideias: "Sem imagem" centrado e aviso da IA a fazer o post */
-.post-imagem .sem-imagem { display: flex; align-items: center; justify-content: center; text-align: center; font-size: 14px; }
+/* Ideias: aviso da IA a fazer o post */
 .ia-a-fazer { display: inline-flex; align-items: center; min-height: 38px; padding: 0 12px; border-radius: 8px; background: #e6eefc; color: #1f3f86; font-size: 14px; font-weight: 600; }

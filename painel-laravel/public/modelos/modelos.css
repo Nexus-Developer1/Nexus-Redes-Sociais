@@ -24,10 +24,6 @@ body { font-family: "Rajdhani", "Segoe UI", sans-serif; color: #fff; overflow: h
 
 /* ---------- fundo ---------- */
 .fundo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: saturate(1.1) contrast(1.05); }
-.sombra { position: absolute; inset: 0;
-  background:
-    linear-gradient(180deg, rgba(0,0,0,.72) 0%, rgba(0,0,0,0) 22%),
-    linear-gradient(0deg, rgba(0,12,4,.96) 0%, rgba(0,12,4,.6) 42%, rgba(0,0,0,0) 66%); }
 .fundo-gerado { position: absolute; inset: 0;
   background:
     radial-gradient(circle at 88% 6%, rgba(61,255,122,.30), transparent 40%),

@@ -26,7 +26,7 @@ Sistema que cria posts para as redes sociais da NEXUS de forma autónoma.
 
 ## Como os posts são feitos (decidido)
 - O Claude não gera imagens. Fundos realistas vêm de uma **IA de imagens externa**; o Claude escreve o texto e monta o post em HTML/CSS/SVG.
-- O HTML é convertido em PNG com o Microsoft Edge em headless (`scripts/render.ps1`).
+- O HTML é convertido em PNG com um browser sem janela: no painel, `PostRenderer` (servidor); no terminal, `scripts/gerar-post.ps1` (Edge).
 - Texto, logótipos e fotos de produtos **nunca** são gerados por IA: o texto é posto em código; logótipos e fotos de produtos vêm de ficheiros oficiais.
 - Para testes usámos o Pollinations (gratuito, sem chave): https://image.pollinations.ai/prompt/<texto>?width=1080&height=1350&nologo=true
   Limitações: 1 imagem a cada 45 s, baixa resolução (~686x858), marca de água no canto inferior direito, ignora detalhes do pedido.
