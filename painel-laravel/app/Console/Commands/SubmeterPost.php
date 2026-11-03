@@ -4,10 +4,8 @@ namespace App\Console\Commands;
 
 use App\Models\Post;
 use App\Models\PostRequest;
-use App\Models\User;
 use App\Notifications\PostParaAprovar;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Notification;
 use Throwable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\File;

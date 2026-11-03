@@ -105,7 +105,7 @@
   }
 
   // ---------- montagem ----------
-  var modelo = P.modelo === 'foto' ? 'dica' : P.modelo; // "foto" chegou a ser um tipo; agora é uma opção de todos
+  var modelo = P.modelo;
   if (!TITULO[modelo]) { avisos.push('modelo desconhecido: "' + modelo + '" (use dica, produto, aviso, evento, numero, frase ou montra)'); modelo = 'aviso'; }
   var formato = P.formato || '4:5';
   if (!FORMATOS[formato]) { avisos.push('formato desconhecido: "' + formato + '"'); formato = '4:5'; }

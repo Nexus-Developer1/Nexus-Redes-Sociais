@@ -5,14 +5,12 @@ namespace App\Console\Commands;
 use App\Models\ImagemBiblioteca;
 use App\Models\Post;
 use App\Models\PostRequest;
-use App\Models\User;
 use App\Notifications\PostParaAprovar;
 use App\Services\BancoFotos;
 use App\Services\PostRenderer;
 use App\Services\PostWriter;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Notification;
 use Throwable;
 
 /**

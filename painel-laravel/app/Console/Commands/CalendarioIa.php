@@ -7,7 +7,6 @@ use App\Models\PostRequest;
 use App\Services\DatasEspeciais;
 use App\Services\PostWriter;
 use Illuminate\Console\Command;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Throwable;
