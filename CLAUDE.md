@@ -86,6 +86,10 @@ Sistema que cria posts para as redes sociais da NEXUS de forma autónoma.
   `sudo bash deploy/instalar-servidor.sh /tmp/painel.tgz` (mantém .env e dados).
   No servidor, os comandos do Claude correm com `sudo -u app-social php artisan ...` dentro da pasta.
   Permissões (padrão da advocacia): código `root:app-social` só de leitura para a app; a app só escreve em `storage/`, `bootstrap/cache/` e `public/imagens-posts/`.
+  O browser das imagens corre como `app-render` (sem acesso ao `.env` nem ao código), via sudo restrito a esse binário
+  (`/etc/sudoers.d/nexus-redes-sociais-render`), numa pasta partilhada `/var/lib/nexus-render/trabalho` (`RENDER_UTILIZADOR`, `RENDER_PASTA`).
+  O Chrome atualiza-se sozinho à segunda-feira (`deploy/atualizar-chrome.sh`, cron como root).
+  Nota: o `instalar-servidor.sh` que corre é o que já está no servidor; quando o próprio script muda, correr a instalação duas vezes.
   Para o tinker como app-social usar um HOME temporário: `H=$(sudo -u app-social mktemp -d); sudo -u app-social env HOME=$H php artisan tinker`.
 
 ## Próximos passos / em aberto
