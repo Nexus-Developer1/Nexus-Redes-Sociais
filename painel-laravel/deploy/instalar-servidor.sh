@@ -67,6 +67,27 @@ find "$DIR" -type f -exec chmod 640 {} +
 chmod 600 "$DIR/.env"
 chmod 750 "$DIR/artisan"
 
+echo "== browser com utilizador próprio (sem acesso ao .env nem ao código)"
+# O Chrome abre imagens que vêm de fora (uploads, Pixabay): se um dia houver uma falha nele, quem a explorar
+# fica com um utilizador que não lê o .env (chaves) nem consegue mudar o código ou as imagens publicadas.
+RUSR=app-render
+RDIR=/var/lib/nexus-render
+id "$RUSR" >/dev/null 2>&1 || useradd --system --home-dir "$RDIR" --shell /usr/sbin/nologin "$RUSR"
+mkdir -p "$RDIR/trabalho"
+chown "$RUSR":"$RUSR" "$RDIR"
+chmod 755 "$RDIR"
+# pasta de trabalho partilhada: a app escreve as páginas, o browser grava as imagens (grupo do browser, setgid)
+chown "$USR":"$RUSR" "$RDIR/trabalho"
+chmod 2770 "$RDIR/trabalho"
+cat > /etc/sudoers.d/$APP-render <<EOF
+# NEXUS Redes Sociais: a app ($USR) só pode correr o browser como $RUSR (gerado por instalar-servidor.sh)
+$USR ALL=($RUSR) NOPASSWD: /opt/chrome-headless-shell/chrome-headless-shell
+EOF
+chmod 440 /etc/sudoers.d/$APP-render
+visudo -cf /etc/sudoers.d/$APP-render >/dev/null
+set_env RENDER_UTILIZADOR "$RUSR"
+set_env RENDER_PASTA "$RDIR/trabalho"
+
 echo "== dependências"
 cd "$DIR"
 as_app composer install --no-dev --optimize-autoloader --no-interaction --no-progress -q
@@ -100,35 +121,14 @@ find "$DIR/storage" "$DIR/bootstrap/cache" -type d -exec chmod 750 {} +
 find "$DIR/storage" "$DIR/bootstrap/cache" -type f -exec chmod 640 {} +
 
 echo "== browser para gerar as imagens dos posts (chrome-headless-shell em /opt, só para esta app)"
-CHS=/opt/chrome-headless-shell
-# Em cada instalação/atualização confirma a versão estável mais recente: o Chrome recebe correções
-# de segurança com frequência, por isso atualiza-se sempre que houver versão nova.
-VER=$(curl -fsS https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json \
-    | grep -o '"Stable":{[^}]*}' | grep -o '"version":"[^"]*"' | cut -d'"' -f4 || true)
-ATUAL=$("$CHS/chrome-headless-shell" --version 2>/dev/null | grep -o '[0-9][0-9.]*' | head -1 || true)
-if [ ! -x "$CHS/chrome-headless-shell" ] || { [ -n "$VER" ] && [ "$VER" != "$ATUAL" ]; }; then
-    [ -n "$VER" ] || { echo "Não consegui saber a versão estável do Chrome (sem internet?)"; exit 1; }
-    apt-get install -y -qq unzip libnss3 libnspr4 libatk1.0-0t64 libatk-bridge2.0-0t64 libcups2t64 libdrm2 \
-        libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libpango-1.0-0 libcairo2 \
-        libasound2t64 libdbus-1-3 libexpat1 >/dev/null
-    TMPZ=$(mktemp -d)
-    curl -fsSL -o "$TMPZ/chs.zip" "https://storage.googleapis.com/chrome-for-testing-public/$VER/linux64/chrome-headless-shell-linux64.zip"
-    unzip -q "$TMPZ/chs.zip" -d "$TMPZ"
-    rm -rf "$CHS"
-    mv "$TMPZ/chrome-headless-shell-linux64" "$CHS"
-    rm -rf "$TMPZ"
-    chmod -R a+rX "$CHS"
-    echo "   instalado chrome-headless-shell $VER (antes: ${ATUAL:-nenhum})"
-else
-    echo "   chrome-headless-shell $ATUAL já é a versão mais recente"
-fi
-# Bibliotecas em falta aparecem aqui (a lista deve ficar vazia).
-ldd "$CHS/chrome-headless-shell" | grep "not found" || true
+bash "$DIR/deploy/atualizar-chrome.sh"
 
 echo "== agendador (publica os posts aprovados à hora marcada; sem chave da Meta não faz nada)"
 cat > /etc/cron.d/$APP <<EOF
 # NEXUS Redes Sociais: tarefas agendadas do Laravel (post:publicar a cada 5 min).
 * * * * * $USR cd $DIR && php artisan schedule:run >> /dev/null 2>&1
+# Chrome sempre atualizado (correções de segurança): segunda-feira às 04:30.
+30 4 * * 1 root bash $DIR/deploy/atualizar-chrome.sh >> /var/log/$APP-chrome.log 2>&1
 EOF
 chmod 644 /etc/cron.d/$APP
 
@@ -185,6 +185,14 @@ Listen $PORT
         <FilesMatch "\.php$">
             SetHandler "proxy:unix:$SOCK|fcgi://localhost"
         </FilesMatch>
+    </Directory>
+    # Na pasta onde a app escreve (imagens dos posts e da biblioteca) nunca se executa código.
+    <Directory "$DIR/public/imagens-posts">
+        <FilesMatch "\\.(php|phtml|phar|pht|php[0-9])$">
+            Require all denied
+        </FilesMatch>
+        RemoveHandler .php .phtml .phar
+        Options -ExecCGI
     </Directory>
     # o resto do projeto (.env, código) nunca é servido; só a pasta pública
     <Directory "$DIR">

@@ -100,7 +100,7 @@ class IaTest extends TestCase
             ]]),
             'api.pexels.com/v1/photos/123' => Http::response(['id' => 123, 'photographer' => 'Ana Silva',
                 'src' => ['original' => 'https://images.pexels.com/photos/123/original.jpeg']]),
-            'images.pexels.com/*' => Http::response('JPEGDATA', 200, ['Content-Type' => 'image/jpeg']),
+            'images.pexels.com/*' => Http::response($this->jpeg(), 200, ['Content-Type' => 'image/jpeg']),
         ]);
     }
 
@@ -150,7 +150,7 @@ class IaTest extends TestCase
                 ->push(['choices' => [['message' => ['content' => '{}']]]])
                 ->push(['choices' => [['message' => ['content' => '9000']]]]),
             'pixabay.com/api/*' => Http::response(['hits' => [$hit(77), $hit(9000)]]),
-            'pixabay.com/get/*' => Http::response('JPEGDATA', 200, ['Content-Type' => 'image/jpeg']),
+            'pixabay.com/get/*' => Http::response($this->jpeg(), 200, ['Content-Type' => 'image/jpeg']),
         ]);
         PostRequest::create(['topic' => 'Servidores']);
 
@@ -172,7 +172,7 @@ class IaTest extends TestCase
                 ->push(['choices' => [['message' => ['content' => '{}']]]]) // revisor PT-PT: nada a mudar
                 ->push(['choices' => [['message' => ['content' => '77']]]]),
             'pixabay.com/api/*' => Http::response(['hits' => [$hit]]),
-            'pixabay.com/get/*' => Http::response('JPEGDATA', 200, ['Content-Type' => 'image/jpeg']),
+            'pixabay.com/get/*' => Http::response($this->jpeg(), 200, ['Content-Type' => 'image/jpeg']),
         ]);
         PostRequest::create(['topic' => 'UPS Riello']);
 
@@ -221,7 +221,7 @@ class IaTest extends TestCase
             'pixabay.com/api/*' => function ($r) use ($hits) {
                 return Http::response(['hits' => isset($r['id']) ? array_values(array_filter($hits, fn ($h) => $h['id'] == $r['id'])) : $hits]);
             },
-            'pixabay.com/get/*' => Http::response('JPEGDATA', 200, ['Content-Type' => 'image/jpeg']),
+            'pixabay.com/get/*' => Http::response($this->jpeg(), 200, ['Content-Type' => 'image/jpeg']),
         ]);
         $user = User::factory()->create();
         $post = Post::create(['title' => 'Backup', 'networks' => ['Instagram'], 'status' => Post::PENDING,

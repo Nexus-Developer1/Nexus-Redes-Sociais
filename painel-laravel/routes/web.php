@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
     Route::get('/entrar', [LoginController::class, 'show'])->name('login');
-    Route::post('/entrar', [LoginController::class, 'login'])->middleware('throttle:10,1');
+    Route::post('/entrar', [LoginController::class, 'login'])->middleware('throttle:login');
 });
 
 // Aprovar / pedir alteração a partir do email: link assinado (válido 7 dias), sem entrar no painel.
@@ -35,12 +35,12 @@ Route::middleware(['auth', 'auth.session'])->group(function () {
     Route::post('/posts/{post}/rejeitar', [PostDecisionController::class, 'reject'])->name('posts.reject');
     Route::post('/posts/{post}/alterar', [PostDecisionController::class, 'requestChange'])->name('posts.change');
     Route::post('/posts/{post}/desfazer', [PostDecisionController::class, 'undo'])->name('posts.undo');
-    Route::post('/posts/{post}/trocar-ideia', [PostDecisionController::class, 'swapIdea'])->name('posts.swap');
+    Route::post('/posts/{post}/trocar-ideia', [PostDecisionController::class, 'swapIdea'])->name('posts.swap')->middleware('throttle:ia');
     Route::post('/posts/{post}/descartar', [PostDecisionController::class, 'discard'])->name('posts.discard');
-    Route::post('/posts/{post}/ia-fazer', [PostDecisionController::class, 'aiMake'])->name('posts.aiMake');
+    Route::post('/posts/{post}/ia-fazer', [PostDecisionController::class, 'aiMake'])->name('posts.aiMake')->middleware('throttle:ia');
 
     Route::get('/calendario', [CalendarioController::class, 'index'])->name('calendario');
-    Route::post('/calendario/propor-ideias', [CalendarioController::class, 'proporIdeias'])->name('calendario.propor');
+    Route::post('/calendario/propor-ideias', [CalendarioController::class, 'proporIdeias'])->name('calendario.propor')->middleware('throttle:ia');
 
     // Biblioteca da NEXUS (fotos próprias, produtos, logótipos de parceiros).
     Route::get('/biblioteca', [BibliotecaController::class, 'index'])->name('biblioteca');
@@ -74,6 +74,6 @@ Route::middleware(['auth', 'auth.session'])->group(function () {
     Route::post('/posts/{post}/legenda-ia', [PostEditorController::class, 'captionAi'])->name('posts.captionAi')->middleware('throttle:30,1');
     Route::post('/posts/{post}/outra-foto', [PostEditorController::class, 'otherPhoto'])->name('posts.otherPhoto')->middleware('throttle:20,1');
 
-    Route::post('/pedidos', [PostRequestController::class, 'store'])->name('requests.store');
-    Route::post('/pedidos/{pedido}/repetir', [PostRequestController::class, 'retry'])->name('requests.retry');
+    Route::post('/pedidos', [PostRequestController::class, 'store'])->name('requests.store')->middleware('throttle:ia');
+    Route::post('/pedidos/{pedido}/repetir', [PostRequestController::class, 'retry'])->name('requests.retry')->middleware('throttle:ia');
 });

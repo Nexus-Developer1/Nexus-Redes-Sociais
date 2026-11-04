@@ -98,14 +98,12 @@ class Pixabay
             throw new RuntimeException('Não encontrei essa foto no Pixabay.');
         }
 
-        $imagem = Http::timeout(60)->get($url);
-        if ($imagem->failed() || ! str_starts_with((string) $imagem->header('Content-Type'), 'image/')) {
-            throw new RuntimeException('Não consegui descarregar a foto do Pixabay.');
-        }
+        // só https e só dos servidores do Pixabay; imagem verificada e com tamanho limitado
+        $imagem = ImagensSeguras::descarregar($url, ['pixabay.com']);
 
         $nome = 'pixabay-'.$id.'.jpg';
         File::ensureDirectoryExists(PostRenderer::pasta($post));
-        File::put(PostRenderer::pasta($post).'/'.$nome, $imagem->body());
+        File::put(PostRenderer::pasta($post).'/'.$nome, $imagem);
 
         return ['nome' => $nome, 'fotografo' => (string) ($foto['user'] ?? '')];
     }

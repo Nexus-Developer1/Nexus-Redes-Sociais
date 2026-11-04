@@ -21,10 +21,14 @@ class EmailDecisionController extends Controller
 
     public const VALIDADE_DIAS = 7;
 
-    /** Link assinado (relativo ao painel, para funcionar com o IP ou com um nome) para o email. */
+    /**
+     * Link assinado para o email. Começa sempre pelo endereço oficial do painel (APP_URL), nunca pelo
+     * endereço que o browser de quem enviou o post indicou: assim ninguém consegue pôr os botões do
+     * email a apontar para outra máquina e apanhar o link de um colega.
+     */
     public static function link(Post $post, User $user, string $acao, ?string $email = null): string
     {
-        return url(URL::temporarySignedRoute('email.decisao', now()->addDays(self::VALIDADE_DIAS), array_filter([
+        return rtrim((string) config('app.url'), '/').(URL::temporarySignedRoute('email.decisao', now()->addDays(self::VALIDADE_DIAS), array_filter([
             'post' => $post->id,
             'acao' => $acao,
             'u' => $user->id,
@@ -38,7 +42,8 @@ class EmailDecisionController extends Controller
     {
         $email = $request->query('e');
 
-        return 'pelo email'.($email ? ' ('.$email.')' : '');
+        // o IP de quem carregou no botão (o email pode ter sido reencaminhado)
+        return 'pelo email'.($email ? ' ('.$email.')' : '').' · IP '.$request->ip();
     }
 
     public function show(Request $request, Post $post, string $acao): View
@@ -76,6 +81,11 @@ class EmailDecisionController extends Controller
         $user = User::find($request->query('u'));
         if (! $user) {
             return [null, 'Este link já não é válido. Abra o painel para decidir.'];
+        }
+        // Endereço sem conta que deixou de receber os pedidos de aprovação: os links que já tinha deixam de servir.
+        $email = (string) $request->query('e');
+        if ($email !== '' && ! in_array(mb_strtolower($email), array_map('mb_strtolower', config('painel.emails_aprovacao')), true)) {
+            return [$user, 'Este endereço já não recebe os pedidos de aprovação: este link deixou de servir. Abra o painel para decidir.'];
         }
         if ($post->status !== Post::PENDING) {
             return [$user, "Este post já não está à espera de aprovação (agora: {$post->statusLabel()})."];

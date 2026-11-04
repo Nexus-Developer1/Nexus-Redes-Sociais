@@ -31,7 +31,8 @@ return Application::configure(basePath: dirname(__DIR__))
                     ->with('erro', 'A sessão expirou. Entre outra vez e repita o que estava a fazer.');
             }
 
-            return back()->withInput($request->except('_token', 'password'))
+            // Nenhuma palavra-passe fica guardada na sessão (formulário de login e de mudar a palavra-passe).
+            return back()->withInput($request->except('_token', 'password', 'password_confirmation', 'current_password'))
                 ->with('erro', 'A página esteve aberta muito tempo. Confirme e envie outra vez.');
         });
     })->create();

@@ -170,19 +170,21 @@ class PostEditorController extends Controller
     {
         $this->mustBeEditable($post);
         $request->validate([
-            'ficheiro' => ['required', 'file', 'mimes:png,jpg,jpeg,webp', 'max:20480'],
+            'ficheiro' => ['required', 'file', 'mimes:png,jpg,jpeg,webp', 'max:20480', ...\App\Services\ImagensSeguras::regrasUpload()],
         ], [
             'ficheiro.mimes' => 'Use uma imagem PNG, JPG ou WEBP.',
             'ficheiro.max' => 'A imagem tem de ter menos de 20 MB.',
+            'ficheiro.dimensions' => 'A imagem é demasiado grande: no máximo '.\App\Services\ImagensSeguras::MAX_LADO.' píxeis de lado.',
         ]);
 
         $ficheiro = $request->file('ficheiro');
         $ext = ['image/png' => 'png', 'image/jpeg' => 'jpg', 'image/webp' => 'webp'][$ficheiro->getMimeType()] ?? 'png';
         $base = Str::limit(Str::slug(pathinfo($ficheiro->getClientOriginalName(), PATHINFO_FILENAME)), 50, '') ?: 'imagem';
-        if (str_starts_with($base, 'post-')) {
-            $base = 'img-'.$base; // "post-*.png" é o nome das imagens geradas
+        if (preg_match('/^(post|pixabay|pexels|bib)-/', $base)) {
+            $base = 'img-'.$base; // nomes reservados: imagens geradas, fotos dos bancos e da biblioteca
         }
-        $nome = "{$base}.{$ext}";
+        // sufixo aleatório: dois uploads com o mesmo nome (ex.: logo.png) não se substituem
+        $nome = $base.'-'.strtolower(Str::random(6)).'.'.$ext;
         File::ensureDirectoryExists(PostRenderer::pasta($post));
         $ficheiro->move(PostRenderer::pasta($post), $nome);
 

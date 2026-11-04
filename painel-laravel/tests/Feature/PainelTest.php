@@ -83,6 +83,26 @@ class PainelTest extends TestCase
         $this->actingAs($user)->post("/posts/{$publicado->id}/desfazer")->assertStatus(409);
     }
 
+    public function test_login_limitado_por_conta(): void
+    {
+        User::factory()->create(['email' => 'alvo@nxs.pt']);
+        for ($i = 1; $i <= 5; $i++) {
+            $this->post('/entrar', ['email' => 'alvo@nxs.pt', 'password' => 'errada-'.$i], ['REMOTE_ADDR' => '10.0.0.'.$i])
+                ->assertRedirect();
+        }
+        // 6.ª tentativa à mesma conta, de outro computador: bloqueada
+        $this->post('/entrar', ['email' => 'alvo@nxs.pt', 'password' => 'x'], ['REMOTE_ADDR' => '10.0.0.99'])->assertStatus(429);
+    }
+
+    public function test_pedidos_a_ia_limitados(): void
+    {
+        $user = User::factory()->create();
+        for ($i = 1; $i <= 10; $i++) {
+            $this->actingAs($user)->post('/pedidos', ['topic' => 'Tema '.$i, 'formato' => 'imagem'])->assertRedirect();
+        }
+        $this->actingAs($user)->post('/pedidos', ['topic' => 'Tema 11', 'formato' => 'imagem'])->assertStatus(429);
+    }
+
     public function test_pedir_um_post(): void
     {
         $user = User::factory()->create();

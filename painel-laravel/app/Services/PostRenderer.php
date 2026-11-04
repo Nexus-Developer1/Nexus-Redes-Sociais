@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Post;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
+use Illuminate\Support\Str;
 use RuntimeException;
 
 /**
@@ -67,10 +68,10 @@ class PostRenderer
         $browser = $this->browser();
         $pasta = self::pasta($post);
         File::ensureDirectoryExists($pasta);
-        $trabalho = storage_path('app/render');
-        File::ensureDirectoryExists($trabalho);
+        $sessao = $this->pastaDeTrabalho();
         $modelos = $this->fileUrl(public_path('modelos')).'/';
-        $carimbo = now()->format('YmdHis');
+        // Nome com parte aleatória: ninguém consegue adivinhar o endereço da imagem de um post por aprovar.
+        $carimbo = now()->format('YmdHis').'-'.strtolower(Str::random(8));
         $total = self::totalImagens($design);
 
         // Uma página por imagem: o modelos.js desenha a capa (slide 0), os slides e os contactos.
@@ -95,39 +96,51 @@ class PostRenderer
                 .'<link href="'.$modelos.'modelos.css" rel="stylesheet"></head><body>'
                 .'<script>window.POST = '.$json.';</script>'
                 .'<script src="'.$modelos.'modelos.js"></script></body></html>';
-            $ficheiroHtml = "{$trabalho}/post-{$post->id}{$sufixo}.html";
+            $chave = count($trabalhos);
+            $ficheiroHtml = "{$sessao}/pagina-{$chave}.html";
             File::put($ficheiroHtml, $html);
             $nome = "post-{$carimbo}{$sufixo}.png";
             $trabalhos[$i] = [
                 'nome' => $nome,
                 'png' => "{$pasta}/{$nome}",
-                // cada browser com o seu perfil (dois ao mesmo tempo não podem usar o mesmo)
-                'comando' => $this->comando($browser, $ficheiroHtml, "{$pasta}/{$nome}", $w, $h, 'perfil'.(count($trabalhos) % 3 ?: '')),
+                // o browser grava na pasta de trabalho; a imagem só passa para a pasta pública no fim
+                'temporario' => "{$sessao}/imagem-{$chave}.png",
+                'comando' => $this->comando($browser, $ficheiroHtml, "{$sessao}/imagem-{$chave}.png", $w, $h, "{$sessao}/perfil-{$chave}"),
             ];
         }
 
-        // Até 3 browsers ao mesmo tempo: um carrossel de 10 imagens demora pouco mais do que 3.
-        $registos = [];
-        foreach (array_chunk($trabalhos, 3, true) as $grupo) {
-            $resultados = Process::pool(function ($pool) use ($grupo, $trabalho) {
+        try {
+            // Até 3 browsers ao mesmo tempo: um carrossel de 10 imagens demora pouco mais do que 3.
+            $registos = [];
+            foreach (array_chunk($trabalhos, 3, true) as $grupo) {
+                $resultados = Process::pool(function ($pool) use ($grupo, $sessao) {
+                    foreach ($grupo as $i => $t) {
+                        $pool->as((string) $i)->timeout(90)
+                            ->env(['HOME' => $sessao, 'XDG_CONFIG_HOME' => $sessao, 'XDG_CACHE_HOME' => $sessao])
+                            ->command($t['comando']);
+                    }
+                })->start()->wait();
                 foreach ($grupo as $i => $t) {
-                    $pool->as((string) $i)->timeout(90)
-                        ->env(['HOME' => $trabalho, 'XDG_CONFIG_HOME' => $trabalho, 'XDG_CACHE_HOME' => $trabalho])
-                        ->command($t['comando']);
+                    $r = $resultados[(string) $i];
+                    $registos[$i] = $r->output()."\n".$r->errorOutput();
                 }
-            })->start()->wait();
-            foreach ($grupo as $i => $t) {
-                $r = $resultados[(string) $i];
-                $registos[$i] = $r->output()."\n".$r->errorOutput();
             }
+
+            foreach ($trabalhos as $i => $t) {
+                if (! is_file($t['temporario'])) {
+                    $qual = $i === 'story' ? ' dos Stories' : ($total > 1 ? ' '.($i + 1) : '');
+                    throw new RuntimeException('O browser não gerou a imagem'.$qual.'. '.trim(mb_substr($registos[$i], 0, 500)));
+                }
+            }
+            foreach ($trabalhos as $t) {
+                File::copy($t['temporario'], $t['png']);
+            }
+        } finally {
+            File::deleteDirectory($sessao);
         }
 
         $avisos = [];
         foreach ($trabalhos as $i => $t) {
-            if (! is_file($t['png'])) {
-                $qual = $i === 'story' ? ' dos Stories' : ($total > 1 ? ' '.($i + 1) : '');
-                throw new RuntimeException('O browser não gerou a imagem'.$qual.'. '.trim(mb_substr($registos[$i], 0, 500)));
-            }
             $prefixo = $i === 'story' ? 'Stories: '
                 : ($total > 1 ? ($i === 0 ? 'Capa: ' : ($i === $total - 1 ? 'Contactos: ' : 'Slide '.($i + 1).': ')) : '');
             if (! str_contains($registos[$i], 'NEXUS-ESTADO:pronto')) {
@@ -154,9 +167,36 @@ class PostRenderer
         return ['path' => $caminhos[0], 'slides' => $total > 1 ? array_values($caminhos) : [], 'story' => $story, 'avisos' => $avisos];
     }
 
+    /**
+     * Pasta de trabalho só deste render (páginas HTML e imagens antes de irem para a pasta pública).
+     * No servidor fica em RENDER_PASTA, partilhada com o utilizador que corre o browser (RENDER_UTILIZADOR),
+     * que não consegue ler o .env nem o resto da aplicação. Cada render tem a sua: dois ao mesmo tempo não se atrapalham.
+     */
+    private function pastaDeTrabalho(): string
+    {
+        $base = config('services.render.pasta') ?: storage_path('app/render');
+        File::ensureDirectoryExists($base);
+        // restos de renders interrompidos (ex.: o servidor reiniciou a meio) saem ao fim de uma hora
+        foreach (File::glob(rtrim($base, '/\\').'/r-*') as $antiga) {
+            if (is_dir($antiga) && filemtime($antiga) < time() - 3600) {
+                File::deleteDirectory($antiga);
+            }
+        }
+        $sessao = rtrim($base, '/\\').DIRECTORY_SEPARATOR.'r-'.strtolower(Str::random(16));
+        File::ensureDirectoryExists($sessao);
+        if (config('services.render.utilizador')) {
+            @chmod($sessao, 02770); // o grupo do browser escreve aqui (a pasta base tem o grupo dele)
+        }
+
+        return $sessao;
+    }
+
     private function comando(string $browser, string $html, string $png, int $largura, int $altura, string $perfil): array
     {
-        $comando = [$browser];
+        // No servidor o browser corre com um utilizador próprio, sem acesso às chaves da aplicação
+        // (se um dia houver uma falha do Chrome numa imagem, quem a explorar não chega ao .env).
+        $utilizador = config('services.render.utilizador');
+        $comando = $utilizador ? ['sudo', '-n', '-u', $utilizador, $browser] : [$browser];
         if (str_contains(strtolower(basename($browser)), 'msedge') || str_contains(strtolower(basename($browser)), 'chrome.exe')) {
             $comando[] = '--headless=new';
         }
@@ -165,9 +205,12 @@ class PostRenderer
             '--virtual-time-budget=10000', '--allow-file-access-from-files',
             "--window-size={$largura},{$altura}",
             '--enable-logging=stderr', '--v=0',
-            '--user-data-dir='.storage_path('app/render/'.$perfil),
             '--screenshot='.$png,
         );
+        if (! $utilizador) {
+            // perfil só deste browser (o Edge do Windows precisa; com outro utilizador o Chrome usa um temporário)
+            $comando[] = '--user-data-dir='.$perfil;
+        }
         if (PHP_OS_FAMILY !== 'Windows') {
             // O utilizador da app não tem as permissões que a sandbox do Chrome pede; o conteúdo é só o nosso modelo.
             $comando[] = '--no-sandbox';

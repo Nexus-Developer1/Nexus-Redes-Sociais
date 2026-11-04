@@ -50,7 +50,7 @@ class EmailDecisaoTest extends TestCase
         $review = $post->reviews()->first();
         $this->assertSame('approved', $review->action);
         $this->assertSame($this->user->id, $review->user_id);
-        $this->assertSame('pelo email', $review->comment);
+        $this->assertSame('pelo email · IP 127.0.0.1', $review->comment);
 
         // Outra vez o mesmo link: já não está à espera de aprovação.
         $this->get($link)->assertOk()->assertSee('já não está à espera');
@@ -105,10 +105,30 @@ class EmailDecisaoTest extends TestCase
 
     public function test_quem_nao_tem_conta_fica_no_historico_pelo_endereco(): void
     {
+        config(['painel.emails_aprovacao' => ['RMoreira@nxs.pt']]);
         $link = EmailDecisionController::link($this->post, $this->user, 'aprovar', 'rmoreira@nxs.pt');
         $this->get($link)->assertOk()->assertSee('rmoreira@nxs.pt');
         $this->post($link)->assertOk();
 
-        $this->assertSame('pelo email (rmoreira@nxs.pt)', $this->post->reviews()->first()->comment);
+        $this->assertSame('pelo email (rmoreira@nxs.pt) · IP 127.0.0.1', $this->post->reviews()->first()->comment);
+    }
+
+    public function test_endereco_tirado_da_lista_perde_os_links(): void
+    {
+        config(['painel.emails_aprovacao' => ['rmoreira@nxs.pt']]);
+        $link = EmailDecisionController::link($this->post, $this->user, 'aprovar', 'rmoreira@nxs.pt');
+        config(['painel.emails_aprovacao' => ['outra@nxs.pt']]);
+
+        $this->post($link)->assertOk()->assertSee('deixou de servir');
+        $this->assertSame(Post::PENDING, $this->post->fresh()->status);
+    }
+
+    public function test_links_usam_sempre_o_endereco_oficial(): void
+    {
+        config(['app.url' => 'http://192.168.1.69:8091']);
+        // mesmo que o pedido de quem enviou o post venha com outro "Host"
+        $this->app['request']->headers->set('HOST', 'maquina-de-outra-pessoa');
+
+        $this->assertStringStartsWith('http://192.168.1.69:8091/email/posts/', $this->link('aprovar'));
     }
 }

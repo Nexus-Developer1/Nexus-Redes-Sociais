@@ -97,10 +97,12 @@ class EditorTest extends TestCase
     {
         $post = $this->postComModelo();
 
-        $this->actingAs($this->user)
+        $resposta = $this->actingAs($this->user)
             ->post(route('posts.upload', $post), ['ficheiro' => UploadedFile::fake()->image('Foto Oficial UPS.JPG', 50, 50)])
-            ->assertOk()->assertJson(['nome' => 'foto-oficial-ups.jpg']);
-        $this->assertFileExists(PostRenderer::pasta($post).'/foto-oficial-ups.jpg');
+            ->assertOk();
+        $nome = $resposta->json('nome');
+        $this->assertMatchesRegularExpression('/^foto-oficial-ups-[a-z0-9]{6}\.jpg$/', $nome); // sufixo aleatório
+        $this->assertFileExists(PostRenderer::pasta($post).'/'.$nome);
 
         $this->actingAs($this->user)
             ->postJson(route('posts.upload', $post), ['ficheiro' => UploadedFile::fake()->create('mau.php', 1, 'text/plain')])
@@ -179,18 +181,38 @@ class EditorTest extends TestCase
         $post = Post::firstWhere('title', 'A nossa equipa');
         $this->assertSame('evento', $post->design['modelo']);
 
-        $this->actingAs($this->user)
+        $foto = $this->actingAs($this->user)
             ->post(route('posts.upload', $post), ['ficheiro' => UploadedFile::fake()->image('Equipa NEXUS.jpg', 80, 100)])
-            ->assertJson(['nome' => 'equipa-nexus.jpg']);
+            ->json('nome');
+        $this->assertStringStartsWith('equipa-nexus-', $foto);
 
         $this->actingAs($this->user)->post(route('posts.update', $post), [
             'title' => 'A nossa equipa', 'networks' => ['Instagram'],
-            'design' => json_encode(['modelo' => 'evento', 'titulo' => 'A equipa', 'foto' => 'equipa-nexus.jpg',
+            'design' => json_encode(['modelo' => 'evento', 'titulo' => 'A equipa', 'foto' => $foto,
                 'enquadramento' => 'topo', 'tom' => 'forte']),
         ])->assertSessionHas('ok');
 
         $d = $post->fresh()->design;
-        $this->assertSame(['equipa-nexus.jpg', 'topo', 'forte'], [$d['foto'], $d['enquadramento'], $d['tom']]);
+        $this->assertSame([$foto, 'topo', 'forte'], [$d['foto'], $d['enquadramento'], $d['tom']]);
+    }
+
+    public function test_uploads_nao_se_substituem_nem_usam_nomes_reservados(): void
+    {
+        $post = $this->postComModelo();
+        $enviar = fn (string $nome) => $this->actingAs($this->user)
+            ->post(route('posts.upload', $post), ['ficheiro' => UploadedFile::fake()->image($nome, 20, 20)])->json('nome');
+
+        $this->assertNotSame($enviar('logo.png'), $enviar('logo.png'));
+        $this->assertStringStartsWith('img-pixabay-123-', $enviar('pixabay-123.jpg'));
+        $this->assertStringStartsWith('img-bib-5-', $enviar('bib-5.png'));
+    }
+
+    public function test_imagem_enorme_e_recusada(): void
+    {
+        $post = $this->postComModelo();
+        $this->actingAs($this->user)
+            ->post(route('posts.upload', $post), ['ficheiro' => UploadedFile::fake()->image('enorme.png', 9000, 10)])
+            ->assertSessionHasErrors('ficheiro');
     }
 
     public function test_layouts_do_feed(): void

@@ -33,12 +33,13 @@ class BibliotecaController extends Controller
             'tipo' => ['required', Rule::in(array_keys(ImagemBiblioteca::TIPOS))],
             'descricao' => ['required', 'string', 'max:300'],
             'ficheiros' => ['required', 'array', 'max:20'],
-            'ficheiros.*' => ['file', 'mimes:png,jpg,jpeg,webp', 'max:20480'],
+            'ficheiros.*' => ['file', 'mimes:png,jpg,jpeg,webp', 'max:20480', ...\App\Services\ImagensSeguras::regrasUpload()],
         ], [
             'descricao.required' => 'Escreva uma descrição: é o que a IA lê para escolher a imagem.',
             'ficheiros.required' => 'Escolha pelo menos uma imagem.',
             'ficheiros.*.mimes' => 'Use imagens PNG, JPG ou WEBP.',
             'ficheiros.*.max' => 'Cada imagem tem de ter menos de 20 MB.',
+            'ficheiros.*.dimensions' => 'Uma das imagens é demasiado grande: no máximo '.\App\Services\ImagensSeguras::MAX_LADO.' píxeis de lado.',
         ]);
 
         File::ensureDirectoryExists(ImagemBiblioteca::pasta());

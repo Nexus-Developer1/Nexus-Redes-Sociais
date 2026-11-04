@@ -58,14 +58,12 @@ class Pexels
         [$largura, $altura] = PostRenderer::FORMATOS[$post->design['formato'] ?? '4:5'] ?? PostRenderer::FORMATOS['4:5'];
         // A CDN do Pexels corta e comprime: chega uma foto do tamanho certo, sem guardar o original enorme.
         $url = $original.'?auto=compress&cs=tinysrgb&fit=crop&w='.$largura.'&h='.$altura;
-        $imagem = Http::timeout(60)->get($url);
-        if ($imagem->failed() || ! str_starts_with((string) $imagem->header('Content-Type'), 'image/')) {
-            throw new RuntimeException('Não consegui descarregar a foto do Pexels.');
-        }
+        // só https e só dos servidores do Pexels; imagem verificada e com tamanho limitado
+        $imagem = ImagensSeguras::descarregar($url, ['pexels.com']);
 
         $nome = 'pexels-'.$id.'.jpg';
         File::ensureDirectoryExists(PostRenderer::pasta($post));
-        File::put(PostRenderer::pasta($post).'/'.$nome, $imagem->body());
+        File::put(PostRenderer::pasta($post).'/'.$nome, $imagem);
 
         return ['nome' => $nome, 'fotografo' => (string) $resposta->json('photographer', '')];
     }

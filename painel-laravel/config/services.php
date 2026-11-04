@@ -48,6 +48,10 @@ return [
     // Browser sem janela que gera as imagens dos posts. Vazio = procura o chrome-headless-shell (/opt) ou o Edge.
     'render' => [
         'browser' => env('RENDER_BROWSER'),
+        // No servidor: o browser corre com este utilizador (sem acesso ao .env), através do sudo,
+        // e grava numa pasta partilhada com ele. Vazio = corre com o utilizador da aplicação (ex.: Windows).
+        'utilizador' => env('RENDER_UTILIZADOR'),
+        'pasta' => env('RENDER_PASTA'),
     ],
 
     'slack' => [

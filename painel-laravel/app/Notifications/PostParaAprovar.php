@@ -73,7 +73,7 @@ class PostParaAprovar extends Notification
                 'nome' => $notifiable->name ?? $quem?->name,
                 'aprovar' => $quem ? EmailDecisionController::link($post, $quem, 'aprovar', $this->paraEmail) : null,
                 'alterar' => $quem ? EmailDecisionController::link($post, $quem, 'alterar', $this->paraEmail) : null,
-                'painel' => url('/').'#post-'.$post->id,
+                'painel' => rtrim((string) config('app.url'), '/').'/#post-'.$post->id, // endereço oficial
                 'dias' => EmailDecisionController::VALIDADE_DIAS,
                 'logo' => is_file($logo) ? $logo : null,
                 'capa' => $anexos ? $this->miniatura(public_path($anexos[0])) : null,
