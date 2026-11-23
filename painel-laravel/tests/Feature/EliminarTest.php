@@ -37,6 +37,8 @@ class EliminarTest extends TestCase
     {
         $user = User::factory()->create();
         $post = $this->novoPost();
+        // Número próprio: no Windows, uploads de outros testes podem deixar ficheiros abertos na pasta do post 1.
+        $post->forceFill(['id' => 90001])->save();
         $post->reviews()->create(['user_id' => $user->id, 'action' => 'created']);
         $pedido = PostRequest::create(['user_id' => $user->id, 'topic' => 'Ponte', 'status' => 'done', 'post_id' => $post->id]);
         File::ensureDirectoryExists(PostRenderer::pasta($post));

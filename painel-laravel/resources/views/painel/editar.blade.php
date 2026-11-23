@@ -328,6 +328,8 @@ window.EDITOR = {
     biblioteca: { lista: @json(route('biblioteca.lista')), usar: @json(route('posts.biblioteca', $post)), pagina: @json(route('biblioteca')) },
     pexels: @json($pexels ? ['procurar' => route('images.search'), 'usar' => route('posts.stock', $post)] : null),
     csrf: @json(csrf_token()),
+    feriados: @json(\App\Support\AvisoDatas::feriados()),
+    avisoExemplo: @json(array_intersect_key(\App\Services\PostRenderer::exemplo('aviso'), ['data' => 1, 'texto' => 1])),
 };
 </script>
 <script src="{{ asset('js/editor.js') }}?v={{ filemtime(public_path('js/editor.js')) }}"></script>

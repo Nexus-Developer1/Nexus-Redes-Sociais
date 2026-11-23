@@ -8,6 +8,7 @@ use App\Services\BancoFotos;
 use App\Services\Pixabay;
 use App\Services\PostWriter;
 use App\Services\PostRenderer;
+use App\Support\AvisoDatas;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -46,12 +47,16 @@ class PostEditorController extends Controller
             }
             $design = self::comoCarrossel($design);
         }
+        $quando = ! empty($data['data']) ? Carbon::parse($data['data'].' 10:00') : null;
+        if ($quando && $data['modelo'] === 'aviso') {
+            $design = AvisoDatas::para($quando) + $design; // data e "Voltamos na…" do dia do post, não os do exemplo
+        }
 
         $post = Post::create([
             'title' => $data['title'],
             'design' => $design,
             'networks' => ['Instagram', 'Stories', 'Facebook'],
-            'scheduled_at' => ! empty($data['data']) ? Carbon::parse($data['data'].' 10:00') : null,
+            'scheduled_at' => $quando,
             'status' => Post::CREATING,
             'source' => 'Criado no painel por '.$request->user()->name,
         ]);
@@ -106,6 +111,9 @@ class PostEditorController extends Controller
 
         $design = PostRenderer::exemplo($data['modelo']);
         $design['titulo'] = $post->title;
+        if ($data['modelo'] === 'aviso' && $post->scheduled_at) {
+            $design = AvisoDatas::para($post->scheduled_at) + $design;
+        }
         $post->update(['design' => $design]);
 
         return redirect()->route('posts.edit', $post);

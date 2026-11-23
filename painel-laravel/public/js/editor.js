@@ -92,6 +92,43 @@
     return typeof p === 'string' ? p : (p.destaque ? p.destaque + ' | ' : '') + (p.texto || '');
   }).join('\n');
 
+  // ---------- aviso: a data e o "Voltamos na…" seguem o dia de publicação (igual a App\Support\AvisoDatas) ----------
+  // O aviso sai na véspera ("Amanhã estamos fechados"): data = dia seguinte; volta = próximo dia útil.
+  // Só muda os campos que ainda não foram escritos à mão (vazios, o exemplo do modelo ou o último valor automático).
+  var DIAS = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'];
+  var MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+  function diaIso(d) { return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+  function avisoPara(valor) {
+    if (!/^\d{4}-\d{2}-\d{2}/.test(valor || '')) return null;
+    var p = valor.slice(0, 10).split('-');
+    var fecho = new Date(+p[0], +p[1] - 1, +p[2] + 1);
+    var volta = new Date(fecho.getTime());
+    do { volta.setDate(volta.getDate() + 1); }
+    while (volta.getDay() === 0 || volta.getDay() === 6 || (E.feriados || []).indexOf(diaIso(volta)) >= 0);
+    var dia = DIAS[fecho.getDay()];
+    return {
+      data: dia.charAt(0).toUpperCase() + dia.slice(1) + ', ' + fecho.getDate() + ' de ' + MESES[fecho.getMonth()],
+      texto: 'Voltamos na ' + DIAS[volta.getDay()] + '. Obrigado pela compreensão!',
+    };
+  }
+  var quando = $('input[name=scheduled_at]');
+  var avisoAuto = avisoPara(quando && quando.value) || {};
+  if (quando) {
+    quando.addEventListener('change', function () {
+      var novo = avisoPara(quando.value);
+      if (!novo || $('#f-modelo').value !== 'aviso') return;
+      ['data', 'texto'].forEach(function (k) {
+        var el = $('#design [data-campo=' + k + ']');
+        var v = el.value.trim();
+        if (v === '' || v === avisoAuto[k] || v === (E.avisoExemplo || {})[k]) {
+          el.value = novo[k];
+          el.dispatchEvent(new Event('input', { bubbles: true })); // atualiza a pré-visualização
+        }
+      });
+      avisoAuto = novo;
+    });
+  }
+
   // ---------- carrossel: capa (este post) + um slide por ponto + contactos ----------
   var MAX_SLIDES = 8;
   var listaSlides = $('#slides-lista');
