@@ -59,7 +59,9 @@ Sistema que cria posts para as redes sociais da NEXUS de forma autónoma.
     conta própria da NEXUS (não usar a chave da conta partilhada da advocacia). Sem `IA_CHAVE` não faz nada. Produção: talvez API do Claude (~1 €/mês).
   - `php artisan post:calendario-ia` (cron a cada minuto): **calendário automático**. A IA troca o tema das ideias com "Trocar tema",
     faz cada ideia sozinha `IA_IDEIAS_DIAS_ANTES` (7) dias antes da data e, de segunda a sexta, propõe uma vez por semana as ideias da semana
-    seguinte até `IA_IDEIAS_POR_SEMANA` (3), a pensar nos feriados e dias especiais (`App\Services\DatasEspeciais`). Botão "✨ Propor ideias" no calendário
+    seguinte até `IA_IDEIAS_POR_SEMANA` (3 por defeito; **1 no servidor desde 23 nov 2026**), a pensar nos feriados e dias especiais (`App\Services\DatasEspeciais`).
+    Os **avisos não contam** (`Post::isAviso()`: modelo "aviso", "Tipo: aviso" ou título começado por "Aviso"); num feriado em dia útil sem aviso,
+    a IA pode propor o aviso além do post da semana. Botão "✨ Propor ideias" no calendário
     (ou `--propor`). 0 em qualquer das duas desliga essa parte. Ideias cujo pedido falhou não se repetem sozinhas (fica o botão).
   - **Carrossel**: `design.carrossel` + `design.slides` (até 8: destaque, título, texto) + `design.fecho`. Capa = o modelo normal com "Deslize ›",
     depois um slide por ponto e no fim os contactos (automático). O `PostRenderer` gera uma imagem por slide (3 browsers de cada vez);
@@ -96,7 +98,7 @@ Sistema que cria posts para as redes sociais da NEXUS de forma autónoma.
 - Receber o logótipo em alta resolução e, se possível, fundos sem texto dos posts atuais.
 - Decidir a IA de imagens (OpenAI ou Google) e obter a chave quando sair da fase de testes.
 - Definir quem aprova e por onde (painel web, email, Teams ou WhatsApp).
-- Definir quantos posts por semana (sugestão: 3 a 4) e criar modelos fixos por tipo (aviso, dica, produto, evento, Reel).
+- Decidido: **1 post por semana** (os avisos de fecho e feriados são extra). Falta um modelo para Reels.
 - Fase seguinte: app na Meta for Developers e API do Instagram/Facebook. Depois o LinkedIn (Community Management API).
 - O Claude Motion (animações em MP4, planos Team/Enterprise) pode servir para Reels.
 - Repositório Git: https://github.com/Nexus-Developer1/Nexus-Redes-Sociais (privado, ramo `main`; transferido da conta Rui-Moreira06). Nunca enviar `.env`, bases de dados nem palavras-passe.

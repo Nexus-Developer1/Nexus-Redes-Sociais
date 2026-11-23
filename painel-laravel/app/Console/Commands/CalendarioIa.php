@@ -7,6 +7,7 @@ use App\Models\PostRequest;
 use App\Services\DatasEspeciais;
 use App\Services\PostWriter;
 use Illuminate\Console\Command;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -134,8 +135,13 @@ class CalendarioIa extends Command
         }
 
         $daSemana = Post::where('status', '!=', Post::REJECTED)->whereBetween('scheduled_at', [$inicio, $fim])->get();
-        $faltam = $porSemana - $daSemana->count();
-        if ($faltam <= 0) {
+        // Os avisos são extra: não contam para os posts da semana.
+        $faltam = $porSemana - $daSemana->reject->isAviso()->count();
+        // Feriados em dia útil que ainda não têm aviso: a IA pode propor o aviso, além dos posts da semana.
+        $feriados = collect(DatasEspeciais::entre($inicio, $fim))
+            ->filter(fn ($nome, $dia) => str_starts_with($nome, 'Feriado') && ! Carbon::parse($dia)->isWeekend())->count();
+        $avisosEmFalta = max(0, $feriados - $daSemana->filter->isAviso()->count());
+        if ($faltam <= 0 && $avisosEmFalta === 0) {
             Cache::put($feito, 1, now()->addDays(14));
             $this->line('A próxima semana já tem posts suficientes.');
 
@@ -143,8 +149,12 @@ class CalendarioIa extends Command
         }
 
         try {
-            $ideias = $escritor->proporIdeias($inicio, $fim, $faltam, DatasEspeciais::entre($inicio, $fim), $this->recentes(),
+            $ideias = $escritor->proporIdeias($inicio, $fim, max(0, $faltam) + $avisosEmFalta, DatasEspeciais::entre($inicio, $fim), $this->recentes(),
                 $daSemana->map(fn ($p) => $p->scheduled_at->format('Y-m-d'))->unique()->values()->all());
+            // Fica no máximo o número de posts em falta, mais os avisos dos feriados.
+            $avisos = array_filter($ideias, fn ($i) => $i['tipo'] === 'aviso');
+            $outros = array_filter($ideias, fn ($i) => $i['tipo'] !== 'aviso');
+            $ideias = array_merge(array_slice($outros, 0, max(0, $faltam)), array_slice($avisos, 0, $avisosEmFalta));
         } catch (Throwable $e) {
             Log::warning('Propor ideias da semana falhou: '.$e->getMessage());
             $this->warn($e->getMessage());

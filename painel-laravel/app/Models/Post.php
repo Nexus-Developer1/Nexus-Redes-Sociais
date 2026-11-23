@@ -105,6 +105,14 @@ class Post extends Model
         return array_map(fn ($l) => array_values(array_unique($l)), $emUso);
     }
 
+    /** Aviso (fecho, feriado, horário)? Os avisos são extra: não contam para os posts da semana. */
+    public function isAviso(): bool
+    {
+        return ($this->design['modelo'] ?? null) === 'aviso'
+            || str_starts_with((string) $this->source, 'Tipo: aviso')
+            || mb_stripos((string) $this->title, 'aviso') === 0;
+    }
+
     /** Vai também para os Stories do Instagram? */
     public function temStories(): bool
     {

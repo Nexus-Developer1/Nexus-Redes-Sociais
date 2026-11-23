@@ -114,6 +114,50 @@ class CalendarioIaTest extends TestCase
         Http::assertSent(fn (Request $r) => str_contains($r['messages'][1]['content'] ?? '', 'Feriado: Imaculada Concei'));
     }
 
+    public function test_avisos_nao_contam_para_os_posts_da_semana(): void
+    {
+        config(['ia.ideias_por_semana' => 1]);
+        $this->ideia('2026-11-10 17:00', ['title' => 'Aviso: horário especial', 'source' => 'Tipo: aviso.']);
+        Http::fake(['ia.teste/*' => Http::sequence()
+            ->push($this->resposta(['ideias' => [['titulo' => 'Dica de rede', 'tipo' => 'dica', 'notas' => '', 'quando' => '2026-11-12 10:00']]]))
+            ->push($this->resposta([]))]);
+
+        $this->artisan('post:calendario-ia')->assertSuccessful();
+
+        $this->assertSame(2, Post::count());
+        Http::assertSent(fn (Request $r) => str_contains($r['messages'][1]['content'] ?? '', 'Propõe 1 temas'));
+    }
+
+    public function test_feriado_pede_o_aviso_a_mais_e_fica_so_1_post_normal(): void
+    {
+        $this->travelTo(Carbon::parse('2026-11-30 09:00')); // semana seguinte: 7 a 13 de dezembro (8 = feriado)
+        config(['ia.ideias_por_semana' => 1]);
+        Http::fake(['ia.teste/*' => Http::sequence()
+            ->push($this->resposta(['ideias' => [
+                ['titulo' => 'Dica de rede', 'tipo' => 'dica', 'notas' => '', 'quando' => '2026-12-09 10:00'],
+                ['titulo' => 'Dica de backup', 'tipo' => 'dica', 'notas' => '', 'quando' => '2026-12-10 10:00'],
+            ]]))
+            ->push($this->resposta([]))]);
+
+        $this->artisan('post:calendario-ia')->assertSuccessful();
+
+        Http::assertSent(fn (Request $r) => str_contains($r['messages'][1]['content'] ?? '', 'Propõe 2 temas'));
+        $this->assertSame(['Dica de rede'], Post::pluck('title')->all()); // a 2.ª dica não entra: só 1 post normal por semana
+    }
+
+    public function test_semana_com_post_e_aviso_do_feriado_nao_chama_a_ia(): void
+    {
+        $this->travelTo(Carbon::parse('2026-11-30 09:00'));
+        config(['ia.ideias_por_semana' => 1]);
+        Http::fake();
+        $this->ideia('2026-12-07 17:00', ['title' => 'Aviso: feriado de 8 de dezembro', 'source' => 'Tipo: aviso.']);
+        $this->ideia('2026-12-09 10:00');
+
+        $this->artisan('post:calendario-ia')->assertSuccessful();
+
+        Http::assertNothingSent();
+    }
+
     public function test_semana_cheia_nao_chama_a_ia(): void
     {
         Http::fake();
