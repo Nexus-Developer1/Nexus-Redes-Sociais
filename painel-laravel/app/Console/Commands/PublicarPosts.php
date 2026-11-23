@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Post;
 use App\Services\MetaPublisher;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
 use Throwable;
 
 /**
@@ -17,9 +18,33 @@ class PublicarPosts extends Command
 
     protected $description = 'Publica no Facebook e Instagram os posts aprovados cuja hora chegou';
 
+    /** Um post aprovado só sai sozinho até estas horas depois da hora marcada. Mais tarde, fica à espera de nova data. */
+    public const MAX_ATRASO_HORAS = 6;
+
     public function handle(MetaPublisher $meta): int
     {
+        // Uma publicação de cada vez (o cron e alguém a correr o comando à mão nunca publicam o mesmo post duas vezes).
+        $trinco = Cache::lock('post:publicar', 15 * 60);
+        if (! $trinco->get()) {
+            $this->line('Já há uma publicação a decorrer.');
+
+            return self::SUCCESS;
+        }
+        try {
+            return $this->publicarTudo($meta);
+        } finally {
+            $trinco->release();
+        }
+    }
+
+    private function publicarTudo(MetaPublisher $meta): int
+    {
+        if (! $this->option('simular')) {
+            $this->marcarAtrasados();
+        }
+
         $due = Post::where('status', Post::APPROVED)
+            ->where('scheduled_at', '>=', now()->subHours(self::MAX_ATRASO_HORAS))
             ->whereNotNull('scheduled_at')
             ->where('scheduled_at', '<=', now())
             ->where('publish_attempts', '<', Post::MAX_PUBLISH_ATTEMPTS)
@@ -53,6 +78,24 @@ class PublicarPosts extends Command
         }
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Posts aprovados cuja hora passou há mais de MAX_ATRASO_HORAS (ex.: um aviso "amanhã estamos fechados" de há
+     * semanas) não saem sozinhos: ficam com uma nota no painel para a pessoa escolher outra data.
+     */
+    private function marcarAtrasados(): void
+    {
+        $nota = 'Não foi publicado: a hora marcada passou há mais de '.self::MAX_ATRASO_HORAS.' horas. Mude a data para publicar.';
+        $atrasados = Post::where('status', Post::APPROVED)
+            ->where('scheduled_at', '<', now()->subHours(self::MAX_ATRASO_HORAS))
+            ->where(fn ($q) => $q->whereNull('publish_error')->orWhere('publish_error', '!=', $nota))
+            ->get();
+        foreach ($atrasados as $post) {
+            $post->forceFill(['publish_error' => $nota])->save();
+            $post->reviews()->create(['action' => 'publish_failed', 'comment' => $nota]);
+            $this->warn("#{$post->id} atrasado: não publicado.");
+        }
     }
 
     private function publish(Post $post, MetaPublisher $meta): void

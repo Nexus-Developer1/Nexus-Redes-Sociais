@@ -410,6 +410,45 @@ precisa de *renovar*', 'pontos' => []]))
         Http::assertSent(fn ($r) => str_contains($r['messages'][1]['content'], 'fala de datacenters'));
     }
 
+    public function test_ia_nao_grava_por_cima_de_um_post_aprovado_entretanto(): void
+    {
+        $post = Post::create([
+            'title' => 'UPS', 'caption' => 'antiga', 'networks' => ['Instagram'],
+            'design' => PostRenderer::exemplo('produto'), 'status' => Post::REVISING,
+            'change_request' => 'fala de datacenters', 'scheduled_at' => now()->addDay(),
+        ]);
+        // Enquanto a IA pensa, alguém desfaz o pedido e aprova a versão antiga.
+        Http::fake(['ia.teste/*' => function () use ($post) {
+            Post::whereKey($post->id)->update(['status' => Post::APPROVED, 'change_request' => null]);
+
+            return Http::response($this->respostaIa(['titulo' => 'Versão da IA']));
+        }]);
+
+        $this->artisan('post:tratar-pedidos')->assertSuccessful();
+
+        $post->refresh();
+        $this->assertSame(Post::APPROVED, $post->status);
+        $this->assertSame('antiga', $post->caption);
+    }
+
+    public function test_alteracao_sem_falar_da_data_mantem_a_data_e_as_redes(): void
+    {
+        $quando = now()->addDays(5)->setTime(10, 0);
+        Http::fake(['ia.teste/*' => Http::response($this->respostaIa())]);
+        $post = Post::create([
+            'title' => 'UPS', 'caption' => 'antiga', 'networks' => ['Instagram', 'Facebook'],
+            'design' => PostRenderer::exemplo('produto'), 'status' => Post::REVISING,
+            'change_request' => 'título mais curto', 'scheduled_at' => $quando,
+        ]);
+
+        $this->artisan('post:tratar-pedidos')->assertSuccessful();
+
+        $post->refresh();
+        $this->assertSame(Post::PENDING, $post->status);
+        $this->assertTrue($post->scheduled_at->equalTo($quando));
+        $this->assertSame(['Instagram', 'Facebook'], $post->networks);
+    }
+
     public function test_falha_da_ia_fica_registada_e_pode_repetir(): void
     {
         Http::fake(['ia.teste/*' => Http::response(['error' => ['message' => 'modelo indisponível']], 500)]);

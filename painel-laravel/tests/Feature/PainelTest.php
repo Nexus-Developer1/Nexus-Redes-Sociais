@@ -22,7 +22,55 @@ class PainelTest extends TestCase
             'networks' => ['Instagram'],
             'scheduled_at' => now()->addDay(),
             'status' => Post::PENDING,
+            'image_path' => 'imagens-posts/teste.png',
         ], $attrs));
+    }
+
+    public function test_nao_aprova_sem_imagem_nem_com_data_muito_passada(): void
+    {
+        $user = User::factory()->create();
+        $semImagem = $this->novoPost(['image_path' => null]);
+        $velho = $this->novoPost(['scheduled_at' => now()->subDays(3)]);
+
+        $this->actingAs($user)->post(route('posts.approve', $semImagem))->assertSessionHas('erro');
+        $this->actingAs($user)->post(route('posts.approve', $velho))->assertSessionHas('erro');
+
+        $this->assertSame(Post::PENDING, $semImagem->fresh()->status);
+        $this->assertSame(Post::PENDING, $velho->fresh()->status);
+    }
+
+    public function test_nao_desfaz_um_post_que_ja_saiu_numa_rede(): void
+    {
+        $user = User::factory()->create();
+        $post = $this->novoPost(['status' => Post::APPROVED]);
+        $post->forceFill(['facebook_post_id' => '123_456'])->save();
+
+        $this->actingAs($user)->post(route('posts.undo', $post))->assertSessionHas('erro');
+
+        $this->assertSame(Post::APPROVED, $post->fresh()->status);
+    }
+
+    public function test_tentar_publicar_de_novo_recomeca_as_tentativas(): void
+    {
+        $user = User::factory()->create();
+        $post = $this->novoPost(['status' => Post::APPROVED]);
+        $post->forceFill(['publish_attempts' => 3, 'publish_error' => 'Facebook: erro'])->save();
+
+        $this->actingAs($user)->post(route('posts.retryPublish', $post))->assertSessionHas('ok');
+
+        $this->assertSame(0, $post->fresh()->publish_attempts);
+        $this->assertNull($post->fresh()->publish_error);
+    }
+
+    public function test_decisao_nao_passa_por_cima_de_uma_mudanca_feita_entretanto(): void
+    {
+        $user = User::factory()->create();
+        $post = $this->novoPost();
+        // outra pessoa (ou a IA) mudou o estado depois de esta página ter carregado o post
+        Post::whereKey($post->id)->update(['status' => Post::REJECTED]);
+
+        $this->assertFalse($post->decide('approved', Post::APPROVED, $user, null, [Post::PENDING]));
+        $this->assertSame(Post::REJECTED, $post->fresh()->status);
     }
 
     public function test_visitante_vai_para_o_login(): void

@@ -33,6 +33,7 @@ class TratarPedidos extends Command
             return self::SUCCESS;
         }
 
+        $this->soltarPresos();
         $restam = (int) $this->option('max');
 
         foreach (PostRequest::where('status', 'new')->oldest()->limit($restam)->get() as $pedido) {
@@ -74,6 +75,12 @@ class TratarPedidos extends Command
                 'design' => ['formato' => $r['design']['formato'] ?? '4:5'],
             ];
             if ($ideia) {
+                // A IA demorou: confirmar que ninguém descartou a ideia entretanto.
+                if (! in_array($ideia->refresh()->status, [Post::IDEA, Post::CREATING], true)) {
+                    $pedido->update(['status' => 'failed', 'error' => 'A ideia foi descartada ou mudou enquanto a IA trabalhava.']);
+
+                    return;
+                }
                 $ideia->update($dados);
                 $post = $ideia;
             } else {
@@ -102,7 +109,8 @@ class TratarPedidos extends Command
         } catch (Throwable $e) {
             report($e);
             if ($ideia) {
-                $ideia->refresh()->update(['status' => Post::IDEA]); // a ideia fica como estava
+                // a ideia fica como estava (se ninguém a descartou entretanto)
+                Post::whereKey($ideia->id)->where('status', Post::CREATING)->update(['status' => Post::IDEA]);
             } else {
                 $post?->delete();
             }
@@ -124,13 +132,29 @@ class TratarPedidos extends Command
             return;
         }
 
+        $pedido = (string) $post->change_request;
+        $reservado = false;
         try {
-            $r = $escritor->rever($post, $post->change_request);
+            $r = $escritor->rever($post, $pedido);
+
+            // A IA demora até um minuto e meio. Entretanto alguém pode ter desfeito o pedido ou aprovado o post:
+            // só se grava se o post ainda estiver à espera DESTA alteração. Fica "Em criação" enquanto a imagem
+            // é feita, para ninguém o aprovar a meio (aprovar só funciona em "À espera de aprovação").
+            $reservado = Post::whereKey($post->id)->where('status', Post::REVISING)->where('change_request', $pedido)
+                ->update(['status' => Post::CREATING, 'updated_at' => now()]) === 1;
+            if (! $reservado) {
+                $this->line("Post #{$post->id}: o pedido de alteração mudou entretanto; nada gravado.");
+
+                return;
+            }
+            $post->refresh();
+
+            // A data e as redes só mudam se a pessoa pediu isso; senão ficam como estavam.
             $post->fill([
                 'title' => $r['titulo_interno'],
                 'caption' => $r['legenda'],
-                'networks' => Post::comStories($r['redes'], $post->temStories()), // os Stories ficam como estavam
-                'scheduled_at' => $r['publicar_em'],
+                'networks' => self::pedeRedes($pedido) ? Post::comStories($r['redes'], $post->temStories()) : $post->networks,
+                'scheduled_at' => self::pedeData($pedido) ? $r['publicar_em'] : $post->scheduled_at,
             ]);
             // As imagens que alguém pôs no post (fundo, foto, parceiro) mantêm-se.
             $design = $r['design'] + array_intersect_key($post->design ?? [], array_flip(['foto', 'fundo', 'produto', 'parceiro', 'enquadramento', 'tom']));
@@ -140,8 +164,45 @@ class TratarPedidos extends Command
         } catch (Throwable $e) {
             report($e);
             Cache::put($chave, true, now()->addHour());
+            if ($reservado) {
+                // Volta a "Alteração pedida" para se ver no painel e tentar de novo daqui a uma hora.
+                Post::whereKey($post->id)->where('status', Post::CREATING)->update(['status' => Post::REVISING]);
+            }
+            $post->reviews()->create(['action' => 'ai_failed', 'comment' => mb_substr($e->getMessage(), 0, 500)]);
             $this->error("Post #{$post->id}: a alteração falhou: {$e->getMessage()}");
         }
+    }
+
+    /**
+     * Trabalho interrompido (o servidor reiniciou ou a instalação correu a meio): um pedido "a fazer" há mais de
+     * 20 minutos já não vai acabar. Fica como falhado, com o botão "Repetir", e a ideia volta a ser ideia.
+     * Um post refeito que ficou "Em criação" volta a "Alteração pedida".
+     */
+    private function soltarPresos(): void
+    {
+        $limite = now()->subMinutes(20);
+        foreach (PostRequest::where('status', 'in_progress')->where('updated_at', '<', $limite)->get() as $pedido) {
+            $pedido->update(['status' => 'failed', 'error' => 'O trabalho da IA foi interrompido. Carregue em “Repetir”.']);
+            if ($pedido->post_id) {
+                Post::whereKey($pedido->post_id)->where('status', Post::CREATING)->whereNull('image_path')
+                    ->update(['status' => Post::IDEA]);
+            }
+        }
+        Post::where('status', Post::CREATING)->whereNotNull('change_request')->whereNotNull('design')
+            ->where('updated_at', '<', $limite)->update(['status' => Post::REVISING]);
+    }
+
+    /** O pedido de alteração fala da data ou da hora? (senão a IA não mexe na data) */
+    public static function pedeData(string $pedido): bool
+    {
+        return (bool) preg_match('/\b(data|dia|hora|horas|amanh[ãa]|hoje|semana|segunda|ter[çc]a|quarta|quinta|sexta|s[áa]bado|domingo|'
+            .'janeiro|fevereiro|mar[çc]o|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro|adiar|antecipar|\d{1,2}h|\d{1,2}[\/.-]\d{1,2})\b/iu', $pedido);
+    }
+
+    /** O pedido de alteração fala das redes? (senão ficam as que estavam) */
+    public static function pedeRedes(string $pedido): bool
+    {
+        return (bool) preg_match('/\b(instagram|facebook|linkedin|stories|story|redes?)\b/iu', $pedido);
     }
 
     /**
@@ -183,8 +244,7 @@ class TratarPedidos extends Command
         try {
             // A IA vê as candidatas e escolhe a que serve (ou nenhuma): nunca fica a primeira à sorte.
             $fotos = $pexels->procurarNovas($pesquisa, $design['formato'] ?? '4:5', 12, $post);
-            $tema = trim($post->title.' — '.str_replace(['*', "
-"], ['', ' '], (string) ($design['titulo'] ?? '')));
+            $tema = trim($post->title.' — '.str_replace(['*', "\n"], ['', ' '], (string) ($design['titulo'] ?? '')));
             $escolhida = app(PostWriter::class)->escolherFoto($tema, $fotos);
             if (! $escolhida) {
                 $this->line("Post #{$post->id}: nenhuma foto servia para \"{$pesquisa}\"; fica o fundo verde.");
@@ -217,9 +277,13 @@ class TratarPedidos extends Command
 
     private function paraAprovacao(Post $post, string $acao): void
     {
-        $post->status = Post::PENDING;
-        $post->change_request = null;
-        $post->save();
+        // Só passa a "À espera" se ainda estiver em criação (alguém pode ter descartado a ideia entretanto).
+        $mudou = Post::whereKey($post->id)->where('status', Post::CREATING)
+            ->update(['status' => Post::PENDING, 'change_request' => null, 'updated_at' => now()]);
+        $post->refresh();
+        if ($mudou !== 1) {
+            return;
+        }
         $post->reviews()->create(['user_id' => null, 'action' => $acao]);
 
         try {

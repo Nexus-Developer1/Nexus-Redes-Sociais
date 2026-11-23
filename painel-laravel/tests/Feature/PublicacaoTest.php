@@ -182,4 +182,35 @@ class PublicacaoTest extends TestCase
         // Só ideias podem ser trocadas.
         $this->actingAs($user)->post("/posts/{$ideia->id}/trocar-ideia", ['comment' => 'x'])->assertStatus(409);
     }
+
+    public function test_post_muito_atrasado_nao_sai_sozinho(): void
+    {
+        $this->fakeMeta();
+        $velho = $this->aprovado(['scheduled_at' => now()->subDays(2)]);
+
+        $this->artisan('post:publicar')->assertSuccessful();
+        $this->artisan('post:publicar')->assertSuccessful(); // a nota não se repete
+
+        $velho->refresh();
+        $this->assertSame(Post::APPROVED, $velho->status);
+        $this->assertNull($velho->facebook_post_id);
+        $this->assertStringContainsString('Mude a data', $velho->publish_error);
+        $this->assertSame(1, $velho->reviews()->where('action', 'publish_failed')->count());
+        Http::assertNothingSent();
+    }
+
+    public function test_so_uma_publicacao_de_cada_vez(): void
+    {
+        $this->fakeMeta();
+        $post = $this->aprovado();
+        $trinco = \Illuminate\Support\Facades\Cache::lock('post:publicar', 60);
+        $trinco->get(); // outra publicação a decorrer
+
+        $this->artisan('post:publicar')->expectsOutput('Já há uma publicação a decorrer.')->assertSuccessful();
+        $this->assertSame(Post::APPROVED, $post->fresh()->status);
+
+        $trinco->release();
+        $this->artisan('post:publicar')->assertSuccessful();
+        $this->assertSame(Post::PUBLISHED, $post->fresh()->status);
+    }
 }

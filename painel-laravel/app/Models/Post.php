@@ -169,20 +169,51 @@ class Post extends Model
      * Regista uma decisão de uma pessoa. É o único sítio onde o estado
      * muda por ação humana, para o histórico ficar sempre completo.
      */
-    public function decide(string $action, string $newStatus, ?User $user, ?string $comment = null): void
+    /**
+     * Regista uma decisão. Com $de, só muda se o post ainda estiver num desses estados (numa só operação na base
+     * de dados): se a IA ou outra pessoa o mudou entretanto, nada é gravado e devolve false.
+     */
+    public function decide(string $action, string $newStatus, ?User $user, ?string $comment = null, ?array $de = null): bool
     {
-        $this->status = $newStatus;
-        $this->decided_by = $user?->id;
-        $this->decided_at = now();
+        $campos = ['status' => $newStatus, 'decided_by' => $user?->id, 'decided_at' => now()];
         if (in_array($action, ['change_requested', 'idea_swap'], true)) {
-            $this->change_request = $comment;
+            $campos['change_request'] = $comment;
         }
-        $this->save();
+        if ($de !== null) {
+            $mudou = static::whereKey($this->id)->whereIn('status', $de)->update($campos + ['updated_at' => now()]);
+            if ($mudou !== 1) {
+                return false;
+            }
+            $this->forceFill($campos)->syncOriginal();
+            $this->updated_at = now();
+        } else {
+            $this->forceFill($campos)->save();
+        }
 
         $this->reviews()->create([
             'user_id' => $user?->id,
             'action' => $action,
             'comment' => $comment,
         ]);
+
+        return true;
+    }
+
+    /** Já saiu nalguma rede? (então não se pode desfazer: a rede tem a versão publicada) */
+    public function publicadoAlgures(): bool
+    {
+        return (bool) ($this->facebook_post_id || $this->instagram_media_id || $this->instagram_story_id);
+    }
+
+    /** A IA está a refazer este post (pedido de alteração) e a gerar a imagem nova. */
+    public function aRefazer(): bool
+    {
+        return $this->status === self::CREATING && $this->design && $this->change_request;
+    }
+
+    /** A hora marcada já passou (ou falta menos de uma hora)? Aprovar agora publica logo. */
+    public function atrasado(): bool
+    {
+        return $this->scheduled_at !== null && $this->scheduled_at->lt(now()->addHour());
     }
 }

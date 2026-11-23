@@ -35,6 +35,7 @@ Route::middleware(['auth', 'auth.session'])->group(function () {
     Route::post('/posts/{post}/rejeitar', [PostDecisionController::class, 'reject'])->name('posts.reject');
     Route::post('/posts/{post}/alterar', [PostDecisionController::class, 'requestChange'])->name('posts.change');
     Route::post('/posts/{post}/desfazer', [PostDecisionController::class, 'undo'])->name('posts.undo');
+    Route::post('/posts/{post}/publicar-de-novo', [PostDecisionController::class, 'retryPublish'])->name('posts.retryPublish');
     Route::post('/posts/{post}/trocar-ideia', [PostDecisionController::class, 'swapIdea'])->name('posts.swap')->middleware('throttle:ia');
     Route::post('/posts/{post}/descartar', [PostDecisionController::class, 'discard'])->name('posts.discard');
     Route::post('/posts/{post}/ia-fazer', [PostDecisionController::class, 'aiMake'])->name('posts.aiMake')->middleware('throttle:ia');

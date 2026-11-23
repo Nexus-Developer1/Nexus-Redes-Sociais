@@ -29,6 +29,9 @@ class PostReview extends Model
         'auto_revised' => 'refez o post com a IA, com a alteração pedida',
         'published' => 'publicou',
         'publish_failed' => 'falhou a publicação',
+        'publish_retry' => 'mandou tentar publicar de novo',
+        'ai_failed' => 'tentou refazer com a IA, mas falhou',
+        'reminder_sent' => 'enviou um lembrete por email',
     ];
 
     protected $fillable = ['user_id', 'action', 'comment'];

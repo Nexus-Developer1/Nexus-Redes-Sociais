@@ -59,7 +59,10 @@ class EmailDecisionController extends Controller
         }
 
         if ($acao === 'aprovar') {
-            $post->decide('approved', Post::APPROVED, $user, $this->nota($request));
+            // Só grava se o post ainda estiver à espera (a IA ou alguém no painel pode ter mexido no mesmo instante).
+            if (! $post->decide('approved', Post::APPROVED, $user, $this->nota($request), [Post::PENDING])) {
+                return $this->pagina($request, $post->refresh(), $acao);
+            }
 
             return $this->pagina($request, $post, $acao, "“{$post->title}” foi aprovado e agendado para {$post->whenLabel()}.");
         }
@@ -68,7 +71,9 @@ class EmailDecisionController extends Controller
             ['comment' => ['required', 'string', 'max:2000']],
             ['comment.required' => 'Escreva o que quer mudar.']
         );
-        $post->decide('change_requested', Post::REVISING, $user, $dados['comment']);
+        if (! $post->decide('change_requested', Post::REVISING, $user, $dados['comment'], [Post::PENDING])) {
+            return $this->pagina($request, $post->refresh(), $acao);
+        }
         // no histórico fica também por onde veio (a IA lê só o pedido, em change_request)
         $post->reviews()->latest('id')->first()?->update(['comment' => $dados['comment'].' · '.$this->nota($request)]);
 
