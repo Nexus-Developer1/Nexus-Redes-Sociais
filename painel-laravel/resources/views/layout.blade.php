@@ -3,14 +3,53 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#0A2A18">
     <title>@yield('title', 'Painel de aprovação') · NEXUS</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    {{-- ADN Nexus: a letra Poppins e o sistema de desenho partilhado (suite.css, igual no portal, na Nexus Infra
+         e na Knowledgebase); depois o que é próprio deste painel. --}}
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="{{ asset('css/suite.css') }}?v={{ filemtime(public_path('css/suite.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/painel.css') }}?v={{ filemtime(public_path('css/painel.css')) }}">
+    <link rel="icon" href="{{ asset('img/icon-192.png') }}" sizes="192x192">
+    <link rel="apple-touch-icon" href="{{ asset('img/apple-touch-icon.png') }}">
 </head>
 <body class="@yield('body_class')">
-@yield('body')
+@if (auth()->check() && ! View::hasSection('sem_lateral'))
+    <a class="skip-link" href="#conteudo">Saltar para o conteúdo</a>
+    <div class="app">
+        <button class="lateral__veu" type="button" data-fechar-lateral hidden aria-label="Fechar menu"></button>
+        @include('painel.lateral')
+        <div class="trabalho">
+            <header class="topo-movel">
+                <button class="topo-movel__menu" type="button" data-abrir-lateral aria-label="Abrir menu">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </button>
+                <img src="{{ asset('modelos/logo-nexus.png') }}" alt="Nexus" width="150" height="28" class="topo-movel__logo">
+            </header>
+            <main id="conteudo" class="area" tabindex="-1">
+                @yield('body')
+            </main>
+        </div>
+    </div>
+@else
+    @yield('body')
+@endif
 <script>
+// Barra lateral no telemóvel: abrir, fechar e devolver o foco (igual ao portal). Em ecrãs largos está sempre visível.
+(function () {
+    var lateral = document.querySelector('[data-lateral]');
+    var veu = document.querySelector('.lateral__veu');
+    if (!lateral) return;
+    function abrir() { lateral.classList.add('aberta'); if (veu) veu.hidden = false; var p = lateral.querySelector('a, button'); if (p) p.focus(); }
+    function fechar() { lateral.classList.remove('aberta'); if (veu) veu.hidden = true; var b = document.querySelector('[data-abrir-lateral]'); if (b) b.focus(); }
+    document.querySelectorAll('[data-abrir-lateral]').forEach(function (b) { b.addEventListener('click', abrir); });
+    document.querySelectorAll('[data-fechar-lateral]').forEach(function (b) { b.addEventListener('click', fechar); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && lateral.classList.contains('aberta')) fechar(); });
+})();
+
 // Formulários com data-confirm pedem confirmação. O texto vem de um atributo HTML (nunca de código JS),
 // por isso nomes ou textos escritos por utilizadores não podem correr como código.
 document.addEventListener('submit', function (e) {

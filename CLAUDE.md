@@ -44,7 +44,11 @@ Sistema que cria posts para as redes sociais da NEXUS de forma autónoma.
 - `painel/`: protótipo do painel de aprovação (formato do canvas Design do claude.ai). Online: https://claude.ai/artifact/V5St7mNn398ZmY99MaAYgc
   Contém a fila de posts para aprovar (Aprovar e agendar / Pedir alteração / Rejeitar), os próximos posts e uma caixa "Pedir um post".
 - `painel-laravel/`: **painel de aprovação a sério**, em Laravel 13 + SQLite (PHP 8.3 e Composer em `C:\Users\dev01\tools\php83`).
-  Sem Vite/npm: CSS simples em `public/css/painel.css`. Login obrigatório; cada decisão fica no histórico (`post_reviews`) com quem e quando.
+  Sem Vite/npm. **Aspeto = ADN Nexus** (desde 23 nov 2026): `public/css/suite.css` é o sistema de desenho partilhado com o portal,
+  a Nexus Infra e a Knowledgebase (verde #16A34A, Poppins, barra lateral escura `painel/lateral.blade.php`). **Não se edita aqui**:
+  tem de ficar igual nas apps (copiar de `Desktop/portal/public/css/suite.css`). O que é só deste painel fica em `public/css/painel.css`.
+  O `suite.css` usa `.caixa`, `.legenda`, `.filtros`, `.procura`, `.lateral`, `.principal` e `.topo` com outro sentido: no painel usar
+  `.bloco`, `.legenda-post`, `.filtros-bib`, `.procura-img`, `.coluna-lateral` e `.coluna-principal`. Páginas sem barra lateral: `@section('sem_lateral', '1')`. Login obrigatório; cada decisão fica no histórico (`post_reviews`) com quem e quando.
   Arrancar: `cd painel-laravel; php artisan serve` → http://localhost:8000. Testes: `php artisan test`.
   Estados do post: idea, creating, pending, revising, approved, rejected, published.
   Comandos para o Claude:

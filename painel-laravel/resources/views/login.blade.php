@@ -1,6 +1,7 @@
 @extends('layout')
 
 @section('title', 'Entrar')
+@section('sem_lateral', '1')
 
 @section('body')
 <div class="login">

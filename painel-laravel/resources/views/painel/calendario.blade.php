@@ -3,7 +3,6 @@
 @section('title', 'Calendário')
 
 @section('body')
-@include('painel.topo')
 
 <div class="pagina-calendario">
     <div class="editor-barra">

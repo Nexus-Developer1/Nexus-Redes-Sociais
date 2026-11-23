@@ -1,6 +1,7 @@
 @extends('layout')
 
 @section('title', $acao === 'aprovar' ? 'Aprovar post' : 'Pedir alteração')
+@section('sem_lateral', '1')
 
 @section('body')
 {{-- Aberta a partir do link do email (sem sessão iniciada). Nada é decidido só por abrir a página. --}}

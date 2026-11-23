@@ -13,7 +13,7 @@ use Illuminate\View\View;
 class PainelController extends Controller
 {
     /** Secções do menu: chave => [título, estados mostrados]. */
-    private const SECTIONS = [
+    public const SECTIONS = [
         'fila' => ['Para aprovar', [Post::PENDING, Post::REVISING]],
         'agendados' => ['Agendados', [Post::APPROVED]],
         'publicados' => ['Publicados', [Post::PUBLISHED]],

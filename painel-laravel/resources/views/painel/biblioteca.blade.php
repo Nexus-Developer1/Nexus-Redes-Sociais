@@ -21,7 +21,6 @@
 @endphp
 
 @section('body')
-@include('painel.topo')
 
 <div class="pagina-biblioteca">
     <div class="editor-barra">
@@ -30,7 +29,7 @@
             <h1>Biblioteca da NEXUS</h1>
             <span>Fotos, produtos e logótipos oficiais que a IA e o editor usam nos posts</span>
         </div>
-        <nav class="filtros" aria-label="Tipo de imagem">
+        <nav class="filtros-bib" aria-label="Tipo de imagem">
             <a href="{{ route('biblioteca') }}" @class(['ativo' => ! $tipo])>Todas <b>{{ $contagem->sum() }}</b></a>
             @foreach (\App\Models\ImagemBiblioteca::TIPOS as $t => $nome)
                 <a href="{{ route('biblioteca', ['tipo' => $t]) }}" @class(['ativo' => $tipo === $t])>{{ $nome }} <b>{{ $contagem[$t] ?? 0 }}</b></a>
@@ -45,7 +44,7 @@
                 <div class="aviso erro" role="alert">@foreach ($errors->all() as $e){{ $e }}<br>@endforeach</div>
             @endif
 
-            <form method="POST" action="{{ route('biblioteca.store') }}" enctype="multipart/form-data" class="caixa bib-adicionar" id="bib-adicionar">
+            <form method="POST" action="{{ route('biblioteca.store') }}" enctype="multipart/form-data" class="bloco bib-adicionar" id="bib-adicionar">
                 @csrf
                 <h2>Adicionar imagens</h2>
 

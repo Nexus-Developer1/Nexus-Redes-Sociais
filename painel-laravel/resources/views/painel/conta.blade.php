@@ -3,7 +3,6 @@
 @section('title', 'A minha conta')
 
 @section('body')
-@include('painel.topo')
 
 <div class="pagina-estreita">
     <a href="{{ route('painel') }}" class="voltar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg> Voltar ao painel</a>
@@ -14,7 +13,7 @@
         <div class="aviso erro" role="alert">@foreach ($errors->all() as $e){{ $e }}<br>@endforeach</div>
     @endif
 
-    <form method="POST" action="{{ route('conta.update') }}" class="caixa formulario">
+    <form method="POST" action="{{ route('conta.update') }}" class="bloco formulario">
         @csrf
         <h2>Dados</h2>
         <label>Nome <input name="name" required maxlength="100" value="{{ old('name', auth()->user()->name) }}"></label>
@@ -24,7 +23,7 @@
         <button type="submit" class="btn btn-principal">Guardar</button>
     </form>
 
-    <form method="POST" action="{{ route('conta.password') }}" class="caixa formulario">
+    <form method="POST" action="{{ route('conta.password') }}" class="bloco formulario">
         @csrf
         <h2>Mudar a palavra-passe</h2>
         <label>Palavra-passe atual <input type="password" name="current_password" required autocomplete="current-password"></label>

@@ -3,7 +3,6 @@
 @section('title', 'Utilizadores')
 
 @section('body')
-@include('painel.topo')
 
 <div class="pagina-estreita">
     <a href="{{ route('painel') }}" class="voltar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg> Voltar ao painel</a>
@@ -19,7 +18,7 @@
     {{-- A palavra-passe só aparece uma vez: a pessoa muda-a depois em "A minha conta" --}}
     @if (session('password'))
         @php([$emailNovo, $passNova] = session('password'))
-        <div class="caixa password-nova" role="status">
+        <div class="bloco password-nova" role="status">
             <div><strong>Envie estes dados à pessoa</strong> (só aparecem agora):</div>
             <div class="credenciais">
                 <span>Endereço: <code>{{ url('/') }}</code></span>
@@ -30,7 +29,7 @@
         </div>
     @endif
 
-    <div class="caixa lista-users">
+    <div class="bloco lista-users">
         @foreach ($users as $u)
             <div class="user-linha">
                 <span class="avatar" aria-hidden="true">{{ mb_strtoupper(mb_substr($u->name, 0, 1)) }}</span>
@@ -58,7 +57,7 @@
         @endforeach
     </div>
 
-    <form method="POST" action="{{ route('users.store') }}" class="caixa formulario">
+    <form method="POST" action="{{ route('users.store') }}" class="bloco formulario">
         @csrf
         <h2>Adicionar pessoa</h2>
         <div class="dupla">

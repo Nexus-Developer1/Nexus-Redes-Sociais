@@ -81,7 +81,7 @@
         </div>
 
         @if ($post->caption)
-            <div class="legenda" data-legenda>{{ $post->caption }}</div>
+            <div class="legenda-post" data-legenda>{{ $post->caption }}</div>
             <button type="button" class="ver-mais" hidden>Ver legenda completa</button>
         @endif
 

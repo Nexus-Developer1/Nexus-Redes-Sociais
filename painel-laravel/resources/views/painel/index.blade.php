@@ -3,35 +3,9 @@
 @section('title', $sections[$ver]['title'])
 
 @section('body')
-@include('painel.topo')
 
 <div class="grelha">
-    <nav class="menu" aria-label="Secções">
-        @foreach ($sections as $key => $s)
-            <a href="{{ route('painel', $key === 'fila' ? [] : ['ver' => $key]) }}"
-               class="{{ $ver === $key ? 'ativo' : '' }}"
-               @if ($ver === $key) aria-current="page" @endif>
-                {{ $s['title'] }}
-                @if ($s['count'] > 0)<span class="num">{{ $s['count'] }}</span>@endif
-            </a>
-        @endforeach
-        <a href="{{ route('calendario') }}" class="menu-calendario">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>
-            Calendário
-        </a>
-        <a href="{{ route('biblioteca') }}" class="menu-calendario menu-extra">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 17l-5-5-9 8"/></svg>
-            Biblioteca
-        </a>
-        @if (auth()->user()->is_admin)
-            <a href="{{ route('users.index') }}" class="menu-calendario menu-extra">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-4-6"/></svg>
-                Utilizadores
-            </a>
-        @endif
-    </nav>
-
-    <main class="principal">
+    <section class="coluna-principal">
         <div>
             <h1>{{ $sections[$ver]['title'] }}</h1>
             @if ($ver === 'fila')
@@ -74,12 +48,10 @@
                 </div>
             @endif
         @endif
-    </main>
+    </section>
 
-    <aside class="lateral">
-        <a class="criar-post" href="{{ route('posts.create') }}">+ Criar post</a>
-
-        <section class="caixa">
+    <aside class="coluna-lateral">
+        <section class="bloco">
             <h2>Próximos posts</h2>
             @if ($upcoming->isEmpty())
                 <p class="origem">Ainda não há posts planeados.</p>

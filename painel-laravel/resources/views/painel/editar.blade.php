@@ -4,7 +4,6 @@
 @section('body_class', $post->isEditable() ? 'ecra-editor' : '')
 
 @section('body')
-@include('painel.topo')
 
 <div class="pagina-editor">
     {{-- Barra fixa: título, estado e botões sempre visíveis --}}
@@ -59,7 +58,7 @@
             @endif
 
             <div class="colunas">
-                <section class="caixa">
+                <section class="bloco">
                     <h2>Publicação</h2>
                     <label>Nome do post <small>(só aparece no painel)</small>
                         <input name="title" required maxlength="150" value="{{ old('title', $post->title) }}">
@@ -96,7 +95,7 @@
                     </div>
                 </section>
 
-                <section class="caixa" id="design">
+                <section class="bloco" id="design">
                     <h2>Imagem</h2>
                     @if (! $post->design)
                         <p class="origem">Este post ainda não usa um modelo{{ $post->image_path ? ' (a imagem atual foi feita à parte)' : '' }}.
@@ -136,7 +135,7 @@
                             @if ($pexels)
                                 <details class="procurar-imagem">
                                     <summary class="btn btn-contorno pequeno">Procurar imagem grátis ({{ $banco }})…</summary>
-                                    <div class="procura">
+                                    <div class="procura-img">
                                         <div class="procura-barra">
                                             <input type="search" id="pexels-q" placeholder="Ex.: sala de servidores, equipa no escritório, portátil">
                                             <button type="button" class="btn btn-principal pequeno" id="pexels-ir">Procurar</button>
