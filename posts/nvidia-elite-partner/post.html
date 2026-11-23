@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<!-- Post: NEXUS é NVIDIA Elite Partner (modelo produto/parceiro).
+     produto.jpg  = banner oficial do site (nexus-solutions.pt/wp-content/uploads/2024/09/gpu.jpg), recortado por CSS
+                    para esconder os logótipos que já traz. Trocar por uma foto oficial maior quando houver.
+     parceiro.svg = logótipo NVIDIA do site novo (demo.nexus-solutions.pt/images/partners/nvidia.svg). -->
+<link rel="stylesheet" href="../../modelos/base.css">
+<style>
+  .parceiro { position: absolute; top: 74px; right: 70px; text-align: right; }
+  .parceiro img { height: 46px; filter: brightness(0) invert(1); display: block; margin-left: auto; }
+  .parceiro span { display: block; margin-top: 8px; font-size: 22px; font-weight: 700; letter-spacing: 6px;
+    text-transform: uppercase; color: var(--verde); }
+
+  /* Recorte do banner: só os equipamentos, sem os logótipos dos cantos. */
+  .produto { position: absolute; top: 205px; left: 0; right: 0; height: 560px; overflow: hidden;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 12%, #000 88%, transparent 100%),
+                        linear-gradient(180deg, transparent 0, #000 14%, #000 80%, transparent 100%);
+    -webkit-mask-composite: source-in; mask-composite: intersect; }
+  .produto img { position: absolute; width: 1340px; left: -200px; top: -118px; }
+
+  .conteudo { bottom: 160px; }
+  .caixa { font-size: 86px; }
+  .cartao b { font-size: 50px; }
+</style>
+</head>
+<body>
+<div class="post">
+  <div class="logo"><img src="../../marca/logo-nexus.png" alt="NEXUS"><div class="sub">IT SOLUTIONS</div></div>
+  <div class="parceiro"><img src="parceiro.svg" alt="NVIDIA"><span>Elite Partner</span></div>
+
+  <div class="produto"><img src="produto.jpg" alt=""></div>
+
+  <div class="conteudo">
+    <div class="caixa">Somos NVIDIA</div><br>
+    <div class="caixa"><em>Elite Partner</em></div>
+    <div class="cartoes">
+      <div class="cartao"><b>IA</b><span>treino e inferência de modelos</span></div>
+      <div class="cartao"><b>3D</b><span>render, CAD e simulação</span></div>
+      <div class="cartao"><b>PT</b><span>projeto e suporte NEXUS em Portugal</span></div>
+    </div>
+  </div>
+
+  <div class="barra"><span class="tema">Servidores e workstations GPU</span><span>nexus-solutions.pt</span></div>
+</div>
+</body>
+</html>
