@@ -66,7 +66,7 @@
             {{-- Tudo o que é secundário fica aqui: pré-visualizações, outra foto, origem e histórico --}}
             @php($totalHistorico = $post->reviews_count ?? $post->reviews->count())
             @php($origem = $post->source && ! ($eIdeia && $tipo && preg_match('/^Tipo: \w+\.?\s*$/u', $post->source)) ? $post->source : null)
-            @if ($temIg || $post->image_path || $outraFoto || $origem || $totalHistorico)
+            @if ($temIg || $post->image_path || $outraFoto || $origem || $totalHistorico || $post->status !== \App\Models\Post::PUBLISHED)
                 <details class="mais-opcoes">
                     <summary title="Mais opções" aria-label="Mais opções para “{{ $post->title }}”">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
@@ -103,6 +103,7 @@
                                 @if ($totalHistorico > 8)<p class="historico-mais">As 8 entradas mais recentes de {{ $totalHistorico }}.</p>@endif
                             </div>
                         @endif
+                        @include('painel.eliminar')
                     </div>
                 </details>
             @endif

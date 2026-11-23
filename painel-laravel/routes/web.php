@@ -69,6 +69,7 @@ Route::middleware(['auth', 'auth.session'])->group(function () {
     Route::post('/posts/{post}/modelo', [PostEditorController::class, 'useTemplate'])->name('posts.template');
     Route::post('/posts/{post}/imagens', [PostEditorController::class, 'upload'])->name('posts.upload');
     Route::post('/posts/{post}/enviar', [PostEditorController::class, 'submit'])->name('posts.submit');
+    Route::post('/posts/{post}/eliminar', [PostEditorController::class, 'destroy'])->name('posts.destroy');
     Route::post('/posts/{post}/data', [PostEditorController::class, 'reschedule'])->name('posts.date');
     Route::get('/imagens/procurar', [PostEditorController::class, 'searchImages'])->name('images.search')->middleware('throttle:60,1');
     Route::post('/posts/{post}/imagens/pexels', [PostEditorController::class, 'useStockImage'])->name('posts.stock');

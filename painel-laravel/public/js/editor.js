@@ -15,7 +15,7 @@
   if (legenda) { legenda.addEventListener('input', contaLegenda); contaLegenda(); }
 
   form.addEventListener('input', function () { alterado = true; });
-  window.addEventListener('beforeunload', function (e) { if (alterado) { e.preventDefault(); e.returnValue = ''; } });
+  window.addEventListener('beforeunload', function (e) { if (alterado && !window.SAIR_SEM_AVISO) { e.preventDefault(); e.returnValue = ''; } });
   form.addEventListener('submit', function () {
     alterado = false;
     if (E.design) $('#design-json').value = JSON.stringify(ler());
@@ -31,7 +31,9 @@
     botao.addEventListener('click', function () {
       var titulo = $('#design [data-campo=titulo]');
       var texto = $('#design [data-campo=texto]');
-      $$('.ia-legenda .chip').forEach(function (b) { b.disabled = true; });
+      var menu = botao.closest('details');
+      if (menu) menu.open = false;
+      $$('.ia-legenda button').forEach(function (b) { b.disabled = true; });
       estadoIa('A IA está a escrever…');
       fetch(E.legendaIa, {
         method: 'POST',
@@ -58,7 +60,7 @@
           estadoIa('Feito. Reveja e carregue em “Guardar”.');
         })
         .catch(function (err) { estadoIa('Não foi possível: ' + err.message); })
-        .then(function () { $$('.ia-legenda .chip').forEach(function (b) { b.disabled = false; }); });
+        .then(function () { $$('.ia-legenda button').forEach(function (b) { b.disabled = false; }); });
     });
   });
   var desfazer = $('#ia-desfazer');

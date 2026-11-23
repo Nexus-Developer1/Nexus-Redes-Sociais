@@ -53,7 +53,12 @@ Sistema que cria posts para as redes sociais da NEXUS de forma autónoma.
   `resources/views/components/cabecalho.blade.php`). Na fila não há coluna à direita: "Pedir um post à IA" é uma janela (`#dlg-pedir`).
   Cartão do post: só imagem, título, data · redes, legenda e botões; o secundário (Instagram, Stories, imagem grande, outra foto,
   origem, histórico) está no menu "⋯" (`details.mais-opcoes`). Clicar na imagem abre a pré-visualização do Instagram
-  (`painel/instagram.blade.php`). O estado só aparece quando diz algo (Atrasado, Em criação, Alteração pedida). Login obrigatório; cada decisão fica no histórico (`post_reviews`) com quem e quando.
+  (`painel/instagram.blade.php`). O estado só aparece quando diz algo (Atrasado, Em criação, Alteração pedida).
+  Editor: uma coluna de campos por passos (1 Texto da imagem · 2 Fundo · 3 Legenda · 4 Publicação) dentro de `#design`
+  (o editor.js só lê `[data-campo]` dentro de `#design`); ícone/botão/etiqueta/rodapé em "Mais opções da imagem"; na legenda,
+  "Escrever com IA" à vista e o resto em "Melhorar com IA". "Eliminar post" (`posts.destroy`, `painel/eliminar.blade.php`) está
+  no "⋯" do editor e do cartão: só para idea/creating/pending/revising/rejected (`Post::ELIMINAVEIS`), nunca se já saiu numa rede
+  nem com a IA a trabalhar nele (`motivoParaNaoEliminar`); apaga as imagens e o histórico e fica uma linha no laravel.log. Login obrigatório; cada decisão fica no histórico (`post_reviews`) com quem e quando.
   Arrancar: `cd painel-laravel; php artisan serve` → http://localhost:8000. Testes: `php artisan test`.
   Estados do post: idea, creating, pending, revising, approved, rejected, published.
   Comandos para o Claude:

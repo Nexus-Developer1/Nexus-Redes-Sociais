@@ -353,6 +353,42 @@ class PostEditorController extends Controller
         return redirect()->route('painel')->with('ok', "“{$post->title}” foi enviado para aprovação.");
     }
 
+    /**
+     * Eliminar um post de vez (com as imagens e o histórico). Só se nunca foi aprovado nem publicado
+     * e a IA não estiver a trabalhar nele (ver Post::motivoParaNaoEliminar).
+     */
+    public function destroy(Request $request, Post $post): RedirectResponse
+    {
+        $vemDoEditor = url()->previous() === route('posts.edit', $post);
+        $voltar = fn () => $vemDoEditor ? redirect()->route('painel') : back();
+
+        if ($motivo = $post->motivoParaNaoEliminar()) {
+            return back()->with('erro', $motivo);
+        }
+        // Só apaga se ninguém mexeu no post entretanto (ex.: foi aprovado ou a IA pegou nele).
+        $apagado = Post::whereKey($post->id)
+            ->whereIn('status', Post::ELIMINAVEIS)
+            ->where('status', $post->status)
+            ->where('updated_at', $post->updated_at)
+            ->whereNull('facebook_post_id')->whereNull('instagram_media_id')->whereNull('instagram_story_id')
+            ->delete();
+        if (! $apagado) {
+            return back()->with('erro', 'Este post mudou entretanto (a IA ou outra pessoa mexeu nele). Atualize a página e tente outra vez.');
+        }
+
+        // Imagens do post: a pasta dos modelos e, nos posts antigos feitos à parte, a imagem solta.
+        File::deleteDirectory(PostRenderer::pasta($post));
+        $solta = (string) $post->image_path;
+        if (preg_match('#^imagens-posts/[^/]+$#', $solta) && ! Post::where('image_path', $solta)->exists()) {
+            File::delete(public_path($solta));
+        }
+        \Illuminate\Support\Facades\Log::info('Post eliminado no painel', [
+            'post' => $post->id, 'titulo' => $post->title, 'estado' => $post->status, 'por' => $request->user()->id,
+        ]);
+
+        return $voltar()->with('ok', "“{$post->title}” foi eliminado.");
+    }
+
     private function mustBeEditable(Post $post): void
     {
         abort_unless($post->isEditable(), 409,

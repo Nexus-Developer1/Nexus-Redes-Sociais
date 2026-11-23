@@ -124,14 +124,13 @@ body.ecra-editor .area { flex: 1; }
 .editor-barra { flex: none; display: flex; align-items: center; gap: 12px 16px; flex-wrap: wrap; padding: 10px 24px;
   background: #fff; border-bottom: 1px solid var(--borda); }
 .editor-barra .voltar { flex: none; }
-.editor-barra h1 { margin: 0; font-size: 24px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.editor-barra h1 { margin: 0; font-size: 20px; flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .barra-acoes { margin-left: auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .editor-bloqueado { padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; }
 
 .editor { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; }
 .editor-campos { min-height: 0; overflow-y: auto; padding: 18px 20px 30px 24px; display: flex; flex-direction: column; gap: 12px;
   scrollbar-gutter: stable; }
-.colunas { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; align-items: start; }
 .editor-campos .bloco { display: flex; flex-direction: column; gap: 12px; }
 .editor-campos .bloco h2 { margin: 0; }
 .editor-campos label { display: flex; flex-direction: column; gap: 4px; font-size: 14px; font-weight: 600; color: #374151; }
@@ -147,14 +146,14 @@ body.ecra-editor .area { flex: 1; }
 .redes { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; }
 .editor-campos label.check { flex-direction: row; align-items: center; gap: 6px; font-weight: 500; }
 .imagens { display: flex; flex-direction: column; gap: 10px; border-top: 1px solid var(--borda); padding-top: 12px; }
-.imagem-campo { display: grid; grid-template-columns: 1fr auto auto auto; gap: 4px 8px; align-items: center; }
-.imagem-campo .rotulo { grid-column: 1 / -1; }
+.imagem-campo { display: flex; flex-direction: column; gap: 6px; }
+.imagem-botoes { display: flex; flex-wrap: wrap; gap: 8px; }
 .imagem-campo .nome { font-weight: 500; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .imagem-campo .nome:empty::before { content: "(nenhuma)"; color: var(--texto-2); font-weight: 400; }
 .editor-campos .imagem-campo label.btn { flex-direction: row; color: var(--verde); }
 
 .editor-lado { min-height: 0; display: flex; flex-direction: column; gap: 10px; padding: 18px 24px 18px 8px;
-  width: clamp(320px, 42vw, 760px); }
+  width: clamp(320px, 40vw, 680px); }
 #avisos-vivo { display: flex; flex-direction: column; gap: 6px; }
 #avisos-vivo .aviso { padding: 7px 12px; font-size: 14px; }
 .area-previa { flex: 1; min-height: 0; display: flex; align-items: flex-start; justify-content: center; }
@@ -258,8 +257,6 @@ body.ecra-editor .area { flex: 1; }
   background: #fff; border: 1px solid var(--borda); border-radius: 10px; padding: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.14); }
 .mudar-data input { font: inherit; padding: 7px 9px; border: 1px solid #D1D5DB; border-radius: 8px; }
 .mudar-data .btn { min-height: 36px; padding: 0 14px; }
-.foto-destaque { display: flex; flex-direction: column; gap: 10px; background: var(--verde-50); border: 1px solid var(--verde-100); border-radius: 10px; padding: 12px; }
-.editor-campos .foto-destaque .imagem-campo label.btn-principal { color: #fff; }
 /* Procurar imagem no Pexels (editor) */
 .procurar-imagem summary { list-style: none; width: fit-content; }
 .procurar-imagem summary::-webkit-details-marker { display: none; }
@@ -545,7 +542,7 @@ a.resumo-item:hover { border-color: var(--verde-300); color: inherit; }
 /* Pré-visualização do Instagram (painel/instagram.blade.php) */
 .ver-ig { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; padding: 0; min-height: 0; font-size: .8125rem; text-decoration: none; }
 .ver-ig:hover { text-decoration: underline; }
-.ver-ig-editor { display: inline-flex; align-items: center; gap: 6px; align-self: flex-end; margin-bottom: 8px; }
+.ver-ig-editor { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; }
 .ig-dialogo { border: 0; padding: 0; border-radius: var(--raio-g); max-width: min(860px, calc(100vw - 32px)); width: 100%;
   max-height: calc(100vh - 32px); box-shadow: var(--sombra-alta); background: var(--superficie); color: var(--texto-forte); }
 .ig-dialogo::backdrop { background: rgba(2, 5, 3, .6); }
@@ -698,3 +695,35 @@ a.resumo-item:hover { border-color: var(--verde-300); color: inherit; }
   .resumo-num { font-size: 1.25rem; }
   .resumo-txt { font-size: .75rem; }
 }
+
+/* ---------- Editor arrumado: uma coluna de campos, por passos (1 Texto · 2 Fundo · 3 Legenda · 4 Publicação) ---------- */
+.editor-campos > *, .editor-grupo > * { width: 100%; max-width: 720px; margin-inline: auto; }
+.editor-grupo { display: flex; flex-direction: column; gap: 12px; }
+.editor-campos .bloco h2 { display: flex; align-items: center; gap: 10px; font-size: 1.05rem; }
+.passo { flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--verde-50); border: 1px solid var(--verde-200); color: var(--verde); font-size: .8125rem; font-weight: 700; }
+.bloco-topo { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.bloco-topo .conta { color: var(--texto-2); font-size: 12.5px; }
+.imagem-campo .nome { color: var(--texto); }
+/* "Mais opções da imagem": ícone, botão, etiqueta e rodapé ficam fechados até serem precisos */
+.mais-campos { border: 1px solid var(--borda); border-radius: 10px; }
+.mais-campos > summary { cursor: pointer; padding: 10px 12px; font-size: 14px; font-weight: 600; color: #374151; list-style: none; display: flex; align-items: baseline; gap: 8px; }
+.mais-campos > summary::-webkit-details-marker { display: none; }
+.mais-campos > summary::before { content: "▸"; color: var(--texto-2); transition: transform .15s; }
+.mais-campos[open] > summary::before { transform: rotate(90deg); }
+.mais-campos > summary small { font-weight: 400; color: var(--texto-2); font-size: 12.5px; }
+.mais-campos-corpo { display: flex; flex-direction: column; gap: 12px; padding: 0 12px 12px; }
+/* IA na legenda: "Escrever" à vista e o resto num menu */
+.ia-menu > summary.chip { width: auto; height: auto; display: inline-block; color: var(--verde); }
+.ia-menu > summary.chip:hover, .ia-menu[open] > summary.chip { background: var(--verde); border-color: var(--verde); color: #fff; }
+.ia-menu .mais-painel { left: 0; right: auto; width: 220px; }
+/* Topo da pré-visualização: Feed | Stories à esquerda, "Ver no Instagram" à direita */
+.lado-topo { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.lado-topo .vista-previa { justify-content: flex-start; }
+/* "Eliminar post" nos menus "⋯" */
+.mais-separado { margin-top: 4px; padding-top: 4px; border-top: 1px solid var(--borda); }
+.mais-item.mais-perigo { display: flex; align-items: center; gap: 8px; color: var(--vermelho); }
+.mais-item.mais-perigo:hover { background: var(--perigo-100); color: var(--vermelho); }
+.mais-nota { margin-bottom: 0; padding: 8px 10px; font-size: .8125rem; color: var(--texto-medio); }
+.editor-barra .mais-opcoes > summary { width: 40px; height: 40px; border: 1px solid var(--borda); background: #fff; }
+.mais-painel > .mais-separado:first-child { margin-top: 0; padding-top: 0; border-top: 0; }

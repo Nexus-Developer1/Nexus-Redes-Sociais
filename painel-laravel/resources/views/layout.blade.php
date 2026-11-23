@@ -63,6 +63,8 @@
 document.addEventListener('submit', function (e) {
     var msg = e.target.getAttribute('data-confirm');
     if (msg && !window.confirm(msg)) { e.preventDefault(); return; }
+    // data-sair-sem-aviso (ex.: "Eliminar post"): já confirmou, não pergunta outra vez pelas alterações por guardar
+    if (e.target.hasAttribute('data-sair-sem-aviso')) window.SAIR_SEM_AVISO = true;
     // data-a-enviar="A pedir…": o botão fica desligado com esse texto (evita carregar duas vezes)
     var texto = e.target.getAttribute('data-a-enviar');
     var botao = texto && e.target.querySelector('button[type=submit], button:not([type])');
@@ -194,7 +196,7 @@ document.querySelectorAll('form[data-avisar-saida]').forEach(function (f) {
     f.addEventListener('input', function () { mudou = true; });
     f.addEventListener('change', function () { mudou = true; });
     f.addEventListener('submit', function () { mudou = false; });
-    window.addEventListener('beforeunload', function (e) { if (mudou) { e.preventDefault(); e.returnValue = ''; } });
+    window.addEventListener('beforeunload', function (e) { if (mudou && !window.SAIR_SEM_AVISO) { e.preventDefault(); e.returnValue = ''; } });
 });
 
 // Carrossel nos cartões: setas ‹ › e contador "1 / 7" (no telemóvel também dá para deslizar com o dedo).

@@ -217,6 +217,29 @@ class Post extends Model
         return (bool) ($this->facebook_post_id || $this->instagram_media_id || $this->instagram_story_id);
     }
 
+    /** Estados em que um post pode ser eliminado (nunca aprovado nem publicado). */
+    public const ELIMINAVEIS = [self::IDEA, self::CREATING, self::PENDING, self::REVISING, self::REJECTED];
+
+    /**
+     * Porque é que este post não pode ser eliminado (null = pode). Publicados ficam no histórico,
+     * aprovados têm de ser desfeitos primeiro, e não se apaga um post em que a IA está a trabalhar.
+     */
+    public function motivoParaNaoEliminar(): ?string
+    {
+        if ($this->status === self::PUBLISHED || $this->publicadoAlgures()) {
+            return 'Este post já saiu nas redes sociais: fica no histórico e não pode ser eliminado.';
+        }
+        if (! in_array($this->status, self::ELIMINAVEIS, true)) {
+            return 'Este post está aprovado e agendado. Use “Desfazer” primeiro e depois elimine-o.';
+        }
+        $iaAFazer = $this->ia_a_fazer ?? $this->pedidos()->whereIn('status', ['new', 'in_progress'])->exists();
+        if ($this->aRefazer() || $iaAFazer) {
+            return 'A IA está a trabalhar neste post. Espere que acabe (1 a 2 minutos) e tente outra vez.';
+        }
+
+        return null;
+    }
+
     /** A IA está a refazer este post (pedido de alteração) e a gerar a imagem nova. */
     public function aRefazer(): bool
     {
