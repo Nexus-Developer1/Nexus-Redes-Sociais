@@ -75,6 +75,27 @@ class OtimizacaoTest extends TestCase
             ->assertSee('Atrasado');
     }
 
+    public function test_previsualizacao_do_instagram_no_cartao_e_no_editor(): void
+    {
+        $user = User::factory()->create();
+        $post = Post::create(['title' => 'UPS', 'caption' => "Linha forte\n\n<b>não é HTML</b> #NEXUS", 'networks' => ['Instagram'],
+            'status' => Post::PENDING, 'image_path' => 'x.png', 'scheduled_at' => now()->addDay()]);
+        $soLinkedin = Post::create(['title' => 'Só LinkedIn', 'networks' => ['LinkedIn'], 'status' => Post::PENDING,
+            'image_path' => 'y.png', 'scheduled_at' => now()->addDay()]);
+
+        $this->actingAs($user)->get('/')
+            ->assertOk()
+            ->assertSee('data-ig-abrir="'.$post->id.'"', false)
+            ->assertSee('id="ig-'.$post->id.'"', false)
+            ->assertDontSee('id="ig-'.$soLinkedin->id.'"', false)
+            // a legenda vai como JSON (texto), nunca como HTML
+            ->assertDontSee('<b>não é HTML</b>', false);
+
+        $this->actingAs($user)->get(route('posts.edit', $post))
+            ->assertOk()
+            ->assertSee('data-fonte="#legenda"', false);
+    }
+
     public function test_publicados_vao_por_paginas(): void
     {
         $user = User::factory()->create();

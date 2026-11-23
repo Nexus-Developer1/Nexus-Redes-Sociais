@@ -571,3 +571,64 @@ a.resumo-item:hover { border-color: var(--verde-300); color: inherit; }
 .inline-form { display: inline; margin-left: 6px; }
 .historico-mais { margin: 6px 0 0; font-size: 12px; color: var(--texto-fraco); }
 @media (max-width: 520px) { .post--ideia { grid-template-columns: 64px minmax(0, 1fr); } }
+
+/* Pré-visualização do Instagram (painel/instagram.blade.php) */
+.ver-ig { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; padding: 0; min-height: 0; font-size: .8125rem; text-decoration: none; }
+.ver-ig:hover { text-decoration: underline; }
+.ver-ig-editor { display: inline-flex; align-items: center; gap: 6px; align-self: flex-end; margin-bottom: 8px; }
+.ig-dialogo { border: 0; padding: 0; border-radius: var(--raio-g); max-width: min(860px, calc(100vw - 32px)); width: 100%;
+  max-height: calc(100vh - 32px); box-shadow: var(--sombra-alta); background: var(--superficie); color: var(--texto-forte); }
+.ig-dialogo::backdrop { background: rgba(2, 5, 3, .6); }
+.ig-janela { display: flex; flex-direction: column; max-height: calc(100vh - 32px); }
+.ig-topo { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px; border-bottom: 1px solid var(--borda); }
+.ig-topo h2 { margin: 0; font-size: 1.05rem; }
+.ig-topo small { font-weight: 400; color: var(--texto-medio); }
+.ig-fechar { width: 36px; height: 36px; border: 0; border-radius: var(--raio); background: none; font-size: 24px; line-height: 1; color: var(--texto-medio); cursor: pointer; }
+.ig-fechar:hover { background: var(--fundo); color: var(--texto-forte); }
+.ig-corpo { display: grid; grid-template-columns: minmax(0, 400px) minmax(0, 1fr); gap: 24px; padding: 20px; overflow-y: auto; background: var(--fundo); }
+
+/* O "telemóvel": feed claro, letra do sistema, como na app */
+.ig-post { background: #fff; border: 1px solid #DBDBDB; border-radius: 10px; overflow: hidden; color: #262626;
+  font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+.ig-cabeca { display: flex; align-items: center; gap: 10px; padding: 10px 12px; }
+.ig-avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--verde-900); display: grid; place-items: center; overflow: hidden;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px var(--verde-500); flex-shrink: 0; }
+.ig-avatar img { width: 28px; height: auto; }
+.ig-conta { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
+.ig-conta b { font-weight: 600; font-size: 14px; }
+.ig-conta small { font-size: 12px; color: #737373; }
+.ig-mais { margin-left: auto; color: #262626; letter-spacing: 1px; font-size: 12px; }
+.ig-media { position: relative; background: #000; }
+.ig-galeria { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+.ig-galeria::-webkit-scrollbar { display: none; }
+.ig-galeria img { flex: 0 0 100%; width: 100%; aspect-ratio: 4 / 5; object-fit: cover; display: block; scroll-snap-align: start; }
+.ig-contador { position: absolute; top: 10px; right: 10px; padding: 2px 8px; border-radius: 999px; background: rgba(0,0,0,.6); color: #fff; font-size: 12px; }
+.ig-pontos { display: flex; justify-content: center; gap: 4px; position: absolute; left: 0; right: 0; bottom: -18px; }
+.ig-pontos i { width: 6px; height: 6px; border-radius: 50%; background: #C7C7C7; }
+.ig-pontos i.ativo { background: #0095F6; }
+.ig-sem-imagem { aspect-ratio: 4 / 5; display: grid; place-items: center; padding: 24px; text-align: center; color: #bbb; font-size: 13px; }
+.ig-acoes { display: flex; gap: 14px; padding: 10px 12px 4px; color: #262626; }
+.ig-acoes svg { width: 24px; height: 24px; }
+.ig-acoes .ig-guardar { margin-left: auto; }
+.ig-media:has(.ig-pontos) + .ig-acoes { padding-top: 14px; }
+.ig-legenda { padding: 4px 12px 0; }
+.ig-legenda p { margin: 0; white-space: pre-line; word-wrap: break-word; }
+.ig-legenda b { font-weight: 600; }
+.ig-tag { color: #00376B; }
+.ig-ver-mais { border: 0; background: none; padding: 0; margin-left: 2px; color: #737373; font: inherit; cursor: pointer; }
+.ig-data { margin: 6px 12px 12px; font-size: 10px; letter-spacing: .03em; color: #737373; }
+
+/* Verificações ao lado */
+.ig-verificar h3 { margin: 0 0 10px; font-size: .95rem; }
+.ig-verificar ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.ig-verificar li { position: relative; padding: 8px 12px 8px 34px; border-radius: var(--raio); font-size: .8125rem; line-height: 1.45; background: var(--superficie); border: 1px solid var(--borda); }
+.ig-verificar li::before { position: absolute; left: 11px; top: 8px; font-weight: 700; }
+.ig-v-ok::before { content: "✓"; color: var(--verde-600); }
+.ig-v-aviso { border-color: var(--aviso-100) !important; background: #FEFCE8 !important; }
+.ig-v-aviso::before { content: "!"; color: var(--aviso-500); }
+.ig-v-erro { border-color: var(--perigo-100) !important; background: #FEF2F2 !important; color: var(--perigo-600); }
+.ig-v-erro::before { content: "✕"; color: var(--perigo-600); }
+.ig-v-info::before { content: "i"; color: var(--info-500); font-style: italic; }
+.ig-nota { margin: 14px 0 0; font-size: .75rem; color: var(--texto-medio); }
+@media (max-width: 720px) { .ig-corpo { grid-template-columns: minmax(0, 1fr); padding: 12px; } }
+.ig-topo h2:focus { outline: none; }

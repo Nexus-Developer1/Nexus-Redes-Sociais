@@ -69,6 +69,106 @@ document.addEventListener('submit', function (e) {
     if (botao) { setTimeout(function () { botao.disabled = true; botao.textContent = texto; }, 0); }
 });
 
+// Pré-visualização do Instagram (painel/instagram.blade.php): legenda como no telemóvel e verificações.
+(function () {
+    var VISIVEL = 125; // caracteres que o Instagram mostra antes do "… mais" (mais ou menos duas linhas)
+
+    // Texto com #hashtags e @menções a azul. Tudo entra como texto (nunca como HTML).
+    function pinta(destino, texto) {
+        texto.split(/((?<![\w@.])#[\p{L}\p{N}_]+|(?<![\w.])@[\w.]*\w)/u).forEach(function (parte) {
+            if (!parte) return;
+            if (/^[#@]./.test(parte) && !/\s/.test(parte)) { var s = document.createElement('span'); s.className = 'ig-tag'; s.textContent = parte; destino.appendChild(s); }
+            else destino.appendChild(document.createTextNode(parte));
+        });
+    }
+
+    function corte(texto) {
+        var quebra = texto.indexOf('\n');
+        if (quebra >= 0 && quebra <= VISIVEL) return texto.slice(0, quebra);
+        if (texto.length <= VISIVEL) return texto;
+        var c = texto.slice(0, VISIVEL); var espaco = c.lastIndexOf(' ');
+        return espaco > 60 ? c.slice(0, espaco) : c;
+    }
+
+    function legenda(caixa, texto) {
+        caixa.textContent = '';
+        var p = document.createElement('p');
+        var conta = document.createElement('b'); conta.textContent = 'nexus.solutions '; p.appendChild(conta);
+        if (!texto.trim()) { var v = document.createElement('i'); v.textContent = '(sem legenda)'; p.appendChild(v); caixa.appendChild(p); return; }
+        var curto = corte(texto);
+        var corpo = document.createElement('span');
+        pinta(corpo, curto.length < texto.length ? curto : texto);
+        p.appendChild(corpo);
+        if (curto.length < texto.length) {
+            var mais = document.createElement('button'); mais.type = 'button'; mais.className = 'ig-ver-mais'; mais.textContent = '… mais';
+            mais.addEventListener('click', function () { corpo.textContent = ''; pinta(corpo, texto); mais.remove(); });
+            p.appendChild(mais);
+        }
+        caixa.appendChild(p);
+    }
+
+    function verifica(lista, texto) {
+        lista.textContent = '';
+        var tags = texto.match(/(?<![\w@.])#[\p{L}\p{N}_]+/gu) || [];
+        var itens = [];
+        itens.push(texto.length <= 2200
+            ? ['ok', 'Tamanho: ' + texto.length + ' de 2200 caracteres.']
+            : ['erro', 'Legenda com ' + texto.length + ' caracteres: o Instagram só aceita 2200.']);
+        if (tags.length > 30) itens.push(['erro', tags.length + ' hashtags: o Instagram recusa mais de 30.']);
+        else if (tags.length === 0) itens.push(['aviso', 'Sem hashtags: ponha algumas no fim (ex.: #NEXUS) para chegar a mais pessoas.']);
+        else if (tags.length > 15) itens.push(['aviso', tags.length + ' hashtags: funciona, mas 5 a 10 bem escolhidas costumam resultar melhor.']);
+        else itens.push(['ok', tags.length + (tags.length === 1 ? ' hashtag.' : ' hashtags.')]);
+        var primeira = corte(texto).trim();
+        if (texto.trim()) itens.push(primeira.length >= 20
+            ? ['ok', 'Antes do “… mais” aparece: “' + primeira.slice(0, 80) + (primeira.length > 80 ? '…' : '') + '”']
+            : ['aviso', 'A primeira linha é muito curta: é a única coisa que se lê sem abrir a legenda.']);
+        if (/https?:\/\/|www\.|\b[\w-]+\.(pt|com|net|org|eu)(\/\S*)?\b/i.test(texto))
+            itens.push(['info', 'Os endereços na legenda não abrem com um toque no Instagram (no Facebook abrem). Pode acrescentar “link na bio”.']);
+        itens.forEach(function (i) { var li = document.createElement('li'); li.className = 'ig-v-' + i[0]; li.textContent = i[1]; lista.appendChild(li); });
+    }
+
+    function texto(dlg) {
+        var fonte = dlg.dataset.fonte && document.querySelector(dlg.dataset.fonte);
+        if (fonte) return fonte.value;
+        try { return JSON.parse(dlg.querySelector('[data-ig-texto]').textContent) || ''; } catch (e) { return ''; }
+    }
+
+    function desenha(dlg) {
+        var t = texto(dlg);
+        legenda(dlg.querySelector('[data-ig-legenda]'), t);
+        verifica(dlg.querySelector('[data-ig-verificacoes]'), t);
+    }
+
+    document.addEventListener('click', function (e) {
+        var abrir = e.target.closest('[data-ig-abrir]');
+        if (abrir) {
+            var dlg = document.getElementById('ig-' + abrir.dataset.igAbrir);
+            if (dlg) { desenha(dlg); dlg.showModal(); }
+            return;
+        }
+        var fechar = e.target.closest('[data-fechar-dialogo]');
+        if (fechar) { fechar.closest('dialog').close(); return; }
+        if (e.target.classList && e.target.classList.contains('ig-dialogo')) e.target.close(); // clicar fora
+    });
+
+    // No editor: a legenda da pré-visualização acompanha o que se escreve.
+    document.querySelectorAll('.ig-dialogo[data-fonte]').forEach(function (dlg) {
+        var fonte = document.querySelector(dlg.dataset.fonte);
+        if (fonte) fonte.addEventListener('input', function () { if (dlg.open) desenha(dlg); });
+    });
+
+    // Carrossel: contador "2/5" e pontos.
+    document.querySelectorAll('.ig-galeria').forEach(function (g) {
+        var media = g.parentNode, total = g.children.length;
+        if (total < 2) return;
+        g.addEventListener('scroll', function () {
+            var i = Math.round(g.scrollLeft / g.clientWidth);
+            var c = media.querySelector('.ig-contador'); if (c) c.textContent = (i + 1) + '/' + total;
+            media.querySelectorAll('.ig-pontos i').forEach(function (p, k) { p.classList.toggle('ativo', k === i); });
+        });
+    });
+})();
+
 // "Cancelar" dentro de um <details> (Pedir alteração, Trocar tema) fecha-o.
 document.addEventListener('click', function (e) {
     var b = e.target.closest('[data-fechar-details]');

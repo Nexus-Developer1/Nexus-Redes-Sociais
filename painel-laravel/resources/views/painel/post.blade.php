@@ -50,6 +50,12 @@
         @else
             <div class="sem-imagem">Sem imagem</div>
         @endif
+        @if ($post->image_path && array_intersect(['Instagram', 'Stories'], $post->networks ?? []))
+            <button type="button" class="btn btn-link ver-ig" data-ig-abrir="{{ $post->id }}">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="M11 18h2"/></svg>
+                Ver no Instagram
+            </button>
+        @endif
         @if ($post->isEditable() && $post->design && ! $post->aRefazer() && app(\App\Services\BancoFotos::class)->configurado())
             {{-- A IA escolhe outra foto do banco de fotos e a imagem é refeita --}}
             <form method="POST" action="{{ route('posts.otherPhoto', $post) }}" class="outra-foto" data-a-enviar="A trocar…">
@@ -250,4 +256,8 @@
             </details>
         @endif
     </div>
+    @if ($post->image_path && array_intersect(['Instagram', 'Stories'], $post->networks ?? []))
+        {{-- fora da coluna da imagem, para as regras de .post-imagem não chegarem à janela --}}
+        @include('painel.instagram')
+    @endif
 </article>
