@@ -6,7 +6,6 @@
 
 <div class="pagina-calendario">
     <div class="editor-barra">
-        <a href="{{ route('painel') }}" class="voltar" title="Voltar ao painel"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg> Painel</a>
         <div class="mes-nav">
             <a class="btn pequeno" href="{{ route('calendario', ['mes' => $anterior]) }}" title="Mês anterior" aria-label="Mês anterior">‹</a>
             <h1>{{ ucfirst($mes->translatedFormat('F Y')) }}</h1>

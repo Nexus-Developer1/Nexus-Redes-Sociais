@@ -532,3 +532,42 @@ body.ecra-editor .area { flex: 1; }
 .post, .bloco, .proximos-caixa, .pedir { box-shadow: var(--sombra-cartao); }
 .aviso { border: 1px solid var(--verde-100); }
 .aviso.erro { border-color: var(--perigo-100); }
+
+/* Calendário: em ecrãs tácteis (sem rato) o "+" de criar post fica sempre visível. */
+@media (hover: none) { .cal-dia:not(.passado):not(.fora) .mais { opacity: .8; } }
+
+/* Resumo no topo da fila */
+.resumo { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.resumo-item { display: flex; flex-direction: column; gap: 2px; padding: 14px 16px; background: var(--superficie);
+  border: 1px solid var(--borda); border-radius: var(--raio-g); box-shadow: var(--sombra-cartao); text-decoration: none; color: inherit; min-width: 0; }
+a.resumo-item:hover { border-color: var(--verde-300); color: inherit; }
+.resumo-item--destaque { border-color: var(--verde-300); background: var(--verde-50); }
+.resumo-num { font-size: 1.75rem; font-weight: 600; line-height: 1.1; color: var(--texto-forte); }
+.resumo-num--texto { font-size: 1.05rem; padding: .35rem 0; }
+.resumo-txt { font-size: .8125rem; color: var(--texto-medio); overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.resumo-alerta { display: inline-block; margin-left: 6px; padding: 0 8px; border-radius: 999px; background: var(--aviso-100); color: var(--aviso-500); font-weight: 600; }
+.aviso-info { background: var(--info-100); border-color: #BFDBFE; color: #1E3A8A; }
+.aviso-link { display: block; text-decoration: none; font-weight: 500; }
+.aviso-link:hover { text-decoration: underline; color: var(--perigo-600); }
+
+/* Estado vazio com o próximo passo */
+.vazio h2 { margin: 0 0 4px; color: var(--texto-forte); }
+.vazio p { margin: 0 0 1rem; }
+.vazio-acoes { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.vazio .btn { display: inline-flex; align-items: center; text-decoration: none; }
+
+/* Páginas (Publicados, Rejeitados) */
+.paginas { display: flex; align-items: center; justify-content: center; gap: 12px; font-size: .875rem; color: var(--texto-medio); }
+.paginas .btn { display: inline-flex; align-items: center; text-decoration: none; }
+
+/* Cartão do post: etiqueta "Atrasado", ideias sem imagem e notas */
+.post .estados { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+.estado-atrasado { background: var(--aviso-100); color: var(--aviso-500); }
+.meta-icone { color: var(--verde-600); }
+.post--ideia { grid-template-columns: 88px minmax(0, 1fr); }
+.post-imagem .sem-imagem--ideia { aspect-ratio: 1; flex-direction: column; gap: 6px; background: var(--verde-50); border-color: var(--verde-100);
+  color: var(--verde-700); font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+.nota-atraso { margin: 0; font-size: .8125rem; color: var(--aviso-500); background: #FEFCE8; border: 1px solid var(--aviso-100); border-radius: var(--raio); padding: 8px 12px; }
+.inline-form { display: inline; margin-left: 6px; }
+.historico-mais { margin: 6px 0 0; font-size: 12px; color: var(--texto-fraco); }
+@media (max-width: 520px) { .post--ideia { grid-template-columns: 64px minmax(0, 1fr); } }

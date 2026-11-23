@@ -31,3 +31,6 @@ Thumbs.db
 
 # Biblioteca da NEXUS (imagens carregadas no painel)
 /public/imagens-posts/biblioteca/
+
+# Miniaturas dos cartões (feitas sozinhas a partir das imagens; ver App\Support\Miniatura)
+/public/imagens-posts/mini/

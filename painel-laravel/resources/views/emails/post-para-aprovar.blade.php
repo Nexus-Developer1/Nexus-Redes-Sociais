@@ -46,7 +46,7 @@
         <div style="font-size:12px;font-weight:700;letter-spacing:2px;color:{{ $verde }};">POST PARA APROVAR</div>
         <div style="margin-top:8px;font-size:24px;line-height:30px;font-weight:700;color:{{ $texto }};">{{ $post->title }}</div>
         <div style="margin-top:8px;font-size:14px;line-height:20px;color:{{ $cinza }};">
-            Olá{{ $nome ? ' '.$nome : '' }}, este post está à espera da sua aprovação.
+            Olá{{ $nome ? ' '.$nome : '' }}, {{ ($lembrete ?? false) ? 'este post continua à espera da sua aprovação e está marcado para '.$post->whenLabel().'. Se não for aprovado, não é publicado.' : 'este post está à espera da sua aprovação.' }}
         </div>
     </td></tr>
 

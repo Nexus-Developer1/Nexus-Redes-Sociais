@@ -28,33 +28,26 @@ class PainelController extends Controller
             $ver = 'fila';
         }
 
-        $counts = Post::query()
-            ->selectRaw('status, count(*) as total')
-            ->groupBy('status')
-            ->pluck('total', 'status');
-
-        $sections = [];
-        foreach (self::SECTIONS as $key => [$title, $statuses]) {
-            $sections[$key] = [
-                'title' => $title,
-                'count' => collect($statuses)->sum(fn ($s) => $counts[$s] ?? 0),
-            ];
-        }
-        $sections['pedidos'] = [
-            'title' => 'Pedidos de posts',
-            'count' => PostRequest::where('status', '!=', 'done')->count(),
-        ];
+        $sections = array_map(fn ($s) => ['title' => $s[0]], self::SECTIONS);
+        $sections['pedidos'] = ['title' => 'Pedidos de posts'];
 
         $posts = collect();
         $requests = collect();
         if ($ver === 'pedidos') {
-            $requests = PostRequest::with(['user', 'post'])->latest()->get();
+            $requests = PostRequest::with(['user', 'post'])->latest()->limit(100)->get();
         } else {
-            $posts = Post::with(['reviews.user', 'decider'])
+            $antigos = in_array($ver, ['publicados', 'rejeitados'], true); // crescem sempre: vão por páginas
+            $query = Post::query()
+                // só as últimas 8 entradas do histórico de cada post (e o total, para o "Histórico (N)")
+                ->with(['reviews' => fn ($q) => $q->with('user')->limit(8)])
+                ->withCount('reviews')
+                // a IA está a fazer / falhou: perguntado de uma vez, não um pedido por cartão
+                ->withExists(['pedidos as ia_a_fazer' => fn ($q) => $q->whereIn('status', ['new', 'in_progress'])])
+                ->withExists(['pedidos as ia_falhou' => fn ($q) => $q->where('status', 'failed')])
                 ->whereIn('status', self::SECTIONS[$ver][1])
                 ->orderByRaw('scheduled_at is null')
-                ->orderBy('scheduled_at', in_array($ver, ['publicados', 'rejeitados']) ? 'desc' : 'asc')
-                ->get();
+                ->orderBy('scheduled_at', $antigos ? 'desc' : 'asc');
+            $posts = $antigos ? $query->simplePaginate(20)->withQueryString() : $query->get();
         }
 
         $upcoming = Post::whereIn('status', [Post::IDEA, Post::CREATING, Post::APPROVED])
@@ -63,7 +56,23 @@ class PainelController extends Controller
             ->limit(5)
             ->get();
 
+        // Resumo no topo da fila: o que espera por si, o que vai sair a seguir e se algo correu mal.
+        $resumo = null;
+        if ($ver === 'fila') {
+            $n = Post::contagens();
+            $resumo = [
+                'para_aprovar' => ($n[Post::PENDING] ?? 0),
+                'atrasados' => Post::where('status', Post::PENDING)->where('scheduled_at', '<', now()->addHour())->count(),
+                'agendados' => ($n[Post::APPROVED] ?? 0),
+                'proximo' => Post::where('status', Post::APPROVED)->where('scheduled_at', '>=', now())->orderBy('scheduled_at')->first(),
+                'falhas' => Post::where('status', Post::APPROVED)->whereNotNull('publish_error')->count(),
+                'ideias' => ($n[Post::IDEA] ?? 0) + ($n[Post::CREATING] ?? 0),
+                'meta_ligada' => app(\App\Services\MetaPublisher::class)->configured(),
+            ];
+        }
+
         return view('painel.index', [
+            'resumo' => $resumo,
             'ver' => $ver,
             'sections' => $sections,
             'posts' => $posts,

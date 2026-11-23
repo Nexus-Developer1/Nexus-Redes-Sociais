@@ -20,17 +20,17 @@ class PostParaAprovar extends Notification
      * $emNomeDe: quem decide pelos botões quando o email vai para um endereço sem conta;
      * $paraEmail: esse endereço (fica no histórico: "pelo email (…)").
      */
-    public function __construct(public Post $post, public ?User $emNomeDe = null, public ?string $paraEmail = null) {}
+    public function __construct(public Post $post, public ?User $emNomeDe = null, public ?string $paraEmail = null, public bool $lembrete = false) {}
 
     /**
      * Envia o aviso a quem aprova: os endereços de config('painel.emails_aprovacao') ou, se estiver vazio,
      * todas as contas do painel. $exceto = quem enviou o post (não precisa de ser avisado).
      */
-    public static function enviar(Post $post, ?User $exceto = null): void
+    public static function enviar(Post $post, ?User $exceto = null, bool $lembrete = false): void
     {
         $emails = config('painel.emails_aprovacao');
         if (! $emails) {
-            Notificacoes::send(User::when($exceto, fn ($q) => $q->whereKeyNot($exceto->id))->get(), new self($post));
+            Notificacoes::send(User::when($exceto, fn ($q) => $q->whereKeyNot($exceto->id))->get(), new self($post, null, null, $lembrete));
 
             return;
         }
@@ -42,9 +42,9 @@ class PostParaAprovar extends Notification
             }
             $conta = User::where('email', $email)->first();
             if ($conta) {
-                $conta->notify(new self($post));
+                $conta->notify(new self($post, null, null, $lembrete));
             } elseif ($admin) {
-                Notificacoes::route('mail', $email)->notify(new self($post, $admin, $email));
+                Notificacoes::route('mail', $email)->notify(new self($post, $admin, $email, $lembrete));
             }
         }
     }
@@ -67,9 +67,10 @@ class PostParaAprovar extends Notification
         $logo = public_path('modelos/logo-nexus.png');
 
         $mail = (new MailMessage)
-            ->subject('Post para aprovar: '.$post->title)
+            ->subject(($this->lembrete ? 'Lembrete: ainda à espera de aprovação — ' : 'Post para aprovar: ').$post->title)
             ->view('emails.post-para-aprovar', [
                 'post' => $post,
+                'lembrete' => $this->lembrete,
                 'nome' => $notifiable->name ?? $quem?->name,
                 'aprovar' => $quem ? EmailDecisionController::link($post, $quem, 'aprovar', $this->paraEmail) : null,
                 'alterar' => $quem ? EmailDecisionController::link($post, $quem, 'alterar', $this->paraEmail) : null,

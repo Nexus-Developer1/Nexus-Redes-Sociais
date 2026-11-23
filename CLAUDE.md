@@ -57,6 +57,13 @@ Sistema que cria posts para as redes sociais da NEXUS de forma autónoma.
     põe o post na fila como "À espera de aprovação". **Nunca aprova nem publica**; recusa alterar posts já aprovados.
   - `php artisan post:ideia --titulo= --quando= --tipo= [--post=ID]`: põe uma ideia no calendário (o painel permite "Trocar tema" e "Descartar").
   - `php artisan post:publicar [--simular]`: publica na Meta os posts aprovados cuja hora chegou (cron a cada 5 min no servidor). Sem `META_PAGE_TOKEN` no `.env` não publica nada.
+    Um só processo de cada vez (cache lock). Nada sai mais de 6 h depois da hora marcada (`PublicarPosts::MAX_ATRASO_HORAS`): fica uma nota para mudar a data.
+    Depois de 3 falhas, o cartão tem "Tentar publicar de novo".
+  - `php artisan post:lembrar`: de hora a hora (8h–20h) envia um lembrete por email dos posts ainda por aprovar a menos de 48 h da data (um por versão, `posts.lembrete_em`).
+  **Regras de segurança (23 nov 2026):** as decisões são atómicas (`Post::decide(..., $de)` só grava se o post ainda estiver nesses estados);
+  a IA ao refazer só grava se o post ainda estiver à espera DESSA alteração (fica "Em criação" enquanto gera a imagem) e só muda a data/redes se o pedido falar delas;
+  aprovar exige imagem e data; "Desfazer" é recusado se o post já saiu numa rede; pedidos "a fazer" há mais de 20 min passam a falhados.
+  Miniaturas dos cartões e da biblioteca: `App\Support\Miniatura` (JPEG feito na 1.ª vez em `public/imagens-posts/mini/`).
   - `php artisan post:tratar-pedidos` (cron a cada minuto): a **IA automática** cria os posts de "Pedir um post" e refaz os que têm
     "Pedir alteração" (só posts com modelo; o pedido pode trazer a data de publicação, que a IA não muda), gera a imagem com os modelos e põe-nos "À espera de aprovação". Nunca aprova nem publica.
     Fornecedor com API formato OpenAI em `config/ia.php` (`IA_ENDERECO`, `IA_CHAVE`, `IA_MODELO`=qwen/qwen3.8-27b, o melhor em PT-PT); para testes: **Groq** (grátis),

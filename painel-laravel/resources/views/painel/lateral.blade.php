@@ -1,6 +1,6 @@
 {{-- Barra lateral escura do ADN Nexus (igual à do portal e da Nexus Infra): marca, secções do painel e quem está ligado. --}}
 @php
-    $porEstado = \App\Models\Post::query()->selectRaw('status, count(*) as total')->groupBy('status')->pluck('total', 'status');
+    $porEstado = \App\Models\Post::contagens(); // contado uma vez por página (o resumo da fila usa o mesmo)
     $contar = fn (array $estados) => collect($estados)->sum(fn ($s) => $porEstado[$s] ?? 0);
     $verAtual = request()->routeIs('painel') ? request()->query('ver', 'fila') : null;
     $pedidosAbertos = \App\Models\PostRequest::where('status', '!=', 'done')->count();
@@ -15,7 +15,7 @@
         'pedidos' => '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
     ];
 @endphp
-<aside class="lateral" data-lateral>
+<aside class="lateral" id="menu-lateral" data-lateral>
     <div class="lateral__topo">
         <a class="lateral__marca" href="{{ route('painel') }}">
             <img src="{{ asset('modelos/logo-nexus.png') }}" alt="Nexus" width="150" height="28">

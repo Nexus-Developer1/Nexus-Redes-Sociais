@@ -24,7 +24,6 @@
 
 <div class="pagina-biblioteca">
     <div class="editor-barra">
-        <a href="{{ route('painel') }}" class="voltar" title="Voltar ao painel"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg> Painel</a>
         <div class="bib-titulo">
             <h1>Biblioteca da NEXUS</h1>
             <span>Fotos, produtos e logótipos oficiais que a IA e o editor usam nos posts</span>
@@ -102,7 +101,7 @@
                     @foreach ($imagens as $img)
                         <div class="bib-item">
                             <a href="{{ $img->url() }}" class="bib-imagem tipo-{{ $img->tipo }}" title="Ver em grande">
-                                <img src="{{ $img->url() }}" alt="{{ $img->descricao }}" loading="lazy">
+                                <img src="{{ $img->miniaturaUrl() }}" alt="{{ $img->descricao }}" loading="lazy" decoding="async">
                                 <span class="bib-etiqueta">{!! $iconeTipo[$img->tipo] ?? '' !!} {{ $tiposInfo[$img->tipo][0] ?? $img->tipo }}</span>
                             </a>
                             <div class="bib-corpo">

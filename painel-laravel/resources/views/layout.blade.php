@@ -24,7 +24,7 @@
         @include('painel.lateral')
         <div class="trabalho">
             <header class="topo-movel">
-                <button class="topo-movel__menu" type="button" data-abrir-lateral aria-label="Abrir menu">
+                <button class="topo-movel__menu" type="button" data-abrir-lateral aria-label="Abrir menu" aria-expanded="false" aria-controls="menu-lateral">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
                 <img src="{{ asset('modelos/logo-nexus.png') }}" alt="Nexus" width="150" height="28" class="topo-movel__logo">
@@ -43,8 +43,16 @@
     var lateral = document.querySelector('[data-lateral]');
     var veu = document.querySelector('.lateral__veu');
     if (!lateral) return;
-    function abrir() { lateral.classList.add('aberta'); if (veu) veu.hidden = false; var p = lateral.querySelector('a, button'); if (p) p.focus(); }
-    function fechar() { lateral.classList.remove('aberta'); if (veu) veu.hidden = true; var b = document.querySelector('[data-abrir-lateral]'); if (b) b.focus(); }
+    var botaoMenu = document.querySelector('[data-abrir-lateral]');
+    function abrir() { lateral.classList.add('aberta'); if (veu) veu.hidden = false; if (botaoMenu) botaoMenu.setAttribute('aria-expanded', 'true'); var p = lateral.querySelector('a, button'); if (p) p.focus(); }
+    function fechar() { lateral.classList.remove('aberta'); if (veu) veu.hidden = true; if (botaoMenu) { botaoMenu.setAttribute('aria-expanded', 'false'); botaoMenu.focus(); } }
+    // Com o menu aberto no telemóvel, o Tab não sai da barra lateral.
+    lateral.addEventListener('keydown', function (e) {
+        if (e.key !== 'Tab' || !lateral.classList.contains('aberta')) return;
+        var f = lateral.querySelectorAll('a, button'); var p = f[0], u = f[f.length - 1];
+        if (e.shiftKey && document.activeElement === p) { e.preventDefault(); u.focus(); }
+        else if (!e.shiftKey && document.activeElement === u) { e.preventDefault(); p.focus(); }
+    });
     document.querySelectorAll('[data-abrir-lateral]').forEach(function (b) { b.addEventListener('click', abrir); });
     document.querySelectorAll('[data-fechar-lateral]').forEach(function (b) { b.addEventListener('click', fechar); });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && lateral.classList.contains('aberta')) fechar(); });
@@ -54,7 +62,26 @@
 // por isso nomes ou textos escritos por utilizadores não podem correr como código.
 document.addEventListener('submit', function (e) {
     var msg = e.target.getAttribute('data-confirm');
-    if (msg && !window.confirm(msg)) e.preventDefault();
+    if (msg && !window.confirm(msg)) { e.preventDefault(); return; }
+    // data-a-enviar="A pedir…": o botão fica desligado com esse texto (evita carregar duas vezes)
+    var texto = e.target.getAttribute('data-a-enviar');
+    var botao = texto && e.target.querySelector('button[type=submit], button:not([type])');
+    if (botao) { setTimeout(function () { botao.disabled = true; botao.textContent = texto; }, 0); }
+});
+
+// "Cancelar" dentro de um <details> (Pedir alteração, Trocar tema) fecha-o.
+document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-fechar-details]');
+    if (b) { var d = b.closest('details'); if (d) d.open = false; }
+});
+
+// Formulários com data-avisar-saida (o editor): avisa antes de sair da página com alterações por guardar.
+document.querySelectorAll('form[data-avisar-saida]').forEach(function (f) {
+    var mudou = false;
+    f.addEventListener('input', function () { mudou = true; });
+    f.addEventListener('change', function () { mudou = true; });
+    f.addEventListener('submit', function () { mudou = false; });
+    window.addEventListener('beforeunload', function (e) { if (mudou) { e.preventDefault(); e.returnValue = ''; } });
 });
 
 // Carrossel nos cartões: setas ‹ › e contador "1 / 7" (no telemóvel também dá para deslizar com o dedo).
@@ -96,7 +123,13 @@ document.querySelectorAll('[data-carrossel]').forEach(function (c) {
     function abrePronto(id) { window.location.href = FILA + '?pronto=' + id + '#post-' + id; }
 
     function verifica() {
-        if (Date.now() - inicio > 15 * 60 * 1000) return; // desiste ao fim de 15 minutos
+        if (Date.now() - inicio > 15 * 60 * 1000) { // desiste ao fim de 15 minutos, mas diz porquê
+            var nota = document.createElement('div');
+            nota.className = 'aviso erro'; nota.setAttribute('role', 'status');
+            nota.textContent = 'A IA está a demorar mais do que o costume. Atualize a página daqui a pouco para ver se já acabou.';
+            var alvo = document.querySelector('.coluna-principal, .area, body'); alvo.insertBefore(nota, alvo.firstChild);
+            return;
+        }
         fetch(url, { headers: { 'Accept': 'application/json' } })
             .then(function (r) { return r.ok ? r.json() : null; })
             .then(function (j) {

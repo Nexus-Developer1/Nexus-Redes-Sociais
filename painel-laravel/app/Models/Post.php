@@ -130,6 +130,18 @@ class Post extends Model
         return $this->hasMany(PostReview::class)->latest('id');
     }
 
+    /** Pedidos à IA feitos a partir deste post (ex.: "A IA faz este post"). */
+    public function pedidos(): HasMany
+    {
+        return $this->hasMany(PostRequest::class);
+    }
+
+    /** Quantos posts há em cada estado. Contado uma só vez por pedido (barra lateral, resumo da fila…). */
+    public static function contagens(): \Illuminate\Support\Collection
+    {
+        return once(fn () => static::query()->selectRaw('status, count(*) as total')->groupBy('status')->pluck('total', 'status'));
+    }
+
     public function decider(): BelongsTo
     {
         return $this->belongsTo(User::class, 'decided_by');

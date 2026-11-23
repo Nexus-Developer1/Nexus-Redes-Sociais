@@ -38,6 +38,14 @@ class ImagemBiblioteca extends Model
         return asset('imagens-posts/biblioteca/'.$this->ficheiro);
     }
 
+    /** Para a grelha da biblioteca: as fotos em miniatura; logótipos e produtos (PNG transparentes) como estão. */
+    public function miniaturaUrl(): string
+    {
+        return $this->tipo === 'foto'
+            ? \App\Support\Miniatura::url('imagens-posts/biblioteca/'.$this->ficheiro, 600)
+            : $this->url();
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

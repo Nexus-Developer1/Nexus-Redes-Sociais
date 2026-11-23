@@ -16,6 +16,41 @@
             @endif
         </div>
 
+        @if ($resumo)
+            {{-- Resumo: o que espera por si, o que sai a seguir e o que correu mal --}}
+            <div class="resumo" aria-label="Resumo">
+                <div class="resumo-item {{ $resumo['para_aprovar'] ? 'resumo-item--destaque' : '' }}">
+                    <span class="resumo-num">{{ $resumo['para_aprovar'] }}</span>
+                    <span class="resumo-txt">para aprovar
+                        @if ($resumo['atrasados'])<b class="resumo-alerta">{{ $resumo['atrasados'] }} {{ $resumo['atrasados'] === 1 ? 'atrasado' : 'atrasados' }}</b>@endif
+                    </span>
+                </div>
+                <a class="resumo-item" href="{{ route('painel', ['ver' => 'agendados']) }}">
+                    <span class="resumo-num">{{ $resumo['agendados'] }}</span>
+                    <span class="resumo-txt">{{ $resumo['agendados'] === 1 ? 'agendado' : 'agendados' }}</span>
+                </a>
+                <div class="resumo-item">
+                    <span class="resumo-num resumo-num--texto">{{ $resumo['proximo'] ? $resumo['proximo']->whenLabel() : '—' }}</span>
+                    <span class="resumo-txt">{{ $resumo['proximo'] ? 'próxima publicação: '.$resumo['proximo']->title : 'nada aprovado para sair' }}</span>
+                </div>
+                <a class="resumo-item" href="{{ route('painel', ['ver' => 'ideias']) }}">
+                    <span class="resumo-num">{{ $resumo['ideias'] }}</span>
+                    <span class="resumo-txt">{{ $resumo['ideias'] === 1 ? 'ideia no calendário' : 'ideias no calendário' }}</span>
+                </a>
+            </div>
+            @if (! $resumo['meta_ligada'])
+                <div class="aviso aviso-info" role="note">
+                    <strong>A publicação automática ainda não está ligada.</strong>
+                    Pode aprovar à vontade: os posts aprovados ficam agendados e saem sozinhos quando a ligação à Meta (Instagram e Facebook) estiver feita.
+                </div>
+            @endif
+            @if ($resumo['falhas'])
+                <a class="aviso erro aviso-link" href="{{ route('painel', ['ver' => 'agendados']) }}">
+                    {{ $resumo['falhas'] === 1 ? '1 post aprovado não foi publicado' : $resumo['falhas'].' posts aprovados não foram publicados' }}. Ver em “Agendados” ›
+                </a>
+            @endif
+        @endif
+
         @if (session('erro'))
             <div class="aviso erro" role="alert">{{ session('erro') }}</div>
         @endif
@@ -38,7 +73,20 @@
         @else
             @if ($posts->isEmpty())
                 <div class="vazio">
-                    {{ $ver === 'fila' ? 'Não há posts à espera de aprovação.' : 'Nada para mostrar aqui.' }}
+                    <div class="vazio__icone" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>
+                    </div>
+                    @if ($ver === 'fila')
+                        <h2>Está tudo aprovado</h2>
+                        <p>Não há posts à espera. Os próximos chegam sozinhos do calendário, ou pode pedir um já.</p>
+                        <div class="vazio-acoes">
+                            <a class="btn btn-principal" href="#topic">Pedir um post</a>
+                            <a class="btn" href="{{ route('calendario') }}">Ver o calendário</a>
+                        </div>
+                    @else
+                        <h2>Nada para mostrar aqui</h2>
+                        <p><a href="{{ route('painel') }}">Voltar à fila de aprovação</a></p>
+                    @endif
                 </div>
             @else
                 <div class="lista-posts">
@@ -46,6 +94,13 @@
                         @include('painel.post')
                     @endforeach
                 </div>
+                @if ($posts instanceof \Illuminate\Contracts\Pagination\Paginator && ($posts->previousPageUrl() || $posts->nextPageUrl()))
+                    <nav class="paginas" aria-label="Páginas">
+                        @if ($posts->previousPageUrl())<a class="btn" href="{{ $posts->previousPageUrl() }}">‹ Mais recentes</a>@endif
+                        <span>Página {{ $posts->currentPage() }}</span>
+                        @if ($posts->nextPageUrl())<a class="btn" href="{{ $posts->nextPageUrl() }}">Mais antigos ›</a>@endif
+                    </nav>
+                @endif
             @endif
         @endif
     </section>
