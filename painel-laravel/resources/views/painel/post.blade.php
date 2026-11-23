@@ -21,6 +21,8 @@
 @endphp
 <article class="post {{ $eIdeia && ! $post->image_path ? 'post--ideia' : '' }}" id="post-{{ $post->id }}"
          @if ($esperaIa) data-espera="{{ $esperaIa }}" data-id="{{ $post->id }}" data-estado="{{ $post->status }}" @endif>
+    @php($temIg = $post->image_path && array_intersect(['Instagram', 'Stories'], $post->networks ?? []))
+    @php($outraFoto = $post->isEditable() && $post->design && ! $post->aRefazer() && app(\App\Services\BancoFotos::class)->configurado())
     <div class="post-imagem">
         @if ($post->imagens_carrossel)
             {{-- Carrossel: as imagens passam para o lado, como no Instagram --}}
@@ -37,6 +39,12 @@
             <button type="button" class="carrossel-seta seg" aria-label="Imagem seguinte">›</button>
             <span class="carrossel-conta">Carrossel · 1 / {{ $totalImagens }}</span>
             </div>
+        @elseif ($temIg)
+            {{-- Clicar na imagem mostra o post como fica no Instagram (imagem grande + legenda) --}}
+            <button type="button" class="post-foto" data-ig-abrir="{{ $post->id }}" title="Ver como fica no Instagram">
+                <img src="{{ \App\Support\Miniatura::url($post->image_path) }}" alt="{{ $post->image_alt ?? $post->title }}" loading="lazy" decoding="async">
+                <span class="post-foto-dica" aria-hidden="true">Ver no Instagram</span>
+            </button>
         @elseif ($post->image_path)
             <a href="{{ asset($post->image_path) }}" target="_blank" rel="noopener" title="Abrir a imagem em tamanho real">
                 <img src="{{ \App\Support\Miniatura::url($post->image_path) }}" alt="{{ $post->image_alt ?? $post->title }}" loading="lazy" decoding="async">
@@ -50,30 +58,54 @@
         @else
             <div class="sem-imagem">Sem imagem</div>
         @endif
-        @if ($post->image_path && array_intersect(['Instagram', 'Stories'], $post->networks ?? []))
-            <button type="button" class="btn btn-link ver-ig" data-ig-abrir="{{ $post->id }}">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="M11 18h2"/></svg>
-                Ver no Instagram
-            </button>
-        @endif
-        @if ($post->isEditable() && $post->design && ! $post->aRefazer() && app(\App\Services\BancoFotos::class)->configurado())
-            {{-- A IA escolhe outra foto do banco de fotos e a imagem é refeita --}}
-            <form method="POST" action="{{ route('posts.otherPhoto', $post) }}" class="outra-foto" data-a-enviar="A trocar…">
-                @csrf
-                <button type="submit" class="btn" title="Trocar a foto de fundo por outra escolhida pela IA">↻ Outra foto</button>
-            </form>
-        @endif
     </div>
 
     <div class="corpo">
         <div class="cabeca">
             <h2>{{ $post->title }}</h2>
-            <span class="estados">
-                @if ($atrasado)
-                    <span class="estado estado-atrasado" title="A hora marcada já passou ou falta menos de uma hora">Atrasado</span>
-                @endif
-                <span class="estado estado-{{ $post->aRefazer() ? 'revising' : $post->status }}">{{ $post->aRefazer() ? 'A IA está a refazer' : $post->statusLabel() }}</span>
-            </span>
+            {{-- Tudo o que é secundário fica aqui: pré-visualizações, outra foto, origem e histórico --}}
+            @php($totalHistorico = $post->reviews_count ?? $post->reviews->count())
+            @php($origem = $post->source && ! ($eIdeia && $tipo && preg_match('/^Tipo: \w+\.?\s*$/u', $post->source)) ? $post->source : null)
+            @if ($temIg || $post->image_path || $outraFoto || $origem || $totalHistorico)
+                <details class="mais-opcoes">
+                    <summary title="Mais opções" aria-label="Mais opções para “{{ $post->title }}”">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
+                    </summary>
+                    <div class="mais-painel">
+                        @if ($temIg)
+                            <button type="button" class="mais-item" data-ig-abrir="{{ $post->id }}">Ver como fica no Instagram</button>
+                        @endif
+                        @if (in_array('Stories', $post->networks ?? [], true) && $post->imagemStory())
+                            <a class="mais-item" href="{{ asset($post->imagemStory()) }}" target="_blank" rel="noopener">Ver a versão dos Stories (9:16) ↗</a>
+                        @endif
+                        @if ($post->image_path)
+                            <a class="mais-item" href="{{ asset($post->image_path) }}" target="_blank" rel="noopener">Abrir a imagem em tamanho real ↗</a>
+                        @endif
+                        @if ($outraFoto)
+                            {{-- A IA escolhe outra foto do banco de fotos e a imagem é refeita --}}
+                            <form method="POST" action="{{ route('posts.otherPhoto', $post) }}" data-a-enviar="A trocar a foto…">
+                                @csrf
+                                <button type="submit" class="mais-item">↻ Trocar a foto de fundo (a IA escolhe)</button>
+                            </form>
+                        @endif
+                        @if ($origem)
+                            <div class="mais-info"><b>Origem</b><p>{{ $origem }}</p></div>
+                        @endif
+                        @if ($totalHistorico)
+                            <div class="mais-info">
+                                <b>Histórico ({{ $totalHistorico }})</b>
+                                <ul>
+                                    @foreach ($post->reviews->take(8) as $r)
+                                        <li><span>{{ $r->created_at->locale('pt_PT')->translatedFormat('j M, H:i') }}</span>
+                                            {{ $r->user?->name ?? 'Sistema' }} {{ \App\Models\PostReview::LABELS[$r->action] ?? $r->action }}@if ($r->comment): “{{ $r->comment }}”@endif</li>
+                                    @endforeach
+                                </ul>
+                                @if ($totalHistorico > 8)<p class="historico-mais">As 8 entradas mais recentes de {{ $totalHistorico }}.</p>@endif
+                            </div>
+                        @endif
+                    </div>
+                </details>
+            @endif
         </div>
 
         <div class="meta">
@@ -81,7 +113,8 @@
             @if ($post->isEditable() && ! $post->aRefazer())
                 {{-- Clicar na data abre um campo para a mudar logo aqui --}}
                 <details class="mudar-data">
-                    <summary title="Mudar o dia e a hora de publicação"><span class="quando">{{ $post->whenLabel() }}</span> <span class="mudar">✎ Mudar data</span></summary>
+                    <summary title="Mudar o dia e a hora de publicação"><span class="quando">{{ $post->whenLabel() }}</span>
+                        <svg class="mudar-lapis" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Mudar data"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></summary>
                     <form method="POST" action="{{ route('posts.date', $post) }}">
                         @csrf
                         <input type="datetime-local" name="scheduled_at" required aria-label="Dia e hora de publicação"
@@ -93,24 +126,19 @@
                 <span>{{ $post->whenLabel() }}</span>
             @endif
             <span class="sep">·</span>
-            @foreach ($post->networks as $net)
-                @if ($net === 'Stories' && $post->imagemStory())
-                    {{-- Abre a versão 9:16 que vai para os Stories --}}
-                    <a class="rede rede-link" href="{{ asset($post->imagemStory()) }}" target="_blank" rel="noopener"
-                       title="Ver a versão dos Stories (9:16)">Stories ↗</a>
-                @else
-                    <span class="rede">{{ $net }}</span>
-                @endif
-            @endforeach
+            <span class="redes-txt">{{ implode(' · ', $post->networks ?? []) }}</span>
+            {{-- Estado só quando diz alguma coisa: em cada secção quase todos os posts têm o mesmo --}}
+            @if ($atrasado)
+                <span class="estado estado-atrasado" title="A hora marcada já passou ou falta menos de uma hora">Atrasado</span>
+            @endif
+            @if ($post->aRefazer() || in_array($post->status, [\App\Models\Post::CREATING, \App\Models\Post::REVISING], true) || ! empty($mostrarEstado))
+                <span class="estado estado-{{ $post->aRefazer() ? 'revising' : $post->status }}">{{ $post->aRefazer() ? 'A IA está a refazer' : $post->statusLabel() }}</span>
+            @endif
         </div>
 
         @if ($post->caption)
             <div class="legenda-post" data-legenda>{{ $post->caption }}</div>
             <button type="button" class="ver-mais" hidden>Ver legenda completa</button>
-        @endif
-
-        @if ($post->source && ! ($eIdeia && $tipo && preg_match('/^Tipo: \w+\.?\s*$/u', $post->source)))
-            <p class="origem">{{ $post->source }}</p>
         @endif
 
         @if ($post->status === \App\Models\Post::APPROVED && $post->publish_error)
@@ -240,21 +268,6 @@
             </div>
         @endif
 
-        @if ($post->reviews->isNotEmpty())
-            @php($totalHistorico = $post->reviews_count ?? $post->reviews->count())
-            <details class="historico">
-                <summary>Histórico ({{ $totalHistorico }})</summary>
-                <ul>
-                    @foreach ($post->reviews->take(8) as $r)
-                        <li>
-                            {{ $r->created_at->locale('pt_PT')->translatedFormat('j M, H:i') }} —
-                            {{ $r->user?->name ?? 'Sistema' }} {{ \App\Models\PostReview::LABELS[$r->action] ?? $r->action }}@if ($r->comment): “{{ $r->comment }}”@endif
-                        </li>
-                    @endforeach
-                </ul>
-                @if ($totalHistorico > 8)<p class="historico-mais">Mostra as 8 entradas mais recentes de {{ $totalHistorico }}.</p>@endif
-            </details>
-        @endif
     </div>
     @if ($post->image_path && array_intersect(['Instagram', 'Stories'], $post->networks ?? []))
         {{-- fora da coluna da imagem, para as regras de .post-imagem não chegarem à janela --}}

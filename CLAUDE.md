@@ -48,7 +48,12 @@ Sistema que cria posts para as redes sociais da NEXUS de forma autónoma.
   a Nexus Infra e a Knowledgebase (verde #16A34A, Poppins, barra lateral escura `painel/lateral.blade.php`). **Não se edita aqui**:
   tem de ficar igual nas apps (copiar de `Desktop/portal/public/css/suite.css`). O que é só deste painel fica em `public/css/painel.css`.
   O `suite.css` usa `.caixa`, `.legenda`, `.filtros`, `.procura`, `.lateral`, `.principal` e `.topo` com outro sentido: no painel usar
-  `.bloco`, `.legenda-post`, `.filtros-bib`, `.procura-img`, `.coluna-lateral` e `.coluna-principal`. Páginas sem barra lateral: `@section('sem_lateral', '1')`. Login obrigatório; cada decisão fica no histórico (`post_reviews`) com quem e quando.
+  `.bloco`, `.legenda-post`, `.filtros-bib`, `.procura-img`. Páginas sem barra lateral: `@section('sem_lateral', '1')`.
+  Organização (23 nov): cada página = `<div class="pagina">` + `<x-cabecalho titulo= sub=>botões</x-cabecalho>` (componente em
+  `resources/views/components/cabecalho.blade.php`). Na fila não há coluna à direita: "Pedir um post à IA" é uma janela (`#dlg-pedir`).
+  Cartão do post: só imagem, título, data · redes, legenda e botões; o secundário (Instagram, Stories, imagem grande, outra foto,
+  origem, histórico) está no menu "⋯" (`details.mais-opcoes`). Clicar na imagem abre a pré-visualização do Instagram
+  (`painel/instagram.blade.php`). O estado só aparece quando diz algo (Atrasado, Em criação, Alteração pedida). Login obrigatório; cada decisão fica no histórico (`post_reviews`) com quem e quando.
   Arrancar: `cd painel-laravel; php artisan serve` → http://localhost:8000. Testes: `php artisan test`.
   Estados do post: idea, creating, pending, revising, approved, rejected, published.
   Comandos para o Claude:

@@ -71,7 +71,7 @@ class OtimizacaoTest extends TestCase
             ->assertOk()
             ->assertSee('para aprovar')
             ->assertSee('1 atrasado')
-            ->assertSee('A publicação automática ainda não está ligada')
+            ->assertSee('Publicação automática por ligar')
             ->assertSee('Atrasado');
     }
 

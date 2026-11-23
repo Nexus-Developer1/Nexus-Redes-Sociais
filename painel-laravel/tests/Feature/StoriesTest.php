@@ -35,7 +35,7 @@ class StoriesTest extends TestCase
 
         $this->assertSame('imagens-posts/a-story.png', $post->fresh()->imagemStory());
         $this->actingAs(User::factory()->create())->get(route('painel'))
-            ->assertSee('Stories ↗')->assertSee('imagens-posts/a-story.png');
+            ->assertSee('Ver a versão dos Stories (9:16)')->assertSee('imagens-posts/a-story.png');
 
         // Sem versão 9:16 (ex.: imagem feita à parte), os Stories usam a imagem do post.
         $post->guardarImagens(['path' => 'imagens-posts/b.png', 'avisos' => []]);

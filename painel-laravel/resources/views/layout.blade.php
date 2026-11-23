@@ -148,7 +148,9 @@ document.addEventListener('submit', function (e) {
         }
         var fechar = e.target.closest('[data-fechar-dialogo]');
         if (fechar) { fechar.closest('dialog').close(); return; }
-        if (e.target.classList && e.target.classList.contains('ig-dialogo')) e.target.close(); // clicar fora
+        if (e.target.tagName === 'DIALOG' && (e.target.classList.contains('ig-dialogo') || e.target.classList.contains('dialogo'))) e.target.close(); // clicar fora
+        var abreDlg = e.target.closest('[data-abrir-dialogo]');
+        if (abreDlg) { var d = document.getElementById(abreDlg.dataset.abrirDialogo); if (d) d.showModal(); }
     });
 
     // No editor: a legenda da pré-visualização acompanha o que se escreve.
@@ -168,6 +170,17 @@ document.addEventListener('submit', function (e) {
         });
     });
 })();
+
+// Janelas que têm de abrir logo (ex.: "Pedir um post" com um erro para corrigir).
+document.querySelectorAll('dialog[data-abrir-ao-carregar]').forEach(function (d) { d.showModal(); });
+
+// Menu "⋯" dos cartões: só um aberto de cada vez e fecha ao clicar fora.
+document.addEventListener('click', function (e) {
+    document.querySelectorAll('details.mais-opcoes[open]').forEach(function (d) { if (!d.contains(e.target)) d.open = false; });
+});
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') document.querySelectorAll('details.mais-opcoes[open]').forEach(function (d) { d.open = false; d.querySelector('summary').focus(); });
+});
 
 // "Cancelar" dentro de um <details> (Pedir alteração, Trocar tema) fecha-o.
 document.addEventListener('click', function (e) {
@@ -227,7 +240,7 @@ document.querySelectorAll('[data-carrossel]').forEach(function (c) {
             var nota = document.createElement('div');
             nota.className = 'aviso erro'; nota.setAttribute('role', 'status');
             nota.textContent = 'A IA está a demorar mais do que o costume. Atualize a página daqui a pouco para ver se já acabou.';
-            var alvo = document.querySelector('.coluna-principal, .area, body'); alvo.insertBefore(nota, alvo.firstChild);
+            var alvo = document.querySelector('.pagina, .area, body'); alvo.insertBefore(nota, alvo.firstChild);
             return;
         }
         fetch(url, { headers: { 'Accept': 'application/json' } })

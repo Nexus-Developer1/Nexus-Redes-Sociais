@@ -50,12 +50,6 @@ class PainelController extends Controller
             $posts = $antigos ? $query->simplePaginate(20)->withQueryString() : $query->get();
         }
 
-        $upcoming = Post::whereIn('status', [Post::IDEA, Post::CREATING, Post::APPROVED])
-            ->where('scheduled_at', '>=', now())
-            ->orderBy('scheduled_at')
-            ->limit(5)
-            ->get();
-
         // Resumo no topo da fila: o que espera por si, o que vai sair a seguir e se algo correu mal.
         $resumo = null;
         if ($ver === 'fila') {
@@ -77,7 +71,6 @@ class PainelController extends Controller
             'sections' => $sections,
             'posts' => $posts,
             'requests' => $requests,
-            'upcoming' => $upcoming,
             'pronto' => $request->integer('pronto') ? Post::find($request->integer('pronto')) : null,
         ]);
     }

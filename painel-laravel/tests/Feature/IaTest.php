@@ -229,7 +229,7 @@ class IaTest extends TestCase
         File::ensureDirectoryExists(PostRenderer::pasta($post));
         File::put(PostRenderer::pasta($post).'/pixabay-838377.jpg', 'x');
 
-        $this->actingAs($user)->get('/')->assertSee('Outra foto');
+        $this->actingAs($user)->get('/')->assertSee('Trocar a foto de fundo');
         $this->actingAs($user)->post(route('posts.otherPhoto', $post))->assertSessionHas('ok');
 
         $post->refresh();

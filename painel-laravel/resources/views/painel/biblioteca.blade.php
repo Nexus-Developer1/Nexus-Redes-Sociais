@@ -22,12 +22,9 @@
 
 @section('body')
 
-<div class="pagina-biblioteca">
-    <div class="editor-barra">
-        <div class="bib-titulo">
-            <h1>Biblioteca da NEXUS</h1>
-            <span>Fotos, produtos e logótipos oficiais que a IA e o editor usam nos posts</span>
-        </div>
+<div class="pagina pagina-biblioteca">
+    <x-cabecalho titulo="Biblioteca" sub="Fotos, produtos e logótipos oficiais da NEXUS que a IA e o editor usam nos posts." />
+    <div class="bib-barra">
         <nav class="filtros-bib" aria-label="Tipo de imagem">
             <a href="{{ route('biblioteca') }}" @class(['ativo' => ! $tipo])>Todas <b>{{ $contagem->sum() }}</b></a>
             @foreach (\App\Models\ImagemBiblioteca::TIPOS as $t => $nome)

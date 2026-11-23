@@ -31,16 +31,10 @@ p { margin: 0; }
 .avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--verde-600); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600; flex-shrink: 0; }
 
 /* Página principal: posts ao centro, "Próximos posts" e "Pedir um post" à direita. */
-.grelha { padding: 2.25rem 2.5rem; display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 24px; align-items: start; max-width: 1500px; }
-.grelha > *, .lista-posts > * { min-width: 0; }
-@media (max-width: 1180px) { .grelha { grid-template-columns: minmax(0, 1fr); } }
-@media (max-width: 640px) { .grelha { padding: 1.5rem 1rem; } }
+.lista-posts > * { min-width: 0; }
 
-.coluna-principal { min-width: 0; display: flex; flex-direction: column; gap: 20px; }
 /* Posts em 2 colunas quando há largura (ecrãs grandes). */
 .lista-posts { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 560px), 1fr)); gap: 20px; align-items: stretch; }
-.coluna-principal h1 { margin: 0; font-size: 1.875rem; }
-.coluna-principal .sub { margin: 4px 0 0; color: var(--texto-2); font-size: .875rem; }
 
 .aviso { padding: 12px 16px; border-radius: 10px; background: var(--verde-claro); color: var(--verde-800); }
 .aviso.erro { background: var(--perigo-100); color: var(--perigo-600); }
@@ -86,23 +80,9 @@ details.alterar[open] > summary { display: none; }
 .form-alterar label { font-weight: 600; font-size: 14px; }
 .form-alterar textarea { border: 1px solid #D1D5DB; border-radius: 8px; padding: 10px 12px; resize: vertical; }
 
-.coluna-lateral { display: flex; flex-direction: column; gap: 16px; }
 .bloco { background: #fff; border: 1px solid var(--borda); border-radius: var(--raio-g); padding: 18px; }
 .bloco h2 { margin: 0 0 12px; font-family: var(--fonte); font-weight: 600; font-size: 1.125rem; }
-.proximos { display: flex; flex-direction: column; gap: 12px; }
-.proximo { display: flex; gap: 12px; }
-.dia { flex: 0 0 52px; text-align: center; background: #F3F4F6; border-radius: 8px; padding: 6px 0; }
-.dia small { display: block; font-size: 12px; color: var(--texto-2); text-transform: uppercase; }
-.dia b { font-size: 20px; font-weight: 600; }
-.proximo .t { font-weight: 600; }
-.proximo .s { font-size: 13px; color: var(--texto-medio); }
 
-.pedir { background: var(--lateral-fundo); color: #F3F4F6; border-radius: var(--raio-g); padding: 18px; display: flex; flex-direction: column; gap: 10px; }
-.pedir h2 { margin: 0; font-family: var(--fonte); font-weight: 600; font-size: 1.125rem; color: #fff; }
-.pedir label { font-size: 14px; color: #D1D5DB; }
-.pedir textarea { border: 1px solid rgba(255,255,255,.18); background: #061008; color: #fff; border-radius: 8px; padding: 10px 12px; resize: vertical; }
-.pedir button { min-height: 44px; border: 0; border-radius: 8px; background: var(--verde-neon); color: var(--escuro); font-weight: 600; cursor: pointer; }
-.pedir .erro { color: #ffb4a8; font-size: 14px; }
 
 .pedidos { display: flex; flex-direction: column; gap: 10px; }
 .pedidos .bloco { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; }
@@ -116,8 +96,6 @@ details.alterar[open] > summary { display: none; }
 .login .lembrar { display: flex; gap: 8px; align-items: center; font-weight: 400; }
 
 /* ---------- Criar e editar posts ---------- */
-.criar-post { display: flex; align-items: center; justify-content: center; min-height: 48px; border-radius: 10px; background: var(--verde); color: #fff; font-weight: 600; text-decoration: none; }
-.criar-post:hover { background: var(--verde-escuro); color: #fff; }
 .btn.pequeno { min-height: 36px; padding: 0 12px; font-size: 14px; display: inline-flex; align-items: center; }
 a.btn { display: inline-flex; align-items: center; text-decoration: none; }
 .voltar { display: inline-flex; align-items: center; gap: 4px; align-self: flex-start; height: 36px; padding: 0 14px 0 9px; border: 1px solid #D1D5DB; border-radius: 8px; background: #fff; color: #374151; font-size: 14px; font-weight: 600; text-decoration: none; white-space: nowrap; }
@@ -269,8 +247,6 @@ body.ecra-editor .area { flex: 1; }
 .historico summary:hover { color: var(--verde); }
 .historico[open] summary { margin-bottom: 4px; }
 @media (max-width: 520px) { .post { grid-template-columns: minmax(0, 1fr); } .post-imagem { max-width: 240px; } }
-.pedir input[type=datetime-local] { border: 1px solid rgba(255,255,255,.18); background: #061008; color: #fff; border-radius: 8px; padding: 9px 12px; font: inherit; color-scheme: dark; }
-.pedir label small { color: rgba(255,255,255,.45); font-weight: 400; }
 
 /* Data clicável nos cartões: muda a data de publicação sem abrir o editor */
 .mudar-data { display: inline-block; position: relative; }
@@ -298,11 +274,6 @@ body.ecra-editor .area { flex: 1; }
 .procura-nota { grid-column: 1 / -1; margin: 0; }
 /* Botão "Outra foto" por cima da imagem do post */
 .post-imagem { position: relative; }
-.outra-foto { position: absolute; left: 8px; right: 8px; bottom: 8px; margin: 0; }
-.outra-foto .btn { width: 100%; min-height: 32px; padding: 0 8px; font-size: 13px; justify-content: center; display: flex; align-items: center;
-  background: rgba(255,255,255,.92); border-color: transparent; color: #1F2937; box-shadow: 0 2px 8px rgba(0,0,0,.25); }
-.outra-foto .btn:hover { background: #fff; color: var(--verde); }
-.outra-foto .btn:disabled { cursor: wait; opacity: .85; }
 
 /* A minha conta e Utilizadores */
 .conta-link { display: flex; align-items: center; gap: 10px; color: inherit; text-decoration: none; border-radius: 999px; padding: 2px 10px 2px 2px; }
@@ -493,7 +464,6 @@ body.ecra-editor .area { flex: 1; }
 /* "Pedir um post": imagem única ou carrossel */
 .formato-pedido { border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
 .formato-pedido legend { font-size: 14px; color: #D1D5DB; margin-bottom: 4px; padding: 0; }
-.pedir .formato-pedido label { display: flex; align-items: center; gap: 8px; color: #F3F4F6; font-size: 14px; cursor: pointer; }
 .formato-pedido input { accent-color: var(--verde-neon); margin: 0; }
 .tipo.desligado { opacity: .45; cursor: not-allowed; }
 
@@ -632,3 +602,99 @@ a.resumo-item:hover { border-color: var(--verde-300); color: inherit; }
 .ig-nota { margin: 14px 0 0; font-size: .75rem; color: var(--texto-medio); }
 @media (max-width: 720px) { .ig-corpo { grid-template-columns: minmax(0, 1fr); padding: 12px; } }
 .ig-topo h2:focus { outline: none; }
+
+/* ==== Organização das páginas (23 nov): cabeçalho comum, cartões mais limpos, menu "⋯" ==== */
+.pagina { padding: 2.25rem 2.5rem 3rem; display: flex; flex-direction: column; gap: 20px; max-width: 1400px; }
+@media (max-width: 640px) { .pagina { padding: 1.25rem 1rem 2rem; } }
+.cabecalho { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 20px; }
+.cabecalho h1 { margin: 0; font-size: 1.75rem; line-height: 1.15; }
+.cabecalho .sub { margin: 4px 0 0; color: var(--texto-medio); font-size: .875rem; }
+.cabecalho-acoes { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.cabecalho-acoes .btn { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
+
+/* Resumo mais baixo e faixa de informação numa linha */
+.resumo { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.resumo-item { flex-direction: row; align-items: center; gap: 12px; padding: 12px 16px; }
+.resumo-num { font-size: 1.5rem; min-width: 1.6ch; }
+.faixa-info { margin: 0; display: flex; align-items: center; gap: 8px; font-size: .8125rem; color: #1E40AF;
+  background: var(--info-100); border: 1px solid #BFDBFE; border-radius: var(--raio); padding: 8px 12px; }
+
+/* Lista: 2 colunas quando há largura */
+.lista-posts { grid-template-columns: repeat(auto-fill, minmax(min(100%, 520px), 1fr)); }
+
+/* Cartão: imagem que abre a pré-visualização do Instagram */
+.post-foto { position: relative; display: block; width: 100%; padding: 0; border: 0; background: none; cursor: zoom-in; border-radius: 10px; }
+.post-foto img { display: block; }
+.post-foto-dica { position: absolute; left: 6px; right: 6px; bottom: 6px; padding: 4px 6px; border-radius: 6px; text-align: center;
+  font-size: 11px; font-weight: 600; color: #fff; background: rgba(2, 5, 3, .72); opacity: 0; transition: opacity .15s; }
+.post-foto:hover .post-foto-dica, .post-foto:focus-visible .post-foto-dica { opacity: 1; }
+@media (hover: none) { .post-foto-dica { opacity: 1; } }
+
+/* Cabeça do cartão: título, estado e menu "⋯" */
+.post .cabeca { flex-wrap: nowrap; align-items: flex-start; }
+.post .cabeca h2 { flex: 1; min-width: 0; }
+.post .estados { flex-shrink: 0; }
+.mais-opcoes { position: relative; flex-shrink: 0; }
+.mais-opcoes > summary { list-style: none; width: 32px; height: 28px; display: grid; place-items: center; border-radius: var(--raio);
+  color: var(--texto-medio); cursor: pointer; }
+.mais-opcoes > summary::-webkit-details-marker { display: none; }
+.mais-opcoes > summary:hover, .mais-opcoes[open] > summary { background: var(--fundo); color: var(--texto-forte); }
+.mais-painel { position: absolute; right: 0; top: calc(100% + 6px); z-index: 20; width: min(340px, 80vw); max-height: 60vh; overflow-y: auto;
+  background: var(--superficie); border: 1px solid var(--borda); border-radius: var(--raio-g); box-shadow: var(--sombra-alta); padding: 6px; }
+.mais-painel form { margin: 0; }
+.mais-item { display: block; width: 100%; text-align: left; padding: 8px 10px; border: 0; border-radius: var(--raio); background: none;
+  font: inherit; font-size: .875rem; color: var(--texto-forte); text-decoration: none; cursor: pointer; }
+.mais-item:hover { background: var(--fundo); color: var(--texto-forte); }
+.mais-info { margin: 4px 0 0; padding: 8px 10px; border-top: 1px solid var(--borda); font-size: .8125rem; color: var(--texto-medio); }
+.mais-info b { display: block; margin-bottom: 4px; color: var(--texto-forte); font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; }
+.mais-info p { margin: 0; }
+.mais-info ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.mais-info li span { display: block; font-size: .75rem; color: var(--texto-fraco); }
+
+/* Linha da data e das redes: texto simples em vez de etiquetas */
+.redes-txt { color: var(--texto-medio); font-size: .8125rem; }
+.mudar-data > summary { display: inline-flex; align-items: center; gap: 6px; }
+.mudar-lapis { color: var(--texto-fraco); }
+.mudar-data > summary:hover .mudar-lapis { color: var(--verde-600); }
+.mudar-data .mudar { display: none; }
+
+/* Janela "Pedir um post" (e outras janelas simples) */
+.dialogo { border: 0; padding: 0; width: min(520px, calc(100vw - 32px)); border-radius: var(--raio-g); box-shadow: var(--sombra-alta); }
+.dialogo::backdrop { background: rgba(2, 5, 3, .55); }
+.dialogo-topo { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--borda); }
+.dialogo-topo h2 { margin: 0; font-size: 1.05rem; }
+.dialogo-fechar { width: 34px; height: 34px; border: 0; border-radius: var(--raio); background: none; font-size: 22px; color: var(--texto-medio); cursor: pointer; }
+.dialogo-fechar:hover { background: var(--fundo); }
+.dialogo-corpo { padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; }
+.dialogo-corpo label { font-weight: 600; font-size: .875rem; }
+.dialogo-corpo label small { display: block; font-weight: 400; color: var(--texto-medio); font-size: .8125rem; }
+.dialogo-corpo textarea { min-height: 5.5rem; }
+.dialogo-corpo input[type=datetime-local] { padding: .6rem .8rem; border: 1px solid var(--borda); border-radius: var(--raio); font: inherit; }
+.dialogo-corpo .formato-pedido { margin: 6px 0 0; display: flex; flex-wrap: wrap; gap: 6px 18px; }
+.dialogo-corpo .formato-pedido legend { font-weight: 600; font-size: .875rem; margin-bottom: 6px; }
+.dialogo-corpo .formato-pedido label { display: flex; align-items: center; gap: 6px; font-weight: 400; color: var(--texto-forte); }
+.dialogo-corpo .formato-pedido small { color: var(--texto-medio); }
+.dialogo-acoes { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 18px; border-top: 1px solid var(--borda); background: var(--fundo); }
+
+/* Calendário e biblioteca dentro da página comum */
+.pagina .legenda-estados, .pagina .calendario, .pagina .biblioteca { padding: 0; }
+.pagina-calendario { gap: 14px; }
+.cal-barra { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
+.cal-barra .mes-nav h2 { margin: 0; min-width: 190px; text-align: center; font-size: 1.25rem; }
+.cal-total { font-size: .875rem; color: var(--texto-medio); }
+.bib-barra .filtros-bib { margin-left: 0; }
+
+/* Páginas estreitas (Criar post, A minha conta, Utilizadores) com o mesmo título das outras */
+.pagina-estreita { padding-top: 2.25rem; }
+.pagina-estreita > h1 { font-size: 1.75rem; line-height: 1.15; }
+.pagina-estreita > .sub { font-size: .875rem; color: var(--texto-medio); }
+.lista-posts { grid-template-columns: repeat(auto-fill, minmax(min(100%, 640px), 1fr)); }
+.post .meta .estado { font-size: 12px; padding: 2px 10px; }
+.pagina { max-width: 1640px; }
+.dialogo-corpo .formato-pedido legend { color: var(--texto-forte); }
+@media (max-width: 640px) {
+  .resumo { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .resumo-item { flex-direction: column; align-items: flex-start; gap: 2px; padding: 10px 12px; }
+  .resumo-num { font-size: 1.25rem; }
+  .resumo-txt { font-size: .75rem; }
+}

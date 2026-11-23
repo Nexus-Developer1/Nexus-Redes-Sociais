@@ -4,29 +4,30 @@
 
 @section('body')
 
-<div class="pagina-calendario">
-    <div class="editor-barra">
+<div class="pagina pagina-calendario">
+    <x-cabecalho titulo="Calendário" sub="Os posts e as ideias de cada dia. Carregue num post para o abrir, ou no + de um dia para criar um.">
+        @if ($podeProporIdeias)
+            <form method="post" action="{{ route('calendario.propor') }}">
+                @csrf
+                <button class="btn" title="A IA propõe os temas da próxima semana (feriados, dias especiais e produtos). Também o faz sozinha à segunda-feira.">✨ Propor ideias</button>
+            </form>
+        @endif
+        <a class="btn btn-principal" href="{{ route('posts.create') }}">+ Criar post</a>
+    </x-cabecalho>
+
+    <div class="cal-barra">
         <div class="mes-nav">
             <a class="btn pequeno" href="{{ route('calendario', ['mes' => $anterior]) }}" title="Mês anterior" aria-label="Mês anterior">‹</a>
-            <h1>{{ ucfirst($mes->translatedFormat('F Y')) }}</h1>
+            <h2>{{ ucfirst($mes->translatedFormat('F Y')) }}</h2>
             <a class="btn pequeno" href="{{ route('calendario', ['mes' => $seguinte]) }}" title="Mês seguinte" aria-label="Mês seguinte">›</a>
             @unless ($mes->isSameMonth(now()))
                 <a class="btn pequeno" href="{{ route('calendario') }}">Hoje</a>
             @endunless
         </div>
-        <div class="barra-acoes">
-            <span class="resumo">
-                {{ $totalMes }} {{ $totalMes === 1 ? 'post' : 'posts' }} este mês
-                @if ($semData) · <a href="{{ route('painel', ['ver' => 'ideias']) }}">{{ $semData }} sem data</a>@endif
-            </span>
-            @if ($podeProporIdeias)
-                <form method="post" action="{{ route('calendario.propor') }}">
-                    @csrf
-                    <button class="btn" title="A IA propõe os temas da próxima semana (feriados, dias especiais e produtos). Também o faz sozinha à segunda-feira.">✨ Propor ideias</button>
-                </form>
-            @endif
-            <a class="btn btn-principal" href="{{ route('posts.create') }}">+ Criar post</a>
-        </div>
+        <span class="cal-total">
+            {{ $totalMes }} {{ $totalMes === 1 ? 'post' : 'posts' }} este mês
+            @if ($semData) · <a href="{{ route('painel', ['ver' => 'ideias']) }}">{{ $semData }} sem data</a>@endif
+        </span>
     </div>
     @if (session('ok'))<div class="aviso" role="status" @if (session('a_propor')) data-espera="propor" @endif>{{ session('ok') }}</div>@endif
 
