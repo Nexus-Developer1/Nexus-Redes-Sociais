@@ -10,19 +10,38 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
-/** Página "Notícias de IA": o último resumo do agente, os anteriores e as notícias recolhidas. */
+/**
+ * Página "Notícias de IA", em três separadores: o resumo (o último ou um anterior), todas as notícias recolhidas
+ * (com filtro por fonte) e os resumos anteriores.
+ */
 class NoticiasIaController extends Controller
 {
+    public const SEPARADORES = ['resumo', 'noticias', 'anteriores'];
+
     public function index(Request $request): View
     {
-        $resumos = ResumoIa::latest('fim')->limit(30)->get(['id', 'inicio', 'fim', 'conteudo', 'n_noticias']);
+        $ver = in_array($request->query('ver'), self::SEPARADORES, true) ? $request->query('ver') : 'resumo';
+        $resumos = ResumoIa::latest('fim')->limit(30)->get(['id', 'inicio', 'fim', 'conteudo', 'n_noticias', 'created_at']);
         $resumo = $request->filled('resumo') ? ResumoIa::find((int) $request->query('resumo')) : $resumos->first();
 
+        $porFonte = NoticiaIa::selectRaw('fonte, count(*) as n')->groupBy('fonte')->orderBy('fonte')->pluck('n', 'fonte');
+        $fonte = $porFonte->has($request->query('fonte')) ? $request->query('fonte') : null;
+        $noticias = $ver === 'noticias'
+            ? NoticiaIa::when($fonte, fn ($q) => $q->where('fonte', $fonte))->orderByDesc('publicada_em')->simplePaginate(40)->withQueryString()
+            : collect();
+
+        $noticiasDoResumo = $resumo?->noticias() ?? collect();
+
         return view('painel.noticias', [
+            'ver' => $ver,
             'resumo' => $resumo,
-            'noticiasDoResumo' => $resumo?->noticias() ?? collect(),
+            'noticiasDoResumo' => $noticiasDoResumo,
+            'fontesDoResumo' => $noticiasDoResumo->pluck('fonte')->unique()->count(),
             'resumos' => $resumos,
-            'noticias' => NoticiaIa::orderByDesc('publicada_em')->limit(40)->get(),
+            'noticias' => $noticias,
+            'porFonte' => $porFonte,
+            'fonte' => $fonte,
+            'totalNoticias' => $porFonte->sum(),
             'fontes' => count((array) config('ia.fontes_noticias')),
             'aTrabalhar' => Cache::has(NoticiasIaCommand::A_TRABALHAR) || Cache::has(NoticiasIaCommand::PEDIDO),
         ]);

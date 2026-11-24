@@ -4,9 +4,10 @@
 
 @section('body')
 @php
-    $data = fn ($d) => $d?->locale('pt_PT')->translatedFormat('j \d\e F');
-    // "Pedir um post sobre isto": vai para a IA como um pedido normal (fica em "Para aprovar", nada sai sem aprovação)
-    $pedir = fn (string $tema) => mb_substr($tema, 0, 1900);
+    $dia = fn ($d) => $d?->locale('pt_PT')->translatedFormat('j \d\e F');
+    // "Pedir um post sobre isto": vai para a IA como um pedido normal (fica em "Para aprovar"; nada sai sem aprovação)
+    $tema = fn (string $t) => mb_substr($t, 0, 1900);
+    $maisIcone = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
 @endphp
 
 <div class="pagina">
@@ -22,48 +23,50 @@
 
     @if (session('ok'))<div class="aviso" role="status">{{ session('ok') }}</div>@endif
     @if ($aTrabalhar)
-        <p class="faixa-info" role="status" data-recarregar="20">
+        <p class="faixa-info" role="status">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
             O agente está a recolher as notícias e a fazer o resumo. A página atualiza-se sozinha.
         </p>
     @endif
 
-    @if (! $resumo)
-        <div class="vazio">
-            <h2>Ainda não há nenhum resumo</h2>
-            <p>O primeiro sai na próxima segunda ou quinta-feira às 08:00. Para não esperar, carregue em “Recolher agora”.</p>
-        </div>
-        @if ($noticias->isNotEmpty())
-            <section class="bloco noticias-lado">
-                <h2>Notícias recolhidas</h2>
-                <ul class="noticias-lista">
-                    @foreach ($noticias as $n)
-                        <li>
-                            <a href="{{ $n->link }}" target="_blank" rel="noopener noreferrer">{{ $n->titulo }}</a>
-                            <small>{{ $n->fonte }}{{ $n->publicada_em ? ' · '.$data($n->publicada_em) : '' }}</small>
-                        </li>
-                    @endforeach
-                </ul>
-            </section>
-        @endif
-    @else
-        <div class="noticias-grelha">
-            <article class="bloco resumo-ia">
-                <header class="resumo-ia-topo">
-                    <span class="resumo-ia-periodo">{{ $data($resumo->inicio) }} a {{ $data($resumo->fim) }} · {{ $resumo->n_noticias }} notícias</span>
-                    <h2>{{ $resumo->conteudo['titulo'] ?? 'Notícias de IA' }}</h2>
-                    @if (! empty($resumo->conteudo['introducao']))<p class="resumo-ia-intro">{{ $resumo->conteudo['introducao'] }}</p>@endif
-                </header>
+    {{-- Separadores: o resumo fica sozinho; as notícias e os resumos anteriores à parte --}}
+    <nav class="separadores" aria-label="Notícias de IA">
+        <a href="{{ route('noticias', array_filter(['resumo' => request('resumo')])) }}" @if ($ver === 'resumo') aria-current="page" @endif>Resumo</a>
+        <a href="{{ route('noticias', ['ver' => 'noticias']) }}" @if ($ver === 'noticias') aria-current="page" @endif>Notícias <span>{{ $totalNoticias }}</span></a>
+        <a href="{{ route('noticias', ['ver' => 'anteriores']) }}" @if ($ver === 'anteriores') aria-current="page" @endif>Resumos anteriores <span>{{ $resumos->count() }}</span></a>
+    </nav>
 
+    @if ($ver === 'resumo')
+        @if (! $resumo)
+            <div class="vazio">
+                <h2>Ainda não há nenhum resumo</h2>
+                <p>O primeiro sai na próxima segunda ou quinta-feira às 08:00. Para não esperar, carregue em “Recolher agora”.</p>
+            </div>
+        @else
+            @php($c = $resumo->conteudo)
+            {{-- Cartão de topo: o título, o período, os números e o panorama --}}
+            <header class="bloco resumo-hero">
+                <span class="resumo-ia-periodo">{{ $dia($resumo->inicio) }} a {{ $dia($resumo->fim) }}</span>
+                <h2>{{ $c['titulo'] ?? 'Notícias de IA' }}</h2>
+                <ul class="resumo-numeros" aria-label="Números">
+                    <li><b>{{ $resumo->n_noticias }}</b> notícias</li>
+                    <li><b>{{ $fontesDoResumo }}</b> fontes</li>
+                    <li><b>{{ count($c['destaques'] ?? []) }}</b> destaques</li>
+                </ul>
+                @if (! empty($c['introducao']))<p class="resumo-ia-intro">{{ $c['introducao'] }}</p>@endif
+            </header>
+
+            <div class="resumo-colunas">
+                {{-- Destaques --}}
                 <ol class="destaques-ia">
-                    @foreach ($resumo->conteudo['destaques'] ?? [] as $d)
-                        <li class="destaque-ia">
+                    @foreach ($c['destaques'] ?? [] as $d)
+                        @php($deste = collect($d['noticias'] ?? [])->map(fn ($id) => $noticiasDoResumo[$id] ?? null)->filter())
+                        <li class="bloco destaque-ia">
                             <h3>{{ $d['titulo'] }}</h3>
                             <p>{{ $d['resumo'] }}</p>
                             <div class="destaque-ia-pe">
-                                @php($deste = collect($d['noticias'] ?? [])->map(fn ($id) => $noticiasDoResumo[$id] ?? null)->filter())
                                 @if ($deste->isNotEmpty())
-                                    {{-- "14 fontes · The Verge, TechCrunch": ao abrir, o título de cada notícia com o link --}}
+                                    {{-- "13 fontes · The Verge, TechCrunch": ao abrir, o título de cada notícia com o link --}}
                                     <details class="destaque-ia-fontes">
                                         <summary>{{ $deste->count() }} {{ $deste->count() === 1 ? 'fonte' : 'fontes' }} · {{ $deste->pluck('fonte')->unique()->implode(', ') }}</summary>
                                         <ul>
@@ -77,78 +80,107 @@
                                 @endif
                                 <form method="POST" action="{{ route('requests.store') }}" data-a-enviar="A pedir…">
                                     @csrf
-                                    <input type="hidden" name="topic" value="{{ $pedir('Post a partir das notícias de IA: '.$d['titulo'].'. '.$d['resumo']) }}">
+                                    <input type="hidden" name="topic" value="{{ $tema('Post a partir das notícias de IA: '.$d['titulo'].'. '.$d['resumo']) }}">
                                     <input type="hidden" name="formato" value="imagem">
-                                    <button type="submit" class="btn pequeno">Pedir um post sobre isto</button>
+                                    <button type="submit" class="btn-post" title="Pedir à IA um post sobre este tema">{!! $maisIcone !!} Post</button>
                                 </form>
                             </div>
                         </li>
                     @endforeach
                 </ol>
 
-                @if (! empty($resumo->conteudo['para_a_nexus']))
-                    <section class="para-nexus">
-                        <h3>O que isto significa para a NEXUS</h3>
-                        <p>{{ $resumo->conteudo['para_a_nexus'] }}</p>
-                    </section>
-                @endif
+                {{-- Ao lado: o que interessa à NEXUS e as ideias de posts --}}
+                <aside class="resumo-lado">
+                    @if (! empty($c['para_a_nexus']))
+                        <section class="para-nexus">
+                            <h3>
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg>
+                                O que significa para a NEXUS
+                            </h3>
+                            <p>{{ $c['para_a_nexus'] }}</p>
+                        </section>
+                    @endif
+                    @if (! empty($c['ideias_posts']))
+                        <section class="bloco ideias-ia">
+                            <h3>Ideias de posts</h3>
+                            <ul>
+                                @foreach ($c['ideias_posts'] as $ideia)
+                                    <li>
+                                        <span>{{ $ideia }}</span>
+                                        <form method="POST" action="{{ route('requests.store') }}" data-a-enviar="A pedir…">
+                                            @csrf
+                                            <input type="hidden" name="topic" value="{{ $tema($ideia) }}">
+                                            <input type="hidden" name="formato" value="imagem">
+                                            <button type="submit" class="btn-post" title="Pedir à IA este post">{!! $maisIcone !!} Post</button>
+                                        </form>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </section>
+                    @endif
+                    <p class="resumo-ia-nota">Resumo feito pela IA a partir dos títulos e descrições das notícias: confirme na fonte antes de usar um número ou um dado.</p>
+                </aside>
+            </div>
+        @endif
 
-                @if (! empty($resumo->conteudo['ideias_posts']))
-                    <section class="ideias-ia">
-                        <h3>Ideias de posts</h3>
-                        <ul>
-                            @foreach ($resumo->conteudo['ideias_posts'] as $ideia)
-                                <li>
-                                    <span>{{ $ideia }}</span>
-                                    <form method="POST" action="{{ route('requests.store') }}" data-a-enviar="A pedir…">
-                                        @csrf
-                                        <input type="hidden" name="topic" value="{{ $pedir($ideia) }}">
-                                        <input type="hidden" name="formato" value="imagem">
-                                        <button type="submit" class="btn pequeno">Pedir este post</button>
-                                    </form>
-                                </li>
-                            @endforeach
-                        </ul>
-                    </section>
-                @endif
-                <p class="resumo-ia-nota">Resumo feito pela IA a partir dos títulos e descrições das notícias: confirme na fonte antes de usar um dado.</p>
-            </article>
-
-            <aside class="noticias-lado">
-                @if ($resumos->count() > 1)
-                    <section class="bloco">
-                        <h2>Resumos anteriores</h2>
-                        <ul class="resumos-lista">
-                            @foreach ($resumos as $r)
-                                <li>
-                                    <a href="{{ route('noticias', ['resumo' => $r->id]) }}" @if ($r->is($resumo)) aria-current="true" @endif>
-                                        <b>{{ $r->conteudo['titulo'] ?? 'Resumo' }}</b>
-                                        <small>{{ $data($r->inicio) }} a {{ $data($r->fim) }}</small>
-                                    </a>
-                                </li>
-                            @endforeach
-                        </ul>
-                    </section>
-                @endif
-                <section class="bloco">
-                    <h2>Notícias recolhidas</h2>
-                    <ul class="noticias-lista">
-                        @foreach ($noticias as $n)
-                            <li>
-                                <a href="{{ $n->link }}" target="_blank" rel="noopener noreferrer">{{ $n->titulo }}</a>
-                                <small>{{ $n->fonte }}{{ $n->publicada_em ? ' · '.$data($n->publicada_em) : '' }}</small>
-                            </li>
-                        @endforeach
-                    </ul>
-                </section>
-            </aside>
+    @elseif ($ver === 'noticias')
+        {{-- Todas as notícias recolhidas: filtro por fonte e agrupadas por dia --}}
+        <div class="filtros-bib filtros-fontes" role="group" aria-label="Fonte">
+            <a href="{{ route('noticias', ['ver' => 'noticias']) }}" class="{{ $fonte ? '' : 'ativo' }}">Todas <b>{{ $totalNoticias }}</b></a>
+            @foreach ($porFonte as $nome => $n)
+                <a href="{{ route('noticias', ['ver' => 'noticias', 'fonte' => $nome]) }}" class="{{ $fonte === $nome ? 'ativo' : '' }}">{{ $nome }} <b>{{ $n }}</b></a>
+            @endforeach
         </div>
+        @if ($noticias->isEmpty())
+            <div class="vazio"><h2>Ainda não há notícias recolhidas</h2><p>Carregue em “Recolher agora”.</p></div>
+        @else
+            <div class="bloco noticias-dias">
+                @foreach ($noticias->groupBy(fn ($n) => $n->publicada_em?->format('Y-m-d') ?? '—') as $quando => $doDia)
+                    <section>
+                        <h3>{{ $quando === '—' ? 'Sem data' : ucfirst(\Illuminate\Support\Carbon::parse($quando)->locale('pt_PT')->translatedFormat('l, j \d\e F')) }}</h3>
+                        <ul class="noticias-lista">
+                            @foreach ($doDia as $n)
+                                <li>
+                                    <span class="fonte-etiqueta">{{ $n->fonte }}</span>
+                                    <a href="{{ $n->link }}" target="_blank" rel="noopener noreferrer">{{ $n->titulo }}</a>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </section>
+                @endforeach
+            </div>
+            @if ($noticias->previousPageUrl() || $noticias->nextPageUrl())
+                <nav class="paginas" aria-label="Páginas">
+                    @if ($noticias->previousPageUrl())<a class="btn" href="{{ $noticias->previousPageUrl() }}">‹ Mais recentes</a>@endif
+                    <span>Página {{ $noticias->currentPage() }}</span>
+                    @if ($noticias->nextPageUrl())<a class="btn" href="{{ $noticias->nextPageUrl() }}">Mais antigas ›</a>@endif
+                </nav>
+            @endif
+        @endif
+
+    @else
+        {{-- Resumos anteriores --}}
+        @if ($resumos->isEmpty())
+            <div class="vazio"><h2>Ainda não há resumos</h2></div>
+        @else
+            <ul class="resumos-cartoes">
+                @foreach ($resumos as $r)
+                    <li>
+                        <a class="bloco" href="{{ route('noticias', ['resumo' => $r->id]) }}">
+                            <span class="resumo-ia-periodo">{{ $dia($r->inicio) }} a {{ $dia($r->fim) }}</span>
+                            <b>{{ $r->conteudo['titulo'] ?? 'Resumo' }}</b>
+                            <small>{{ $r->n_noticias }} notícias · {{ count($r->conteudo['destaques'] ?? []) }} destaques</small>
+                        </a>
+                    </li>
+                @endforeach
+            </ul>
+        @endif
     @endif
 </div>
 
 @if ($aTrabalhar)
 <script>
-// Enquanto o agente trabalha, a página volta a carregar sozinha (sem perder o que se está a ler: só 20 s depois).
+// Enquanto o agente trabalha, a página volta a carregar sozinha (só 20 s depois, para dar tempo de ler).
 setTimeout(function () { location.reload(); }, 20000);
 </script>
 @endif

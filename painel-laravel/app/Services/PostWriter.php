@@ -521,6 +521,7 @@ class PostWriter
         'detecção' => 'deteção', 'detecções' => 'deteções',
         'equipe' => 'equipa', 'equipes' => 'equipas',
         'roteamento' => 'encaminhamento', 'governança' => 'governação',
+        'registrou' => 'registou', 'registraram' => 'registaram', 'registro' => 'registo', 'registros' => 'registos',
         'usuário' => 'utilizador', 'usuários' => 'utilizadores', 'usuária' => 'utilizadora',
         'tela' => 'ecrã', 'telas' => 'ecrãs', 'celular' => 'telemóvel', 'celulares' => 'telemóveis',
         'arquivo' => 'ficheiro', 'arquivos' => 'ficheiros',

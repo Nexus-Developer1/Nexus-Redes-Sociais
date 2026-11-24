@@ -113,6 +113,9 @@ class NoticiasIaTest extends TestCase
         Http::assertNothingSent();
 
         $this->actingAs($user)->get(route('noticias'))->assertOk()
-            ->assertSee('Agentes')->assertSee('https://rss.teste/a', false)->assertSee('Pedir um post sobre isto');
+            ->assertSee('Agentes')->assertSee('https://rss.teste/a', false)->assertSee('Pedir à IA um post sobre este tema');
+        $this->actingAs($user)->get(route('noticias', ['ver' => 'noticias', 'fonte' => 'Blog Atom']))->assertOk()
+            ->assertSee('Agentes nas empresas')->assertDontSee('Novo modelo');                // filtro por fonte
+        $this->actingAs($user)->get(route('noticias', ['ver' => 'anteriores']))->assertOk()->assertSee('Resumo');
     }
 }
