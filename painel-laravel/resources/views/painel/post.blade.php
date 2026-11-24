@@ -103,6 +103,7 @@
                                 @if ($totalHistorico > 8)<p class="historico-mais">As 8 entradas mais recentes de {{ $totalHistorico }}.</p>@endif
                             </div>
                         @endif
+                        @include('painel.parceiros-menu')
                         @include('painel.eliminar')
                     </div>
                 </details>
@@ -128,6 +129,10 @@
             @endif
             <span class="sep">·</span>
             <span class="redes-txt">{{ implode(' · ', $post->networks ?? []) }}</span>
+            @if ($post->enviar_parceiros)
+                <span class="sep">·</span>
+                <span class="redes-txt parceiros-txt" title="Vai também por email aos parceiros, à hora da publicação">✉ {{ $post->parceiros_enviado_em ? 'Enviado aos parceiros' : 'Parceiros' }}</span>
+            @endif
             {{-- Estado só quando diz alguma coisa: em cada secção quase todos os posts têm o mesmo --}}
             @if ($atrasado)
                 <span class="estado estado-atrasado" title="A hora marcada já passou ou falta menos de uma hora">Atrasado</span>

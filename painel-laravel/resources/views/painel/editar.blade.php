@@ -31,6 +31,12 @@
                 <div class="mais-painel">
                     @if ($post->image_path)
                         <a class="mais-item" href="{{ asset($post->image_path) }}" target="_blank" rel="noopener">Abrir a última imagem gerada ↗</a>
+                        @if ($post->enviar_parceiros && ! $post->parceiros_enviado_em)
+                            <form method="POST" action="{{ route('posts.partnersTest', $post) }}" data-a-enviar="A enviar o teste…">
+                                @csrf
+                                <button type="submit" class="mais-item">Enviar-me um teste (como os parceiros o recebem)</button>
+                            </form>
+                        @endif
                     @endif
                     @include('painel.eliminar')
                 </div>
@@ -267,6 +273,15 @@
                             <small title="Stories do Instagram: o servidor faz sozinho a versão 9:16 do post">(9:16)</small>@endif</label>
                     @endforeach
                 </div>
+                {{-- Email aos parceiros: à hora da publicação, só depois de aprovado --}}
+                @if ($post->parceiros_enviado_em)
+                    <p class="origem">✉ Enviado por email aos parceiros {{ $post->parceiros_enviado_em->locale('pt_PT')->translatedFormat('j \d\e F, H:i') }}.</p>
+                @else
+                    <input type="hidden" name="enviar_parceiros" value="0">
+                    <label class="check"><input type="checkbox" name="enviar_parceiros" value="1" @checked(old('enviar_parceiros', $post->enviar_parceiros))>
+                        Enviar também por email aos parceiros
+                        <small>({{ \App\Models\Parceiro::quantosAtivos() }} na <a href="{{ route('parceiros') }}">lista</a> · à hora da publicação, depois de aprovado)</small></label>
+                @endif
             </section>
         </form>
 

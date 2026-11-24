@@ -60,6 +60,13 @@
             <td style="font-family:{{ $fonte }};font-size:13px;color:{{ $texto }};background:#eef7f1;border-radius:6px;padding:6px 12px;">
                 {{ implode(' · ', $post->networks ?? []) }}
             </td>
+            @if ($post->enviar_parceiros && ! $post->parceiros_enviado_em)
+                {{-- Quem aprova tem de saber que também sai por email para fora --}}
+                <td width="8">&nbsp;</td>
+                <td style="font-family:{{ $fonte }};font-size:13px;color:{{ $texto }};background:#fff4d6;border-radius:6px;padding:6px 12px;">
+                    ✉ + email a {{ $n = \App\Models\Parceiro::quantosAtivos() }} {{ $n === 1 ? 'parceiro' : 'parceiros' }}
+                </td>
+            @endif
             @if ($post->imagens_carrossel)
                 <td width="8">&nbsp;</td>
                 <td style="font-family:{{ $fonte }};font-size:13px;color:#ffffff;background:{{ $verdeEscuro }};border-radius:6px;padding:6px 12px;">

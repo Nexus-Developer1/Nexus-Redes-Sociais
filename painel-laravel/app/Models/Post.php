@@ -30,7 +30,7 @@ class Post extends Model
 
     protected $fillable = [
         'title', 'caption', 'image_path', 'imagens_carrossel', 'imagem_story', 'image_alt', 'design', 'networks',
-        'scheduled_at', 'status', 'source', 'change_request',
+        'scheduled_at', 'status', 'source', 'change_request', 'enviar_parceiros',
     ];
 
     protected function casts(): array
@@ -42,6 +42,8 @@ class Post extends Model
             'scheduled_at' => 'datetime',
             'decided_at' => 'datetime',
             'published_at' => 'datetime',
+            'enviar_parceiros' => 'boolean',
+            'parceiros_enviado_em' => 'datetime',
         ];
     }
 
@@ -135,6 +137,39 @@ class Post extends Model
         return $this->hasMany(PostRequest::class);
     }
 
+    /** Emails deste post aos parceiros (um por parceiro). */
+    public function envios(): HasMany
+    {
+        return $this->hasMany(ParceiroEnvio::class);
+    }
+
+    /** Já saiu por email para algum parceiro (mesmo que o envio ainda não tenha acabado). */
+    public function enviadoAParceiros(): bool
+    {
+        return $this->parceiros_enviado_em !== null || $this->envios()->whereNotNull('enviado_em')->exists();
+    }
+
+    /** Assunto do email aos parceiros: o título da imagem (sem asteriscos nem mudanças de linha) ou o nome do post. */
+    public function assuntoParceiros(): string
+    {
+        $titulo = trim(preg_replace('/\s+/u', ' ', str_replace('*', '', (string) ($this->design['titulo'] ?? ''))));
+
+        return mb_substr($titulo !== '' ? $titulo : $this->title, 0, 150);
+    }
+
+    /** Legenda para o email aos parceiros: sem as linhas só de hashtags (no email não servem para nada). */
+    public function legendaParaEmail(): string
+    {
+        $linhas = array_filter(preg_split('/\R/u', (string) $this->caption),
+            fn ($l) => ! preg_match('/^\s*(#[\p{L}\p{N}_]+\s*)+$/u', $l));
+
+        return trim(preg_replace('/
+{3,}/', "
+
+", implode("
+", $linhas)));
+    }
+
     /** Quantos posts há em cada estado. Contado uma só vez por pedido (barra lateral, resumo da fila…). */
     public static function contagens(): \Illuminate\Support\Collection
     {
@@ -222,6 +257,9 @@ class Post extends Model
     {
         if ($this->status === self::PUBLISHED || $this->publicadoAlgures()) {
             return 'Este post já saiu nas redes sociais: fica no histórico e não pode ser eliminado.';
+        }
+        if ($this->enviadoAParceiros()) {
+            return 'Este post já foi enviado por email aos parceiros: fica no histórico e não pode ser eliminado.';
         }
         if (! in_array($this->status, self::ELIMINAVEIS, true)) {
             return 'Este post está aprovado e agendado. Use “Desfazer” primeiro e depois elimine-o.';

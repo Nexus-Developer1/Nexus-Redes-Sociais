@@ -32,6 +32,10 @@ class PostReview extends Model
         'publish_retry' => 'mandou tentar publicar de novo',
         'ai_failed' => 'tentou refazer com a IA, mas falhou',
         'reminder_sent' => 'enviou um lembrete por email',
+        'partners_on' => 'marcou para enviar também aos parceiros',
+        'partners_off' => 'tirou do envio aos parceiros',
+        'partners_test' => 'enviou um email de teste (como os parceiros o recebem)',
+        'partners_sent' => 'enviou por email aos parceiros',
     ];
 
     protected $fillable = ['user_id', 'action', 'comment'];

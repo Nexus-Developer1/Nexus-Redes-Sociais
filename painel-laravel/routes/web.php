@@ -6,6 +6,7 @@ use App\Http\Controllers\ContaController;
 use App\Http\Controllers\EmailDecisionController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\PainelController;
+use App\Http\Controllers\ParceirosController;
 use App\Http\Controllers\PostDecisionController;
 use App\Http\Controllers\PostEditorController;
 use App\Http\Controllers\PostRequestController;
@@ -70,6 +71,15 @@ Route::middleware(['auth', 'auth.session'])->group(function () {
     Route::post('/posts/{post}/imagens', [PostEditorController::class, 'upload'])->name('posts.upload');
     Route::post('/posts/{post}/enviar', [PostEditorController::class, 'submit'])->name('posts.submit');
     Route::post('/posts/{post}/eliminar', [PostEditorController::class, 'destroy'])->name('posts.destroy');
+    Route::post('/posts/{post}/parceiros', [PostEditorController::class, 'partners'])->name('posts.partners');
+    Route::post('/posts/{post}/parceiros/teste', [PostEditorController::class, 'partnersTest'])->name('posts.partnersTest')->middleware('throttle:10,1');
+
+    // Parceiros: quem recebe os posts por email
+    Route::get('/parceiros', [ParceirosController::class, 'index'])->name('parceiros');
+    Route::post('/parceiros', [ParceirosController::class, 'store'])->name('parceiros.store');
+    Route::post('/parceiros/importar', [ParceirosController::class, 'importar'])->name('parceiros.importar');
+    Route::post('/parceiros/{parceiro}/estado', [ParceirosController::class, 'estado'])->name('parceiros.estado');
+    Route::post('/parceiros/{parceiro}/remover', [ParceirosController::class, 'destroy'])->name('parceiros.destroy');
     Route::post('/posts/{post}/data', [PostEditorController::class, 'reschedule'])->name('posts.date');
     Route::get('/imagens/procurar', [PostEditorController::class, 'searchImages'])->name('images.search')->middleware('throttle:60,1');
     Route::post('/posts/{post}/imagens/pexels', [PostEditorController::class, 'useStockImage'])->name('posts.stock');

@@ -129,6 +129,7 @@ class PostEditorController extends Controller
             'networks.*' => [Rule::in(Post::NETWORKS)],
             'scheduled_at' => ['nullable', 'date'],
             'design' => ['nullable', 'json', 'max:20000'],
+            'enviar_parceiros' => ['nullable', 'boolean'],
         ], [
             'title.required' => 'O post precisa de um nome.',
             'networks.required' => 'Escolha pelo menos uma rede.',
@@ -141,6 +142,12 @@ class PostEditorController extends Controller
             'networks' => array_values($data['networks']),
             'scheduled_at' => $data['scheduled_at'] ?? null,
         ]);
+        // Depois de enviado aos parceiros já não se muda (não se "desenvia" um email).
+        $querParceiros = (bool) ($data['enviar_parceiros'] ?? $post->enviar_parceiros);
+        if ($querParceiros !== $post->enviar_parceiros && ! $post->parceiros_enviado_em) {
+            $post->enviar_parceiros = $querParceiros;
+            $post->reviews()->create(['user_id' => $request->user()->id, 'action' => $querParceiros ? 'partners_on' : 'partners_off']);
+        }
         if (! empty($data['design'])) {
             $antigo = $post->design ?? [];
             $post->design = PostRenderer::limparDesign(json_decode($data['design'], true) ?: [], $post);
@@ -395,6 +402,45 @@ class PostEditorController extends Controller
         ]);
 
         return $voltar()->with('ok', "“{$post->title}” foi eliminado.");
+    }
+
+    /**
+     * "Enviar também aos parceiros" (menu "⋯" do cartão). Só antes de aprovar: o que sai por email
+     * também tem de ser aprovado por uma pessoa. Depois de enviado, já não muda.
+     */
+    public function partners(Request $request, Post $post): RedirectResponse
+    {
+        $this->mustBeEditable($post);
+        abort_if($post->parceiros_enviado_em !== null, 409, 'Este post já foi enviado aos parceiros.');
+        $quer = $request->boolean('enviar');
+        if ($quer !== $post->enviar_parceiros) {
+            $post->update(['enviar_parceiros' => $quer]);
+            $post->reviews()->create(['user_id' => $request->user()->id, 'action' => $quer ? 'partners_on' : 'partners_off']);
+        }
+        $quantos = \App\Models\Parceiro::quantosAtivos();
+
+        return back()->with('ok', $quer
+            ? "“{$post->title}” vai também por email a {$quantos} ".($quantos === 1 ? 'parceiro' : 'parceiros').', à hora da publicação, depois de aprovado.'
+            : "“{$post->title}” já não vai por email aos parceiros.");
+    }
+
+    /** Email de teste para quem está no painel: ver como os parceiros recebem este post, antes de aprovar. */
+    public function partnersTest(Request $request, Post $post): RedirectResponse
+    {
+        if (! $post->image_path) {
+            return back()->with('erro', 'Gere a imagem do post antes de enviar um teste.');
+        }
+        try {
+            \Illuminate\Support\Facades\Mail::to($request->user()->email, $request->user()->name)
+                ->send(new \App\Mail\PostParaParceiros($post, null, $request->user()->name, teste: true));
+        } catch (Throwable $e) {
+            report($e);
+
+            return back()->with('erro', 'O email de teste não foi enviado: '.$e->getMessage());
+        }
+        $post->reviews()->create(['user_id' => $request->user()->id, 'action' => 'partners_test', 'comment' => $request->user()->email]);
+
+        return back()->with('ok', "Email de teste enviado para {$request->user()->email}.");
     }
 
     private function mustBeEditable(Post $post): void

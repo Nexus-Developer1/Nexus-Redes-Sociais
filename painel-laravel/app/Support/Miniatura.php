@@ -21,18 +21,36 @@ class Miniatura
         if (! $caminho) {
             return '';
         }
+        $relativo = self::relativo($caminho, $largura);
+
+        return asset($relativo);
+    }
+
+    /** Ficheiro da miniatura no disco (ou do original), ex.: para ir dentro de um email. Null se não existir. */
+    public static function caminho(?string $caminho, int $largura = 480): ?string
+    {
+        if (! $caminho || ! is_file(public_path($caminho))) {
+            return null;
+        }
+
+        return public_path(self::relativo($caminho, $largura));
+    }
+
+    /** Caminho (relativo a public/) da miniatura, feita na primeira vez; o original se não der para a fazer. */
+    private static function relativo(string $caminho, int $largura): string
+    {
         $original = public_path($caminho);
         if (! is_file($original) || ! function_exists('imagecreatefromstring')) {
-            return asset($caminho);
+            return $caminho;
         }
 
         $nome = md5($caminho.'|'.filemtime($original).'|'.$largura).'.jpg';
         $destino = public_path(self::PASTA.'/'.$nome);
         if (! is_file($destino) && ! self::fazer($original, $destino, $largura)) {
-            return asset($caminho);
+            return $caminho;
         }
 
-        return asset(self::PASTA.'/'.$nome);
+        return self::PASTA.'/'.$nome;
     }
 
     private static function fazer(string $original, string $destino, int $largura): bool

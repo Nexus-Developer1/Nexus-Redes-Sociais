@@ -712,3 +712,10 @@ a.resumo-item:hover { border-color: var(--verde-300); color: inherit; }
 .mais-nota { margin-bottom: 0; padding: 8px 10px; font-size: .8125rem; color: var(--texto-medio); }
 .editor-barra .mais-opcoes > summary { width: 40px; height: 40px; border: 1px solid var(--borda); background: #fff; }
 .mais-painel > .mais-separado:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
+
+/* ---------- Parceiros (posts também por email) ---------- */
+.parceiros-forms { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 16px; align-items: start; }
+.formulario textarea { font: inherit; font-weight: 400; padding: 9px 11px; border: 1px solid #D1D5DB; border-radius: 8px; resize: vertical; }
+.parceiros-resumo { margin: 8px 0 4px; font-size: .875rem; color: var(--texto-medio); }
+.parceiro-fora .user-info { opacity: .6; }
+.parceiros-txt { color: var(--verde-600); font-weight: 600; }

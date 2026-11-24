@@ -70,6 +70,15 @@ Sistema que cria posts para as redes sociais da NEXUS de forma autónoma.
     Um só processo de cada vez (cache lock). Nada sai mais de 6 h depois da hora marcada (`PublicarPosts::MAX_ATRASO_HORAS`): fica uma nota para mudar a data.
     Depois de 3 falhas, o cartão tem "Tentar publicar de novo".
   - `php artisan post:lembrar`: de hora a hora (8h–20h) envia um lembrete por email dos posts ainda por aprovar a menos de 48 h da data (um por versão, `posts.lembrete_em`).
+  - `php artisan post:enviar-parceiros [--simular]` (cron a cada 5 min): **posts também por email aos parceiros** (desde 24 nov).
+    Lista na página "Parceiros" (`parceiros`: adicionar, colar do Excel/CSV, "Parar de enviar" = `ativo` false; importar nunca reativa
+    quem saiu). Cada post escolhe-se à mão: "Enviar também aos parceiros" (`posts.enviar_parceiros`) no "⋯" do cartão ou no passo 4 do
+    editor, só antes de aprovar (o email de aprovação diz "+ email a N parceiros"). Sai à hora marcada do post, só aprovado/publicado,
+    até 6 h depois (como `post:publicar`, independente da Meta). Um email por parceiro (`App\Mail\PostParaParceiros`), registado em
+    `parceiro_envios` (único por post+parceiro: nunca repete; 3 tentativas; até 120 por volta, 2,1 s entre emails = limite do M365).
+    As imagens vão DENTRO do email (JPEG 720 px, `Miniatura::caminho`): os parceiros não chegam ao servidor interno. Legenda sem as
+    linhas de hashtags; sair = link mailto para o remetente. Fim do envio: `posts.parceiros_enviado_em` + histórico; depois disso o post
+    não se elimina. "Enviar-me um teste" manda o mesmo email só para quem carrega.
   **Regras de segurança (23 nov 2026):** as decisões são atómicas (`Post::decide(..., $de)` só grava se o post ainda estiver nesses estados);
   a IA ao refazer só grava se o post ainda estiver à espera DESSA alteração (fica "Em criação" enquanto gera a imagem) e só muda a data/redes se o pedido falar delas;
   aprovar exige imagem e data; "Desfazer" é recusado se o post já saiu numa rede; pedidos "a fazer" há mais de 20 min passam a falhados.

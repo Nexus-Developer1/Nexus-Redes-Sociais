@@ -14,5 +14,8 @@ Schedule::command('post:tratar-pedidos')->everyMinute()->withoutOverlapping(15)-
 // Calendário automático: troca temas pedidos, faz as ideias uns dias antes da data e propõe as da semana seguinte.
 Schedule::command('post:calendario-ia')->everyMinute()->withoutOverlapping(15)->runInBackground();
 
+// Envia por email aos parceiros os posts aprovados marcados com "Enviar também aos parceiros", à hora marcada.
+Schedule::command('post:enviar-parceiros')->everyFiveMinutes()->withoutOverlapping(30)->runInBackground();
+
 // Lembrete por email dos posts ainda por aprovar a menos de 48 h da data (de hora a hora, em horário de expediente).
 Schedule::command('post:lembrar')->hourly()->between('8:00', '20:00')->withoutOverlapping(30)->runInBackground();
