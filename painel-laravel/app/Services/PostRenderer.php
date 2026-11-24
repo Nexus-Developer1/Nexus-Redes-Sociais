@@ -230,7 +230,7 @@ class PostRenderer
                 .'</body></html>';
             File::put("{$sessao}/email.html", $html);
             $png = "{$sessao}/email.png";
-            $r = Process::timeout(90)
+            $r = Process::timeout(90)->path($sessao) // corre na pasta de trabalho (o browser não chega a outras)
                 ->env(['HOME' => $sessao, 'XDG_CONFIG_HOME' => $sessao, 'XDG_CACHE_HOME' => $sessao])
                 ->run($this->comando($this->browser(), "{$sessao}/email.html", $png, 1200, 800, "{$sessao}/perfil"));
             if (! is_file($png)) {
