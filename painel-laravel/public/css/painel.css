@@ -23,7 +23,9 @@ p { margin: 0; }
 .nav-num { margin-left: auto; min-width: 1.5rem; padding: 1px 8px; border-radius: 999px; text-align: center;
   font-size: .75rem; font-weight: 600; background: rgba(255,255,255,.10); color: rgba(255,255,255,.75); }
 .nav-num--forte { background: var(--lateral-barra); color: var(--verde-900); }
-.lateral__criar { display: flex; align-items: center; justify-content: center; gap: .5rem; width: 100%; margin-top: 1.5rem; padding-top: .75rem; padding-bottom: .75rem; }
+/* "Criar post" fica fixo em baixo, logo acima da pessoa (o menu estica-se e o margin-top: auto empurra-o) */
+.lateral__criar { display: flex; align-items: center; justify-content: center; gap: .5rem; width: 100%; margin-top: auto; padding-top: .75rem; padding-bottom: .75rem; }
+.lateral__nav > :nth-last-child(2) { margin-bottom: 1.5rem; } /* espaço mínimo se o menu for comprido */
 .lateral__criar svg { width: 1.1rem; height: 1.1rem; }
 .lateral__marca, .lateral__avatar, .lateral__quem { text-decoration: none; }
 .lateral__quem { display: flex; flex-direction: column; }
