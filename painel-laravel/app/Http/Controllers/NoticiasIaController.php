@@ -11,12 +11,12 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 /**
- * Página "Notícias de IA", em três separadores: o resumo (o último ou um anterior), todas as notícias recolhidas
- * (com filtro por fonte) e os resumos anteriores.
+ * Página "Notícias de IA", em quatro separadores: o resumo (o último ou um anterior), todas as notícias de IA recolhidas
+ * (com filtro por fonte), as notícias dos parceiros tecnológicos da NEXUS (com filtro por marca) e os resumos anteriores.
  */
 class NoticiasIaController extends Controller
 {
-    public const SEPARADORES = ['resumo', 'noticias', 'anteriores'];
+    public const SEPARADORES = ['resumo', 'noticias', 'parceiros', 'anteriores'];
 
     public function index(Request $request): View
     {
@@ -24,17 +24,30 @@ class NoticiasIaController extends Controller
         $resumos = ResumoIa::latest('fim')->limit(30)->get(['id', 'inicio', 'fim', 'conteudo', 'n_noticias', 'created_at']);
         $resumo = $request->filled('resumo') ? ResumoIa::find((int) $request->query('resumo')) : $resumos->first();
 
-        $porFonte = NoticiaIa::selectRaw('fonte, count(*) as n')->groupBy('fonte')->orderBy('fonte')->pluck('n', 'fonte');
+        $porFonte = NoticiaIa::deIa()->selectRaw('fonte, count(*) as n')->groupBy('fonte')->orderBy('fonte')->pluck('n', 'fonte');
         $fonte = $porFonte->has($request->query('fonte')) ? $request->query('fonte') : null;
         $procura = mb_substr(trim((string) $request->query('q')), 0, 80);
         $noticias = $ver === 'noticias'
-            ? NoticiaIa::when($fonte, fn ($q) => $q->where('fonte', $fonte))
+            ? NoticiaIa::deIa()->when($fonte, fn ($q) => $q->where('fonte', $fonte))
                 ->when($procura !== '', fn ($q) => $q->where(fn ($q) => $q->where('titulo', 'like', '%'.$procura.'%')
                     ->orWhere('descricao', 'like', '%'.$procura.'%')))
                 ->orderByDesc('publicada_em')->simplePaginate(40)->withQueryString()
             : collect();
 
         $noticiasDoResumo = $resumo?->noticias() ?? collect();
+
+        // Parceiros: as marcas da configuração (pela ordem de lá, mesmo sem notícias) e o número de notícias de cada uma
+        $contagem = NoticiaIa::deParceiros()->selectRaw('fonte, count(*) as n')->groupBy('fonte')->pluck('n', 'fonte');
+        $marcas = collect(array_keys((array) config('ia.fontes_parceiros')))->mapWithKeys(fn ($m) => [$m => (int) ($contagem[$m] ?? 0)]);
+        $marca = $marcas->has($request->query('marca')) ? $request->query('marca') : null;
+        $parceiros = $ver === 'parceiros'
+            ? NoticiaIa::deParceiros()->when($marca, fn ($q) => $q->where('fonte', $marca))
+                ->orderByDesc('publicada_em')->simplePaginate(30)->withQueryString()
+            : collect();
+        // no resumo: a novidade mais recente de cada parceiro (até 6 marcas), numa faixa
+        $novidades = $ver === 'resumo'
+            ? NoticiaIa::deParceiros()->orderByDesc('publicada_em')->limit(60)->get()->unique('fonte')->take(6)->values()
+            : collect();
 
         return view('painel.noticias', [
             'ver' => $ver,
@@ -48,6 +61,11 @@ class NoticiasIaController extends Controller
             'procura' => $procura,
             'totalNoticias' => $porFonte->sum(),
             'fontes' => count((array) config('ia.fontes_noticias')),
+            'marcas' => $marcas,
+            'marca' => $marca,
+            'parceiros' => $parceiros,
+            'totalParceiros' => $contagem->sum(),
+            'novidades' => $novidades,
             'aTrabalhar' => Cache::has(NoticiasIaCommand::A_TRABALHAR) || Cache::has(NoticiasIaCommand::PEDIDO),
         ]);
     }

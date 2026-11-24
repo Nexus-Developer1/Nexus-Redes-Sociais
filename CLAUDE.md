@@ -85,6 +85,13 @@ Sistema que cria posts para as redes sociais da NEXUS de forma autónoma.
     guardado em `resumos_ia`). Segunda e quinta às 08:00; "Recolher agora" põe um pedido em cache que o `--pedido` (a cada minuto)
     atende. O texto dos feeds vai à IA como DADOS (nunca instruções) e só se mostra escapado; a IA só pode citar ids da lista.
     Em cada destaque e ideia há "Pedir um post sobre isto" (um pedido à IA, como o "Pedir um post à IA").
+    **Parceiros tecnológicos** (24 nov): separador "Parceiros" com as notícias das 13 marcas de `config/ia.php` `fontes_parceiros`
+    (AMD, Intel, NVIDIA, Supermicro, Micron, Microsoft, VMware, DataCore, Open-E, Altaro, Riello UPS, Netgear, Ubiquiti), filtro por
+    marca e "Post" em cada notícia; no Resumo, a faixa "Novidades dos parceiros" (a mais recente de cada marca). Ficam na mesma
+    tabela com `noticias_ia.parceiro` = true (`NoticiaIa::deParceiros()` / `deIa()`), até 30 dias e 6 por marca, e **não entram no
+    resumo da IA** (a Groq gratuita não aguenta). Intel, Netgear, Ubiquiti e Micron não têm RSS que funcione: vão pelo Google
+    Notícias (títulos sem o " - site", páginas genéricas com menos de 4 palavras ficam de fora). Logótipos em `public/img/fontes/`
+    (AMD e Supermicro só têm ícones de 16 px: aparecem as iniciais).
   - **Menu (24 nov):** a página "Pedidos de posts" juntou-se a "Ideias e em criação": no topo dessa secção, os pedidos à IA ainda
     sem post (a fazer agora, com rodinha, ou que falharam, com o erro e "Tentar outra vez"; `painel/pedidos.blade.php`). Os pedidos
     de uma ideia já aparecem no cartão da ideia. `?ver=pedidos` abre "Ideias e em criação". O número do menu conta também esses pedidos. **"Publicados" e "Rejeitados" são agora uma só entrada, "Histórico"** (`?ver=historico&estado=publicados|rejeitados`,

@@ -17,7 +17,7 @@
 @endphp
 
 <div class="pagina">
-    <x-cabecalho titulo="Notícias de IA" :sub="'Um agente recolhe as notícias de '.$fontes.' fontes à segunda e à quinta-feira, às 08:00, e a IA faz o resumo.'">
+    <x-cabecalho titulo="Notícias de IA" :sub="'Um agente recolhe as notícias de '.$fontes.' fontes de IA e dos '.$marcas->count().' parceiros da NEXUS à segunda e à quinta-feira, às 08:00, e a IA faz o resumo.'">
         <form method="POST" action="{{ route('noticias.recolher') }}" data-a-enviar="A pedir…">
             @csrf
             <button type="submit" class="btn btn-principal" @disabled($aTrabalhar)>
@@ -39,6 +39,7 @@
     <nav class="separadores" aria-label="Notícias de IA">
         <a href="{{ route('noticias', array_filter(['resumo' => request('resumo')])) }}" @if ($ver === 'resumo') aria-current="page" @endif>Resumo</a>
         <a href="{{ route('noticias', ['ver' => 'noticias']) }}" @if ($ver === 'noticias') aria-current="page" @endif>Notícias <span>{{ $totalNoticias }}</span></a>
+        <a href="{{ route('noticias', ['ver' => 'parceiros']) }}" @if ($ver === 'parceiros') aria-current="page" @endif>Parceiros <span>{{ $totalParceiros }}</span></a>
         <a href="{{ route('noticias', ['ver' => 'anteriores']) }}" @if ($ver === 'anteriores') aria-current="page" @endif>Resumos anteriores <span>{{ $resumos->count() }}</span></a>
     </nav>
 
@@ -140,6 +141,21 @@
             <p class="resumo-ia-nota">Resumo feito pela IA a partir dos títulos e descrições das notícias: confirme na fonte antes de usar um número ou um dado.</p>
         @endif
 
+        @if ($novidades->isNotEmpty())
+            {{-- As novidades mais recentes dos parceiros (o resumo da IA é só das notícias de IA) --}}
+            <section class="novidades-parceiros">
+                <div class="novidades-topo">
+                    <h3>Novidades dos parceiros</h3>
+                    <a href="{{ route('noticias', ['ver' => 'parceiros']) }}">Ver todas ›</a>
+                </div>
+                <div class="noticias-cartoes">
+                    @foreach ($novidades as $n)
+                        @include('painel.noticia-parceiro')
+                    @endforeach
+                </div>
+            </section>
+        @endif
+
     @elseif ($ver === 'noticias')
         {{-- Barra: fonte e pesquisa (em vez de 10 etiquetas em duas filas) --}}
         <form method="GET" action="{{ route('noticias') }}" class="noticias-barra" data-filtro-noticias>
@@ -207,6 +223,39 @@
             s.addEventListener('change', function () { s.form.submit(); });
         });
         </script>
+
+    @elseif ($ver === 'parceiros')
+        {{-- Parceiros tecnológicos da NEXUS: uma etiqueta por marca (com o logótipo) para filtrar --}}
+        <nav class="marcas-filtro" aria-label="Marcas">
+            <a href="{{ route('noticias', ['ver' => 'parceiros']) }}" @if (! $marca) aria-current="true" @endif>Todas <span>{{ $totalParceiros }}</span></a>
+            @foreach ($marcas as $nome => $num)
+                <a href="{{ route('noticias', ['ver' => 'parceiros', 'marca' => $nome]) }}" @if ($marca === $nome) aria-current="true" @endif>
+                    @if ($u = $logo($nome))<img src="{{ $u }}" alt="" width="18" height="18">@endif
+                    {{ $nome }} <span>{{ $num }}</span>
+                </a>
+            @endforeach
+        </nav>
+
+        @if ($parceiros->isEmpty())
+            <div class="vazio">
+                <h2>{{ $marca ? 'Sem novidades de '.$marca.' no último mês' : 'Ainda não há notícias dos parceiros' }}</h2>
+                <p>{{ $marca ? 'Algumas marcas publicam pouco. Veja as outras.' : 'Carregue em “Recolher agora”.' }}</p>
+            </div>
+        @else
+            <div class="noticias-cartoes">
+                @foreach ($parceiros as $n)
+                    @include('painel.noticia-parceiro')
+                @endforeach
+            </div>
+            @if ($parceiros->previousPageUrl() || $parceiros->nextPageUrl())
+                <nav class="paginas" aria-label="Páginas">
+                    @if ($parceiros->previousPageUrl())<a class="btn" href="{{ $parceiros->previousPageUrl() }}">‹ Mais recentes</a>@endif
+                    <span>Página {{ $parceiros->currentPage() }}</span>
+                    @if ($parceiros->nextPageUrl())<a class="btn" href="{{ $parceiros->nextPageUrl() }}">Mais antigas ›</a>@endif
+                </nav>
+            @endif
+        @endif
+        <p class="resumo-ia-nota">Notícias dos sites oficiais das marcas (Intel, Netgear, Ubiquiti e Micron chegam pelo Google Notícias). Recolhidas com o resto, à segunda e à quinta-feira; entram as do último mês.</p>
 
     @else
         {{-- Resumos anteriores --}}

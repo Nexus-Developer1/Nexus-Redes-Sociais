@@ -24,7 +24,44 @@ class NoticiasIaTest extends TestCase
         parent::setUp();
         $this->travelTo(Carbon::parse('2026-11-26 08:00'));
         config(['ia.chave' => 'chave-de-teste', 'ia.endereco' => 'https://ia.teste/v1',
-            'ia.fontes_noticias' => ['Blog RSS' => 'https://rss.teste/feed', 'Blog Atom' => 'https://atom.teste/feed', 'Em baixo' => 'https://falha.teste/feed']]);
+            'ia.fontes_noticias' => ['Blog RSS' => 'https://rss.teste/feed', 'Blog Atom' => 'https://atom.teste/feed', 'Em baixo' => 'https://falha.teste/feed'],
+            'ia.fontes_parceiros' => []]);
+    }
+
+    public function test_noticias_dos_parceiros_no_separador_proprio_e_fora_do_resumo(): void
+    {
+        config(['ia.fontes_parceiros' => ['AMD' => 'https://amd.teste/rss', 'Intel' => 'https://news.google.com/rss/search?q=site:intel.com']]);
+        $google = '<?xml version="1.0"?><rss version="2.0"><channel><title>Google News</title>'
+            .'<item><title>Intel lança novo Xeon - Intel</title><link>https://news.google.com/rss/articles/abc</link>'
+            .'<description>&lt;a href="x"&gt;Intel lança novo Xeon&lt;/a&gt; Intel</description><source url="https://intel.com">Intel</source><pubDate>Fri, 06 Nov 2026 10:00:00 GMT</pubDate></item>'
+            .'</channel></rss>';
+        $amd = '<?xml version="1.0"?><rss version="2.0"><channel><title>AMD</title>'
+            .'<item><title>AMD anuncia EPYC</title><link>https://amd.teste/epyc</link><pubDate>Mon, 09 Nov 2026 10:00:00 +0000</pubDate></item>'
+            .'</channel></rss>';
+        $this->fingirFeedsEIa(['titulo' => 'Semana de modelos novos', 'introducao' => 'Muito movimento.',
+            'destaques' => [['titulo' => 'Modelo novo', 'resumo' => 'Foi lançado.', 'noticias' => [1]]],
+            'para_a_nexus' => 'Mais procura de GPUs.', 'ideias_posts' => ['GPUs para IA nas empresas']]);
+        Http::fake(['amd.teste/*' => Http::response($amd), 'news.google.com/*' => Http::response($google)]);
+
+        $this->artisan('ia:noticias')->assertSuccessful();
+
+        // parceiros: até 30 dias (as de 6 e 9 nov entram; numa fonte de IA ficavam de fora) e sem o " - Intel" do Google
+        $this->assertSame(2, NoticiaIa::deParceiros()->count());
+        $intel = NoticiaIa::where('fonte', 'Intel')->first();
+        $this->assertSame('Intel lança novo Xeon', $intel->titulo);
+        $this->assertNull($intel->descricao);
+        // o resumo da IA é só das notícias de IA
+        $this->assertSame(NoticiaIa::deIa()->count(), ResumoIa::first()->n_noticias);
+        Http::assertNotSent(fn (Request $r) => str_contains($r->url(), 'ia.teste') && str_contains($r->body(), 'EPYC'));
+
+        $user = User::factory()->create();
+        $this->actingAs($user)->get(route('noticias'))->assertOk()->assertSee('Novidades dos parceiros')->assertSee('AMD anuncia EPYC');
+        $this->actingAs($user)->get(route('noticias', ['ver' => 'parceiros']))->assertOk()
+            ->assertSee('AMD anuncia EPYC')->assertSee('Intel lança novo Xeon')->assertSee('nosso parceiro AMD', false);
+        $this->actingAs($user)->get(route('noticias', ['ver' => 'parceiros', 'marca' => 'AMD']))->assertOk()
+            ->assertSee('AMD anuncia EPYC')->assertDontSee('Intel lança novo Xeon');
+        // no separador das notícias de IA não aparecem
+        $this->actingAs($user)->get(route('noticias', ['ver' => 'noticias']))->assertOk()->assertDontSee('AMD anuncia EPYC');
     }
 
     private function rss(): string

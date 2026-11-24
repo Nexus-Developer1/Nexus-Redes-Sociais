@@ -36,4 +36,26 @@ return [
         'The Verge' => 'https://www.theverge.com/rss/ai-artificial-intelligence/index.xml',
         'MIT Technology Review' => 'https://www.technologyreview.com/topic/artificial-intelligence/feed',
     ],
+
+    // Parceiros tecnológicos da NEXUS (separador "Parceiros" da mesma página): marca => feed. Testados a 24 nov.
+    // Intel, Netgear, Ubiquiti e Micron não têm RSS que funcione (a Intel recusa pedidos automáticos): vão pelo
+    // Google Notícias (Intel, Micron e Ubiquiti só com páginas do site oficial). A Altaro é da Hornetsecurity (o blog passou para lá).
+    'fontes_parceiros' => [
+        'AMD' => 'https://ir.amd.com/news-events/press-releases/rss',
+        'Intel' => 'https://news.google.com/rss/search?hl=en-US&gl=US&ceid=US:en&q=site:intel.com+newsroom+when:30d',
+        'NVIDIA' => 'https://nvidianews.nvidia.com/releases.xml',
+        'Supermicro' => 'https://ir.supermicro.com/rss/pressrelease.aspx',
+        // Micron: só os comunicados oficiais (o site todo traz ofertas de emprego)
+        'Micron' => 'https://news.google.com/rss/search?hl=en-US&gl=US&ceid=US:en&q=site:investors.micron.com+when:30d',
+        'Microsoft' => 'https://blogs.microsoft.com/feed/',
+        'VMware' => 'https://blogs.vmware.com/feed',
+        'DataCore' => 'https://www.datacore.com/feed/',
+        'Open-E' => 'https://www.open-e.com/blog/feed/',
+        'Altaro' => 'https://www.hornetsecurity.com/en/feed/',
+        'Riello UPS' => 'https://www.riello-ups.com/feed/',
+        // Netgear: o site só dá páginas de produto, por isso vão as notícias de lançamentos (de outros sites)
+        'Netgear' => 'https://news.google.com/rss/search?hl=en-US&gl=US&ceid=US:en&q=NETGEAR+(launches+OR+introduces+OR+unveils)+when:30d',
+        // Ubiquiti: o blog oficial e as versões de software / avisos de segurança (sem o fórum)
+        'Ubiquiti' => 'https://news.google.com/rss/search?hl=en-US&gl=US&ceid=US:en&q=site:blog.ui.com+OR+site:community.ui.com/releases+when:30d',
+    ],
 ];
