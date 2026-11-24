@@ -122,6 +122,15 @@ class IaTest extends TestCase
             && str_contains($r->url(), 'w=1080&h=1350'));
     }
 
+    public function test_fotos_cliche_ficam_de_fora(): void
+    {
+        $this->assertTrue(\App\Services\BancoFotos::cliche('hacker, mask, computer'));
+        $this->assertTrue(\App\Services\BancoFotos::cliche('Anonymous, Hoodie, Laptop'));
+        $this->assertTrue(\App\Services\BancoFotos::cliche('security, padlock, keyboard'));
+        $this->assertFalse(\App\Services\BancoFotos::cliche('server, data center, network cables'));
+        $this->assertFalse(\App\Services\BancoFotos::cliche('blockchain, workstation, office')); // "lock" só como palavra inteira
+    }
+
     public function test_ia_sem_resposta_na_escolha_da_foto_fica_a_mais_relevante(): void
     {
         // Plano gratuito esgotado (429) só na escolha da foto: o post não pode ficar sem foto (padrão do feed).

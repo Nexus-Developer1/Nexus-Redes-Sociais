@@ -127,7 +127,10 @@ class PostWriter
                         .'de telemóvel ou de uma aplicação não serve para backup). '
                         .'3) NÃO servem: pessoas ou interiores sem tecnologia à vista, comida, animais, plantas, paisagens, desporto, dinheiro, '
                         .'nem fotos de uma marca ou aplicação concreta (vpn, logo, brand, app, nomes de marcas). '
-                        .'Se nenhuma cumprir as três regras, responde 0. Responde só com o número.'],
+                        .'4) Segue o estilo do feed da NEXUS: prefere equipamento real e bem iluminado (servidores, bastidores, cabos de rede, '
+                        .'workstations, UPS, discos), técnicos a trabalhar com equipamento e escritórios modernos com computadores. '
+                        .'Evita clichés: hackers encapuzados, máscaras, cadeados digitais, ecrãs de código no escuro, dinheiro. '
+                        .'Se nenhuma cumprir as regras, responde 0. Responde só com o número.'],
                     ['role' => 'user', 'content' => "Tema do post: {$tema}\n\nFotos:\n{$lista}"],
                 ],
                 'temperature' => 0,

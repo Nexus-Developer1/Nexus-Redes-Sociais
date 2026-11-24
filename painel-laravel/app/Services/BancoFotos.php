@@ -46,9 +46,29 @@ class BancoFotos
             }
         }
         $fotos = array_filter($this->procurar($pesquisa, $formato, min(50, $quantos * 2)),
-            fn ($f) => ! self::parecida((int) $f['id'], $evitar));
+            fn ($f) => ! self::parecida((int) $f['id'], $evitar) && ! self::cliche((string) ($f['alt'] ?? '')));
 
         return array_slice(array_values($fotos), 0, $quantos);
+    }
+
+    /**
+     * Fotos-cliché que não combinam com o feed da NEXUS (que mostra equipamento real, técnicos e escritórios):
+     * hackers encapuzados, máscaras, cadeados digitais, dinheiro, cartões, ecrãs de "código" no escuro.
+     * Ficam de fora logo na pesquisa, por isso nem a IA nem a escolha automática as podem usar.
+     */
+    public const CLICHES = ['hacker', 'hacking', 'anonymous', 'mask', 'hood', 'hoodie', 'criminal', 'crime', 'thief', 'fraud', 'scam',
+        'money', 'cash', 'dollar', 'euro', 'credit card', 'bitcoin', 'padlock', 'lock', 'skull', 'virus', 'matrix', 'binary', 'phishing hook'];
+
+    public static function cliche(string $etiquetas): bool
+    {
+        $etiquetas = ' '.mb_strtolower($etiquetas).' ';
+        foreach (self::CLICHES as $c) {
+            if (preg_match('/(?<![a-z])'.preg_quote($c, '/').'(?![a-z])/', $etiquetas)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
