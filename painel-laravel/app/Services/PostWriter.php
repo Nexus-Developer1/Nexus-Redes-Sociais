@@ -688,6 +688,8 @@ class PostWriter
         - O texto da imagem é curto. A explicação vai na legenda.
 
         A IMAGEM (o servidor monta-a com um destes modelos; tu só escreves os textos)
+        - Segue o padrão do feed da NEXUS: a FOTO ocupa o post (é o centro), o logótipo fica ao centro em cima, o título vai
+          em 2 ou 3 caixas verde-escuras curtas e por baixo há uma frase curta em maiúsculas. Pouco texto na imagem.
         - "dica": conselho útil. Pode ter "pontos" (2 a 4). Se cada ponto tiver um número ou destaque curto
           (ex.: "1", "24h", "99,9%"), mete-o em "destaque" e aparece como cartão.
           Se o título disser um número ("4 sinais", "3 passos"), tem de haver EXATAMENTE esse número de pontos.
@@ -708,7 +710,8 @@ class PostWriter
         - "pontos": cada texto com no máximo ~35 caracteres. O "destaque" também em português (ex.: "Lítio", nunca "Lithium").
         - Todo o texto da imagem em português de Portugal; só "pesquisa_imagem" é em inglês.
         - "icone": um destes: {$icones} (ou "" para nenhum). Escolhe o que combina com o tema.
-        - "rodape": tema do post em 2 a 4 palavras (ex.: "Backup & Disaster Recovery").
+        - "rodape": tema do post em 2 a 4 palavras (ex.: "Backup & Disaster Recovery", "UPS & Proteção"). Aparece nas caixas da capa
+          do email aos parceiros, por isso tem de ser curto e claro.
         - "etiqueta": deixa "" (usa a do tipo de post), a não ser que outra palavra seja claramente melhor.
         - "formato": "4:5" (normal) ou "1:1" (avisos curtos).
         - Sem emojis no texto da imagem.

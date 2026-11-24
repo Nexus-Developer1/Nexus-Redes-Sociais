@@ -144,13 +144,14 @@
   if (modelo === 'slide') { // slide do carrossel: destaque grande, título e texto
     var s = SLIDES[N - 1] || {};
     if (!s.titulo && !s.texto) avisos.push('o slide está vazio');
-    post.appendChild(h('header', null, [logo, h('div', 'contador', [contador])]));
+    post.appendChild(h('header', 'cabeca-centro', [logoCentro]));
+    post.appendChild(h('div', 'contador', [contador]));
     post.appendChild(h('main', null, [
       s.destaque ? h('div', 'slide-destaque', [s.destaque]) : null,
       s.titulo ? titulo(s.titulo) : null,
       s.texto ? h('div', 'slide-texto', [rico(s.texto)]) : null,
     ]));
-    post.appendChild(h('footer', null, [h('span', 'tema', [P.rodape || '']), h('span', 'site deslize-txt', ['Deslize ›'])]));
+    post.appendChild(h('div', 'deslize', ['›››']));
     document.body.appendChild(post);
   } else if (modelo === 'fecho') { // último slide: contactos da NEXUS
     post.appendChild(h('header', 'cabeca-centro', [logoCentro]));
@@ -159,7 +160,7 @@
       P.cta ? h('div', 'frase-sub', [P.cta]) : null,
       linhas([['site', P.site || 'nexus-solutions.pt'], ['email', 'info@nexus-solutions.pt'], ['telefone', '229 437 980']]),
     ]));
-    post.appendChild(h('footer', null, [h('span', 'tema', [P.rodape || '']), h('span', 'site', [contador])]));
+    post.appendChild(h('div', 'contador', [contador]));
     document.body.appendChild(post);
   } else if (modelo === 'numero' || modelo === 'frase' || modelo === 'montra') {
     // ---------- layouts do feed da NEXUS: número em destaque, frase, produto em destaque ----------
@@ -180,7 +181,7 @@
       post.appendChild(h('footer', 'rodape-logo', [logoCentro]));
     } else { // montra: produto em destaque
       if (!P.produto) avisos.push('falta a foto do produto (de preferência PNG com fundo transparente)');
-      post.appendChild(h('header', null, [logo, etiqueta ? h('div', 'etiqueta', [etiqueta]) : null]));
+      post.appendChild(h('header', 'cabeca-verde', [imagem(BASE + 'email/cabecalho.png', 'cabeca-verde-img', 'cabeçalho verde')]));
       var produto = P.produto
         ? h('div', 'ilustracao montra-foto', [imagem(P.produto, 'foto', 'foto do produto')])
         : h('div', 'ilustracao', [icone(P.icone || 'monitor')]);
@@ -192,20 +193,24 @@
     }
     document.body.appendChild(post);
   } else {
-  var parceiroNoTopo = modelo === 'produto' && P.parceiro;
-  var direita = parceiroNoTopo ? h('div', 'parceiro', [imagem(P.parceiro, '', 'logótipo do parceiro')])
-    : (etiqueta ? h('div', 'etiqueta', [etiqueta]) : null);
-  post.appendChild(h('header', null, [logo, direita]));
+  // Padrão do feed da NEXUS: logótipo ao centro em cima, foto a ocupar o post, título em caixas verde-escuras
+  // em baixo, texto de apoio em maiúsculas, sem etiqueta nem barra de rodapé. O produto leva o cabeçalho verde
+  // "We make IT for you" (como os posts da Riello e da ASUS).
+  if (modelo === 'produto') {
+    post.appendChild(h('header', 'cabeca-verde', [imagem(BASE + 'email/cabecalho.png', 'cabeca-verde-img', 'cabeçalho verde')]));
+  } else {
+    post.appendChild(h('header', 'cabeca-centro', [logoCentro]));
+  }
+  var parceiro = modelo === 'produto' && P.parceiro ? h('div', 'parceiro', [imagem(P.parceiro, '', 'logótipo do parceiro')]) : null;
 
   var conteudo;
   if (modelo === 'dica') {
     conteudo = [ilustracao(), titulo(P.titulo), texto(), pontos(), cta()];
   } else if (modelo === 'produto') {
-    conteudo = [ilustracao(), parceiroNoTopo && etiqueta ? h('div', 'etiqueta', [etiqueta]) : null,
-      titulo(P.titulo), texto(), P.pontos && P.pontos.length ? lista(P.pontos) : null, cta()];
+    conteudo = [ilustracao(), parceiro, titulo(P.titulo), texto(), P.pontos && P.pontos.length ? lista(P.pontos) : null, cta()];
   } else if (modelo === 'aviso') {
     if (!P.titulo) avisos.push('falta o título');
-    conteudo = [h('h1', 'grande', [rico(P.titulo)]), linhas([['calendario', P.data], ['relogio', P.hora]]), texto()];
+    conteudo = [titulo(P.titulo), linhas([['calendario', P.data], ['relogio', P.hora]]), texto()];
   } else { // evento
     var ev = P.evento || {};
     if (!ev.dia || !ev.mes) avisos.push('falta evento.dia ou evento.mes');
@@ -214,16 +219,11 @@
       linhas([['relogio', ev.hora], ['local', ev.local]]), texto(), cta()];
   }
   post.appendChild(h('main', null, conteudo));
-  post.appendChild(h('footer', null, [h('span', 'tema', [P.rodape || '']), h('span', 'site', [P.site || 'nexus-solutions.pt'])]));
   document.body.appendChild(post);
   } // fim dos modelos dica / produto / aviso / evento
 
   // Capa de um carrossel: convida a deslizar (no rodapé, onde estaria o site, que vai no último slide).
-  if (N === 0 && SLIDES.length) {
-    var site = post.querySelector('footer .site');
-    if (site) { site.textContent = 'Deslize ›'; site.className = 'site deslize-txt'; }
-    else post.appendChild(h('div', 'deslize', ['Deslize ›']));
-  }
+  if (N === 0 && SLIDES.length) post.appendChild(h('div', 'deslize', ['›››']));
 
   // ---------- ajustar o texto ao espaço ----------
   var t0 = TITULO[modelo] * ESCALA[formato];

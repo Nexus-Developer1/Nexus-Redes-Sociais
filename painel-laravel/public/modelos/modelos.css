@@ -161,3 +161,71 @@ footer .deslize-txt { color: var(--verde); font-weight: 700; letter-spacing: 2px
 /* Stories (9:16): o fundo fica tapado pela caixa de resposta, também nos layouts sem rodapé normal. */
 .f-9x16.m-numero main { padding-bottom: 260px; }
 .f-9x16 footer.rodape-logo { height: auto; padding-bottom: 250px; }
+
+/* ==========================================================================
+   Padrão do feed da NEXUS (24 nov): como as publicações no Instagram/Facebook —
+   logótipo ao centro, foto a ocupar o post, título em caixas verde-escuras (#004D31)
+   em baixo à esquerda, texto de apoio em maiúsculas, sem etiqueta nem barra de rodapé.
+   ========================================================================== */
+:root { --caixa-feed: #004d31; }
+
+/* logótipo branco, limpo (sem brilho néon) */
+.logo-centro img { filter: brightness(0) invert(1) drop-shadow(0 2px 10px rgba(0,0,0,.35)); }
+.logo-centro .sub { color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,.4); }
+
+/* a foto vê-se quase natural: só escurece um pouco em cima (logótipo) e em baixo (texto) */
+.tom-suave { background: linear-gradient(180deg, rgba(0,0,0,.42) 0%, rgba(0,0,0,0) 22%, rgba(0,0,0,0) 55%, rgba(0,0,0,.45) 100%); }
+
+/* sem barra de rodapé: o conteúdo fica em baixo, com margem */
+main { padding-bottom: 86px; }
+.f-9x16 main { padding-bottom: 290px; } /* Stories: o fundo fica tapado pela caixa de resposta */
+
+/* título: uma caixa verde-escura por linha, como "IMPLANTAÇÃO / DA REPÚBLICA" e "OUT / OF OFFICE" */
+.titulo { gap: 16px; }
+.caixa { background: var(--caixa-feed); border-left: 0; border-radius: 14px; padding: .17em .36em .05em; }
+.caixa em { color: var(--verde); text-shadow: none; }
+
+/* texto de apoio: maiúsculas brancas, sem caixa ("SOBRE MODERNIZAÇÃO DE SERVIDORES?") */
+.texto { margin-top: 24px; color: #fff; text-transform: uppercase; letter-spacing: 1.5px; line-height: 1.22;
+  text-shadow: 0 2px 10px rgba(0,0,0,.55); }
+
+/* pontos e lista: caixas mais pequenas, da mesma cor */
+.pontos { gap: 14px; }
+.ponto { background: var(--caixa-feed); border: 0; border-radius: 12px; }
+.ponto b { text-shadow: none; }
+.lista li { align-self: flex-start; background: var(--caixa-feed); border-radius: 10px; padding: 8px 16px 4px; margin-top: 10px;
+  text-transform: uppercase; letter-spacing: .5px; font-size: calc(var(--x) * .92); }
+.lista { display: flex; flex-direction: column; align-items: flex-start; }
+.lista .ico svg { stroke: var(--verde); }
+.cta { box-shadow: none; }
+
+/* aviso: data e hora em caixas pequenas por baixo do título */
+.m-aviso main { justify-content: flex-end; }
+.m-aviso .linhas { margin-top: 22px; display: flex; flex-wrap: wrap; gap: 12px; }
+.linha { margin-top: 0; background: var(--caixa-feed); border-radius: 12px; padding: 10px 18px 6px; font-size: var(--x);
+  text-transform: uppercase; letter-spacing: .5px; }
+.linha .ico svg { stroke: var(--verde); }
+
+/* evento: cartão da data na mesma cor */
+.data-card { background: var(--caixa-feed); border: 0; box-shadow: none; }
+.data-card .dia { color: #fff; }
+
+/* produto e produto em destaque: cabeçalho verde "We make IT for you" com a diagonal (posts da Riello e da ASUS) */
+.post > header.cabeca-verde { position: absolute; left: 0; top: 0; width: 1080px; z-index: 1; display: block; }
+.cabeca-verde-img { display: block; width: 1080px; height: auto; }
+.m-produto, .m-montra { padding-top: 330px; }
+.f-9x16.m-produto, .f-9x16.m-montra { padding-top: 470px; }
+.f-9x16 > header.cabeca-verde { top: 120px; }
+.m-produto main .parceiro { align-self: flex-start; margin-bottom: 22px; }
+footer.rodape-parceiro { border-top: 0; }
+
+/* número em destaque ("5 SINAIS DE QUE…"): número verde cheio e faixa verde-escura */
+.bloco-numero { border-top: 0; background: rgba(0, 77, 49, .9); }
+.numero-grande { color: var(--verde); -webkit-text-stroke: 0; filter: none; }
+
+/* carrossel: contador discreto em cima e as setas "›››" do feed */
+.contador { position: absolute; top: 56px; right: 56px; border: 0; background: rgba(0,0,0,.35); color: #fff; z-index: 2; }
+.f-9x16 .contador { top: 150px; }
+.deslize { right: 48px; bottom: 40px; padding: 0; background: none; box-shadow: none; color: #fff; font-size: 64px; font-weight: 500;
+  letter-spacing: -8px; text-shadow: 0 2px 10px rgba(0,0,0,.5); }
+.f-9x16 .deslize { bottom: 250px; }

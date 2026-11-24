@@ -34,6 +34,10 @@ Sistema que cria posts para as redes sociais da NEXUS de forma autónoma.
 
 ## Ficheiros
 - **Modelos fixos** (dica, produto, aviso, evento) em HTML/CSS/JS, formatos 4:5, 1:1 e 9:16: código em `painel-laravel/public/modelos/`, guia e exemplos em `modelos/` (ver `modelos/LEIA-ME.md`).
+  **Padrão do feed (24 nov):** os posts continuam o que já está no Instagram/Facebook da NEXUS — logótipo branco ao centro em
+  cima, foto a ocupar o post (pouco escurecida), título em caixas #004D31 em baixo à esquerda, texto de apoio em maiúsculas,
+  sem etiqueta nem barra de rodapé; produto e montra com o cabeçalho verde "We make IT for you" (`modelos/email/cabecalho.png`);
+  carrossel com "›››". O estilo antigo (fundo escuro, barras verdes, rodapé com o site) já não se usa.
   Cada post novo = pasta com `dados.json` → `.\scripts\gerar-post.ps1 -Pasta <pasta>` cria `post.html` + `post.png`
   e avisa (código 2) se o texto não couber ou faltar uma imagem. Usar sempre os modelos para posts novos.
   **Editor no painel** (para a equipa): "+ Criar post" e "Editar" → `PostEditorController`; a imagem é gerada no servidor pelo
