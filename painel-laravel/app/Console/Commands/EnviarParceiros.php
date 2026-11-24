@@ -31,6 +31,11 @@ class EnviarParceiros extends Command
 
     public function handle(): int
     {
+        if (! config('painel.emails_ligados')) {
+            $this->line('Emails desligados (EMAILS_LIGADOS=false): nada enviado aos parceiros.');
+
+            return self::SUCCESS; // nada fica marcado como enviado
+        }
         $trinco = Cache::lock('post:enviar-parceiros', 30 * 60);
         if (! $trinco->get()) {
             $this->line('Já há um envio a decorrer.');

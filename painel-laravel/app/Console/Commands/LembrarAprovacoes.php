@@ -20,6 +20,11 @@ class LembrarAprovacoes extends Command
 
     public function handle(): int
     {
+        if (! config('painel.emails_ligados')) {
+            $this->line('Emails desligados (EMAILS_LIGADOS=false): nenhum lembrete enviado.');
+
+            return self::SUCCESS; // nada fica marcado: ao ligar, os lembretes seguem normalmente
+        }
         $posts = Post::where('status', Post::PENDING)
             // um lembrete por versão: se o post mudou depois do lembrete, a nova versão também é lembrada
             ->where(fn ($q) => $q->whereNull('lembrete_em')->orWhereColumn('lembrete_em', '<', 'updated_at'))

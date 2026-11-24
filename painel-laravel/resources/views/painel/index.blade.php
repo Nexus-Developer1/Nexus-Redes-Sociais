@@ -47,6 +47,12 @@
                 Publicação automática por ligar: o que aprovar fica agendado e sai quando a Meta estiver ligada.
             </p>
         @endif
+        @unless (config('painel.emails_ligados'))
+            <p class="faixa-info" role="note">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5l8.5 7 8.5-7"/></svg>
+                Emails desligados por agora: não sai nenhum email (aprovação, lembretes ou parceiros). Aprove aqui no painel.
+            </p>
+        @endunless
         @if ($resumo['falhas'])
             <a class="aviso erro aviso-link" href="{{ route('painel', ['ver' => 'agendados']) }}">
                 {{ $resumo['falhas'] === 1 ? '1 post aprovado não foi publicado' : $resumo['falhas'].' posts aprovados não foram publicados' }}. Ver em “Agendados” ›

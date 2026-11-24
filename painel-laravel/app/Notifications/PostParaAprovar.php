@@ -28,6 +28,9 @@ class PostParaAprovar extends Notification
      */
     public static function enviar(Post $post, ?User $exceto = null, bool $lembrete = false): void
     {
+        if (! config('painel.emails_ligados')) {
+            return; // emails desligados (EMAILS_LIGADOS=false): o post fica só no painel
+        }
         $emails = config('painel.emails_aprovacao');
         if (! $emails) {
             Notificacoes::send(User::when($exceto, fn ($q) => $q->whereKeyNot($exceto->id))->get(), new self($post, null, null, $lembrete));

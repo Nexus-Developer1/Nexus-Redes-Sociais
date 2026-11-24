@@ -178,6 +178,28 @@ class ParceirosTest extends TestCase
         $this->assertFalse($post->fresh()->enviar_parceiros);
     }
 
+    public function test_com_os_emails_desligados_nao_sai_nenhum_email(): void
+    {
+        config(['painel.emails_ligados' => false]);
+        Mail::fake();
+        \Illuminate\Support\Facades\Notification::fake();
+        $user = User::factory()->create();
+        Parceiro::create(['nome' => 'Ana', 'email' => 'ana@x.pt']);
+        $aprovado = $this->novoPost();                                                     // hora de sair aos parceiros
+        $pendente = $this->novoPost(['status' => Post::PENDING, 'scheduled_at' => now()->addDay(), 'updated_at' => now()->subDay()]);
+
+        $this->artisan('post:enviar-parceiros')->assertSuccessful();
+        $this->artisan('post:lembrar')->assertSuccessful();
+        \App\Notifications\PostParaAprovar::enviar($pendente);
+        $this->actingAs($user)->post(route('posts.partnersTest', $pendente))->assertSessionHas('erro');
+
+        Mail::assertNothingSent();
+        \Illuminate\Support\Facades\Notification::assertNothingSent();
+        $this->assertNull($aprovado->fresh()->parceiros_enviado_em); // nada fica marcado: ao ligar, segue normalmente
+        $this->assertSame(0, ParceiroEnvio::count());
+        $this->actingAs($user)->get(route('painel'))->assertSee('Emails desligados por agora');
+    }
+
     public function test_caixas_da_capa_do_email_com_o_tema_do_post(): void
     {
         $caixas = fn (array $design) => \App\Services\PostRenderer::caixasEmail(new Post(['design' => $design]));

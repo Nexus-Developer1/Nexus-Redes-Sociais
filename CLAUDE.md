@@ -74,6 +74,9 @@ Sistema que cria posts para as redes sociais da NEXUS de forma autónoma.
     Um só processo de cada vez (cache lock). Nada sai mais de 6 h depois da hora marcada (`PublicarPosts::MAX_ATRASO_HORAS`): fica uma nota para mudar a data.
     Depois de 3 falhas, o cartão tem "Tentar publicar de novo".
   - `php artisan post:lembrar`: de hora a hora (8h–20h) envia um lembrete por email dos posts ainda por aprovar a menos de 48 h da data (um por versão, `posts.lembrete_em`).
+  - **Interruptor dos emails:** `EMAILS_LIGADOS=false` no .env do servidor = não sai nenhum email (aprovação, lembretes, parceiros,
+    testes); os posts continuam a ser feitos e o painel mostra "Emails desligados por agora". Nada fica marcado como enviado.
+    Desligado a 24 nov a pedido (recomeço do zero); para ligar: EMAILS_LIGADOS=true e `php artisan config:cache`.
   - `php artisan post:enviar-parceiros [--simular]` (cron a cada 5 min): **posts também por email aos parceiros** (desde 24 nov).
     Lista na página "Parceiros" (`parceiros`: adicionar, colar do Excel/CSV, "Parar de enviar" = `ativo` false; importar nunca reativa
     quem saiu). **Regra (24 nov): cada post tem SEMPRE as duas vertentes** — redes sociais (Instagram, Facebook e LinkedIn sempre,

@@ -435,6 +435,9 @@ class PostEditorController extends Controller
     /** Email de teste para quem está no painel: ver como os parceiros recebem este post, antes de aprovar. */
     public function partnersTest(Request $request, Post $post): RedirectResponse
     {
+        if (! config('painel.emails_ligados')) {
+            return back()->with('erro', 'Os emails estão desligados por agora: use “Ver o email” para ver como fica.');
+        }
         if (! $post->image_path) {
             return back()->with('erro', 'Gere a imagem do post antes de enviar um teste.');
         }
