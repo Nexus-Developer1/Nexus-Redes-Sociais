@@ -22,7 +22,8 @@ use Throwable;
  */
 class CalendarioIa extends Command
 {
-    protected $signature = 'post:calendario-ia {--propor : Propõe já as ideias da próxima semana}';
+    protected $signature = 'post:calendario-ia {--propor : Propõe já as ideias da próxima semana}
+        {--semanas=0 : Propõe já as ideias do resto desta semana e das N semanas seguintes (ex.: num recomeço)}';
 
     protected $description = 'A IA troca temas, faz as ideias perto da data e propõe as ideias da semana seguinte';
 
@@ -49,7 +50,15 @@ class CalendarioIa extends Command
             Cache::forget(self::PEDIDO_PROPOR);
         }
         try {
-            $this->proporSemana($escritor, $this->option('propor') || $pedido);
+            $semanas = (int) $this->option('semanas');
+            if ($semanas > 0) {
+                // Recomeço: o resto desta semana (semana 0) e as N seguintes, uma de cada vez (cada uma vê as anteriores).
+                for ($s = 0; $s <= min($semanas, 12); $s++) {
+                    $this->proporSemana($escritor, true, $s);
+                }
+            } else {
+                $this->proporSemana($escritor, $this->option('propor') || $pedido);
+            }
         } finally {
             Cache::forget(self::A_PROPOR);
         }
@@ -115,12 +124,18 @@ class CalendarioIa extends Command
         }
     }
 
-    /** 3. Ideias da semana seguinte, até ao número de posts por semana. */
-    private function proporSemana(PostWriter $escritor, bool $agora): void
+    /** 3. Ideias da semana seguinte (ou da semana $semana a contar desta: 0 = o resto desta), até ao número de posts por semana. */
+    private function proporSemana(PostWriter $escritor, bool $agora, int $semana = 1): void
     {
         $porSemana = (int) config('ia.ideias_por_semana');
-        $inicio = now()->startOfWeek()->addWeek();   // segunda-feira da próxima semana
+        $inicio = now()->startOfWeek()->addWeeks($semana);   // segunda-feira dessa semana
         $fim = $inicio->copy()->endOfWeek();
+        if ($semana === 0) {
+            $inicio = now()->addDay()->startOfDay(); // o resto desta semana: a partir de amanhã
+            if ($inicio->gt($fim)) {
+                return;
+            }
+        }
         $feito = "calendario-ia:semana:{$inicio->format('Y-m-d')}";
 
         if ($porSemana <= 0) {
@@ -143,7 +158,7 @@ class CalendarioIa extends Command
         $avisosEmFalta = max(0, $feriados - $daSemana->filter->isAviso()->count());
         if ($faltam <= 0 && $avisosEmFalta === 0) {
             Cache::put($feito, 1, now()->addDays(14));
-            $this->line('A próxima semana já tem posts suficientes.');
+            $this->line('A semana de '.$inicio->format('d/m').' já tem posts suficientes.');
 
             return;
         }

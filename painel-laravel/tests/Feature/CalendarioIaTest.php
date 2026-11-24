@@ -69,6 +69,35 @@ class CalendarioIaTest extends TestCase
         $this->assertSame(Post::IDEA, $ideia->fresh()->status);
     }
 
+    public function test_recomeco_propoe_o_resto_desta_semana_e_as_seguintes(): void
+    {
+        config(['ia.ideias_por_semana' => 1]);
+        $this->travelTo(Carbon::parse('2026-11-24 09:00')); // terça-feira, painel vazio
+        $ideias = fn (array $l) => $this->resposta(['ideias' => $l]);
+        Http::fake(['ia.teste/*' => Http::sequence()
+            ->push($ideias([['titulo' => 'Rede pronta para a Black Friday', 'tipo' => 'dica', 'notas' => '', 'quando' => '2026-11-26 10:00']]))
+            ->push($this->resposta([]))
+            ->push($ideias([['titulo' => 'Palavras-passe fortes', 'tipo' => 'dica', 'notas' => '', 'quando' => '2026-12-03 10:00'],
+                ['titulo' => 'Aviso: feriado de 1 de dezembro', 'tipo' => 'aviso', 'notas' => '', 'quando' => '2026-11-30 17:00']]))
+            ->push($this->resposta([]))
+            ->push($ideias([['titulo' => 'Workstations para CAD', 'tipo' => 'produto', 'notas' => '', 'quando' => '2026-12-10 10:00'],
+                ['titulo' => 'Aviso: feriado de 8 de dezembro', 'tipo' => 'aviso', 'notas' => '', 'quando' => '2026-12-07 17:00']]))
+            ->push($this->resposta([]))]);
+
+        $this->artisan('post:calendario-ia', ['--semanas' => 2])->assertSuccessful();
+
+        $datas = Post::orderBy('scheduled_at')->get()->map(fn ($p) => $p->scheduled_at->format('Y-m-d H:i').' '.$p->title)->all();
+        $this->assertSame([
+            '2026-11-26 10:00 Rede pronta para a Black Friday',   // o resto desta semana
+            '2026-11-30 17:00 Aviso: feriado de 1 de dezembro',   // avisos dos feriados: extra
+            '2026-12-03 10:00 Palavras-passe fortes',
+            '2026-12-07 17:00 Aviso: feriado de 8 de dezembro',
+            '2026-12-10 10:00 Workstations para CAD',
+        ], $datas);
+        $this->assertTrue(Post::all()->every(fn ($p) => $p->status === Post::IDEA && $p->enviar_parceiros
+            && in_array('LinkedIn', $p->networks, true)));
+    }
+
     public function test_propoe_as_ideias_da_semana_seguinte(): void
     {
         $this->ideia('2026-11-11 10:00', ['title' => 'Já marcado']); // 1 de 3: faltam 2
