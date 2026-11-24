@@ -79,6 +79,9 @@ class PostParaAprovar extends Notification
                 'logo' => is_file($logo) ? $logo : null,
                 'capa' => $anexos ? $this->miniatura(public_path($anexos[0])) : null,
                 'anexos' => count($anexos),
+                // Vertente email: quem aprova vê também a capa do email que vai aos parceiros
+                'capaParceiros' => $this->capaParceiros($post),
+                'parceiros' => \App\Models\Parceiro::quantosAtivos(),
             ]);
 
         foreach ($anexos as $imagem) {
@@ -86,6 +89,23 @@ class PostParaAprovar extends Notification
         }
 
         return $mail;
+    }
+
+    /** Capa do email aos parceiros (reduzida), ou null se o post não vai aos parceiros ou a capa falhar. */
+    private function capaParceiros(Post $post): ?string
+    {
+        if (! $post->enviar_parceiros || $post->parceiros_enviado_em || ! config('painel.email_capa')) {
+            return null;
+        }
+        try {
+            $relativo = app(\App\Services\PostRenderer::class)->capaEmail($post);
+
+            return $relativo ? $this->miniatura(public_path($relativo)) : null;
+        } catch (\Throwable $e) {
+            report($e);
+
+            return null;
+        }
     }
 
     /** Capa reduzida (600 px, JPEG) para aparecer dentro do email sem o tornar pesado. */

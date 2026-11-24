@@ -72,6 +72,7 @@ Route::middleware(['auth', 'auth.session'])->group(function () {
     Route::post('/posts/{post}/enviar', [PostEditorController::class, 'submit'])->name('posts.submit');
     Route::post('/posts/{post}/eliminar', [PostEditorController::class, 'destroy'])->name('posts.destroy');
     Route::post('/posts/{post}/parceiros', [PostEditorController::class, 'partners'])->name('posts.partners');
+    Route::get('/posts/{post}/email-parceiros', [PostEditorController::class, 'partnersPreview'])->name('posts.partnersPreview');
     Route::post('/posts/{post}/parceiros/teste', [PostEditorController::class, 'partnersTest'])->name('posts.partnersTest')->middleware('throttle:10,1');
 
     // Parceiros: quem recebe os posts por email

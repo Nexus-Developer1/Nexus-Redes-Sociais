@@ -72,8 +72,11 @@ Sistema que cria posts para as redes sociais da NEXUS de forma autónoma.
   - `php artisan post:lembrar`: de hora a hora (8h–20h) envia um lembrete por email dos posts ainda por aprovar a menos de 48 h da data (um por versão, `posts.lembrete_em`).
   - `php artisan post:enviar-parceiros [--simular]` (cron a cada 5 min): **posts também por email aos parceiros** (desde 24 nov).
     Lista na página "Parceiros" (`parceiros`: adicionar, colar do Excel/CSV, "Parar de enviar" = `ativo` false; importar nunca reativa
-    quem saiu). Cada post escolhe-se à mão: "Enviar também aos parceiros" (`posts.enviar_parceiros`) no "⋯" do cartão ou no passo 4 do
-    editor, só antes de aprovar (o email de aprovação diz "+ email a N parceiros"). Sai à hora marcada do post, só aprovado/publicado,
+    quem saiu). **Regra (24 nov): cada post tem SEMPRE as duas vertentes** — redes sociais (Instagram, Facebook e LinkedIn sempre,
+    `Post::REDES_SEMPRE`; a IA não tira nenhuma) e email aos parceiros (`posts.enviar_parceiros`, ligado por defeito). Só como exceção
+    se desliga ("Não enviar este aos parceiros" no "⋯" ou no passo 4 do editor), e só antes de aprovar. Quem aprova vê as duas: o email
+    de aprovação leva também a capa do email aos parceiros, e no painel "✉ Ver o email" (`posts.partnersPreview`) abre o email tal
+    como sai. Os posts aprovados antes desta regra não mudaram (foram aprovados sem o email). Sai à hora marcada do post, só aprovado/publicado,
     até 6 h depois (como `post:publicar`, independente da Meta). Um email por parceiro (`App\Mail\PostParaParceiros`), registado em
     `parceiro_envios` (único por post+parceiro: nunca repete; 3 tentativas; até 120 por volta, 2,1 s entre emails = limite do M365).
     As imagens vão DENTRO do email (JPEG 720 px, `Miniatura::caminho`): os parceiros não chegam ao servidor interno. Legenda sem as

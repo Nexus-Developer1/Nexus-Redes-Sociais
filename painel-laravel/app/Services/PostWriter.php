@@ -628,7 +628,8 @@ class PostWriter
             unset($design['etiqueta']); // vazio = a etiqueta do tipo de post
         }
 
-        $redes = array_values(array_intersect(Post::NETWORKS, (array) ($d['redes'] ?? [])));
+        // Vertente das redes sociais: sempre Instagram, Facebook e LinkedIn (a IA não tira nenhuma; os Stories juntam-se depois).
+        $redes = array_values(array_intersect(Post::NETWORKS, array_merge(Post::REDES_SEMPRE, (array) ($d['redes'] ?? []))));
 
         $quando = null;
         if (! empty($d['publicar_em'])) {
@@ -647,7 +648,7 @@ class PostWriter
                 ?: mb_substr(trim(str_replace(['*', "\n"], ['', ' '], $design['titulo'])), 0, 150),
             'design' => $design,
             'legenda' => mb_substr(trim((string) $d['legenda']), 0, 2200),
-            'redes' => $redes ?: ['Instagram', 'Facebook'],
+            'redes' => $redes,
             'publicar_em' => $quando,
             'pesquisa_imagem' => mb_substr(trim((string) ($d['pesquisa_imagem'] ?? '')), 0, 80),
             'produto_biblioteca' => $produtoBib,
@@ -738,7 +739,8 @@ class PostWriter
           incluindo #NEXUS. Pode ter 1 ou 2 emojis, no máximo.
 
         PUBLICAÇÃO
-        - "redes": ["Instagram","Facebook"]; junta "LinkedIn" quando o tema é técnico ou para empresas.
+        - "redes": sempre ["Instagram","Facebook","LinkedIn"]. O mesmo post vai também por email aos parceiros da NEXUS
+          (empresas): escreve de forma que sirva para as redes sociais e para um email profissional.
         - "publicar_em": "AAAA-MM-DD HH:MM". Se o pedido indicar uma data, usa-a (um aviso de fecho publica-se na véspera).
           Se não, escolhe o próximo dia útil às 10:00.
 
@@ -762,7 +764,7 @@ class PostWriter
           "slides": [{"destaque": "1", "titulo": "...", "texto": "..."}],
           "fecho": "",
           "legenda": "...",
-          "redes": ["Instagram", "Facebook"],
+          "redes": ["Instagram", "Facebook", "LinkedIn"],
           "publicar_em": "AAAA-MM-DD HH:MM",
           "pesquisa_imagem": "...",
           "produto_biblioteca": 0,

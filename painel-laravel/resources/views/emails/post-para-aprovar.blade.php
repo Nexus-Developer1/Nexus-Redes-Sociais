@@ -64,7 +64,7 @@
                 {{-- Quem aprova tem de saber que também sai por email para fora --}}
                 <td width="8">&nbsp;</td>
                 <td style="font-family:{{ $fonte }};font-size:13px;color:{{ $texto }};background:#fff4d6;border-radius:6px;padding:6px 12px;">
-                    ✉ + email a {{ $n = \App\Models\Parceiro::quantosAtivos() }} {{ $n === 1 ? 'parceiro' : 'parceiros' }}
+                    ✉ + email a {{ $parceiros }} {{ $parceiros === 1 ? 'parceiro' : 'parceiros' }}
                 </td>
             @endif
             @if ($post->imagens_carrossel)
@@ -96,6 +96,18 @@
                     {!! nl2br(e($post->caption)) !!}
                 </td>
             </tr></table>
+        </td></tr>
+    @endif
+
+    {{-- Vertente email: a capa do email que vai aos parceiros (o texto é a mesma legenda, sem as hashtags) --}}
+    @if ($capaParceiros)
+        <tr><td style="padding:26px 32px 0;">
+            <div style="font-family:{{ $fonte }};font-size:12px;font-weight:700;letter-spacing:2px;color:{{ $cinza }};margin-bottom:8px;">EMAIL AOS PARCEIROS</div>
+            <img src="{{ $message->embed($capaParceiros) }}" width="300" alt="Capa do email aos parceiros"
+                 style="display:block;width:300px;max-width:100%;height:auto;border:1px solid #dfe7e1;border-radius:6px;">
+            <div style="margin-top:8px;font-family:{{ $fonte }};font-size:12px;line-height:18px;color:{{ $cinza }};">
+                {{ $parceiros ? 'Ao aprovar, sai também por email a '.$parceiros.' '.($parceiros === 1 ? 'parceiro' : 'parceiros').', à hora da publicação, com este cabeçalho e o texto da legenda.' : 'A lista de parceiros ainda está vazia: por agora, o email não sai a ninguém.' }}
+            </div>
         </td></tr>
     @endif
 

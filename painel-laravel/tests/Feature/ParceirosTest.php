@@ -157,6 +157,27 @@ class ParceirosTest extends TestCase
         $this->assertSame(Post::PENDING, $post->fresh()->status);
     }
 
+    public function test_todos_os_posts_tem_as_duas_vertentes(): void
+    {
+        $user = User::factory()->create();
+
+        // Criado à mão: redes sociais (Instagram, Facebook e LinkedIn) e email aos parceiros, sem escolher nada.
+        $this->actingAs($user)->post(route('posts.store'), ['modelo' => 'dica', 'title' => 'Dica', 'formato' => 'imagem']);
+        $post = Post::latest('id')->first();
+        $this->assertTrue($post->enviar_parceiros);
+        $this->assertSame(['Instagram', 'Stories', 'Facebook', 'LinkedIn'], $post->networks);
+
+        // Quem aprova vê as duas: no painel, "Ver o email dos parceiros" abre o email tal como sai.
+        $post->update(['image_path' => 'modelos/logo-nexus.png', 'status' => Post::PENDING]);
+        $this->actingAs($user)->get(route('painel'))->assertSee(route('posts.partnersPreview', $post));
+        $this->actingAs($user)->get(route('posts.partnersPreview', $post))
+            ->assertOk()->assertSee('TORNE-SE UM PARCEIRO NEXUS')->assertHeader('X-Robots-Tag', 'noindex');
+
+        // Só como exceção se tira do email.
+        $this->actingAs($user)->post(route('posts.partners', $post), ['enviar' => 0]);
+        $this->assertFalse($post->fresh()->enviar_parceiros);
+    }
+
     public function test_caixas_da_capa_do_email_com_o_tema_do_post(): void
     {
         $caixas = fn (array $design) => \App\Services\PostRenderer::caixasEmail(new Post(['design' => $design]));

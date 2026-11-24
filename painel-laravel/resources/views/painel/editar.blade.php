@@ -279,8 +279,8 @@
                 @else
                     <input type="hidden" name="enviar_parceiros" value="0">
                     <label class="check"><input type="checkbox" name="enviar_parceiros" value="1" @checked(old('enviar_parceiros', $post->enviar_parceiros))>
-                        Enviar também por email aos parceiros
-                        <small>({{ \App\Models\Parceiro::quantosAtivos() }} na <a href="{{ route('parceiros') }}">lista</a> · à hora da publicação, depois de aprovado)</small></label>
+                        Email aos parceiros
+                        <small>({{ \App\Models\Parceiro::quantosAtivos() }} na <a href="{{ route('parceiros') }}">lista</a> · sai à hora da publicação, depois de aprovado · desligue só como exceção)</small></label>
                 @endif
             </section>
         </form>
@@ -299,6 +299,10 @@
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="M11 18h2"/></svg>
                     Ver no Instagram
                 </button>
+                @if ($post->enviar_parceiros)
+                    {{-- A outra vertente: o email aos parceiros, tal como sai (com o que está guardado) --}}
+                    <a class="btn pequeno" href="{{ route('posts.partnersPreview', $post) }}" target="_blank" rel="noopener">✉ Ver o email</a>
+                @endif
             </div>
             @include('painel.instagram', ['fonteLegenda' => '#legenda'])
             @if ($post->design)

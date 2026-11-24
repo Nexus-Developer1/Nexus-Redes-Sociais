@@ -28,6 +28,14 @@ class Post extends Model
     /** "Stories" = Stories do Instagram, com a versão 9:16 do post que o servidor gera sozinho. */
     public const NETWORKS = ['Instagram', 'Stories', 'Facebook', 'LinkedIn'];
 
+    /**
+     * Cada post tem sempre as duas vertentes: as redes sociais (estas três, sempre) e o email aos parceiros
+     * (enviar_parceiros, ligado por defeito; só se desliga num caso excecional).
+     */
+    public const REDES_SEMPRE = ['Instagram', 'Facebook', 'LinkedIn'];
+
+    protected $attributes = ['enviar_parceiros' => true];
+
     protected $fillable = [
         'title', 'caption', 'image_path', 'imagens_carrossel', 'imagem_story', 'image_alt', 'design', 'networks',
         'scheduled_at', 'status', 'source', 'change_request', 'enviar_parceiros',

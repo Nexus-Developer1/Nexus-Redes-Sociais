@@ -55,7 +55,7 @@ class PostEditorController extends Controller
         $post = Post::create([
             'title' => $data['title'],
             'design' => $design,
-            'networks' => ['Instagram', 'Stories', 'Facebook'],
+            'networks' => ['Instagram', 'Stories', 'Facebook', 'LinkedIn'],
             'scheduled_at' => $quando,
             'status' => Post::CREATING,
             'source' => 'Criado no painel por '.$request->user()->name,
@@ -422,6 +422,14 @@ class PostEditorController extends Controller
         return back()->with('ok', $quer
             ? "“{$post->title}” vai também por email a {$quantos} ".($quantos === 1 ? 'parceiro' : 'parceiros').', à hora da publicação, depois de aprovado.'
             : "“{$post->title}” já não vai por email aos parceiros.");
+    }
+
+    /** Vertente email: o email aos parceiros tal como sai (as imagens vêm dentro da página). */
+    public function partnersPreview(Request $request, Post $post): \Illuminate\Http\Response
+    {
+        $html = (new \App\Mail\PostParaParceiros($post, null, $request->user()->name))->render();
+
+        return response($html)->header('X-Robots-Tag', 'noindex')->header('Cache-Control', 'no-store');
     }
 
     /** Email de teste para quem está no painel: ver como os parceiros recebem este post, antes de aprovar. */

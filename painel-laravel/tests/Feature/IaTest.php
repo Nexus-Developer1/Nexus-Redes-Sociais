@@ -75,7 +75,9 @@ class IaTest extends TestCase
         $this->assertSame(Post::PENDING, $post->status);
         $this->assertSame('UPS Riello para servidores', $post->title);
         $this->assertSame("UPS *Riello*\nsempre ligados", $post->design['titulo']);
-        $this->assertSame(['Instagram', 'Stories', 'LinkedIn'], $post->networks); // "TikTok" não existe; os do Instagram vão também para os Stories
+        // "TikTok" não existe; Instagram, Facebook e LinkedIn vão sempre (a IA deixou o Facebook de fora); os do Instagram vão também para os Stories
+        $this->assertSame(['Instagram', 'Stories', 'Facebook', 'LinkedIn'], $post->networks);
+        $this->assertTrue($post->enviar_parceiros); // e a outra vertente: o email aos parceiros
         $this->assertSame('10:00', $post->scheduled_at->format('H:i'));
         // "\n" à letra e hífens especiais da IA ficam normais
         $this->assertSame("Uma falha de energia pode parar a sua empresa.\nContacte-nos: nexus-solutions.pt\n#NEXUS #UPS", $post->caption);
