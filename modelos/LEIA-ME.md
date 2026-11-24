@@ -14,7 +14,7 @@ No painel, **+ Criar post** → escolher o tipo → página de edição com lege
 com pré-visualização ao vivo. **Guardar e gerar imagem** cria o PNG no servidor; **Enviar para aprovação** põe-no na fila.
 Cada post da fila tem também o botão **Editar**.
 
-## Como fazer um post (terminal, para o Claude)
+## Gerar só a imagem de um post (terminal)
 1. Criar uma pasta, por exemplo `posts/2026-11-workstations/`, com um `dados.json` (copiar de um exemplo).
 2. Pôr na mesma pasta as imagens que o post usa (fundo, foto do produto, logótipo do parceiro).
 3. Correr:
@@ -23,7 +23,8 @@ Cada post da fila tem também o botão **Editar**.
    ```
    O script cria `post.html` e `post.png`. Se aparecer `WARNING`, o post tem um problema
    (texto que não cabe, imagem que não existe, etc.) e o script termina com o código 2.
-4. Enviar para aprovação com `php artisan post:submeter --imagem=...\post.png ...`.
+4. Isto só faz a imagem. Para o post ir para aprovação e ser publicado, faça-o no painel (“Criar post” ou “Pedir um post à IA”):
+   todos os posts passam pela fila de aprovação do painel.
 
 Mudar o aspeto de todos os posts = mudar `painel-laravel/public/modelos/modelos.css` / `modelos.js`. O `post.html` é gerado; não se edita à mão.
 

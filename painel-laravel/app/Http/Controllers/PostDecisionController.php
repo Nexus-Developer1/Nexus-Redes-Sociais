@@ -57,7 +57,7 @@ class PostDecisionController extends Controller
 
         return back()->with('ok', app(\App\Services\PostWriter::class)->configurado() && $post->design
             ? 'Pedido de alteração enviado: a IA refaz o post dentro de 1 a 2 minutos.'
-            : 'Pedido de alteração enviado ao Claude.');
+            : 'Pedido de alteração registado. Este post não é refeito pela IA: faça a alteração em “Editar”.');
     }
 
     public function undo(Request $request, Post $post): RedirectResponse
@@ -83,7 +83,7 @@ class PostDecisionController extends Controller
         return back()->with('ok', "Vai tentar publicar “{$post->title}” outra vez nos próximos 5 minutos.");
     }
 
-    /** O aprovador pede outro tema para esta data. A IA (ou o Claude) troca a ideia. */
+    /** O aprovador pede outro tema para esta data. A IA troca a ideia (post:tratar-pedidos). */
     public function swapIdea(Request $request, Post $post): RedirectResponse
     {
         $this->mustBeIdea($post);
@@ -97,7 +97,7 @@ class PostDecisionController extends Controller
 
         return back()->with('ok', app(\App\Services\PostWriter::class)->configurado()
             ? 'A IA vai propor outro tema para esta data dentro de 1 a 2 minutos.'
-            : 'Pedido de troca de tema enviado ao Claude.');
+            : 'Pedido de troca registado. A IA não está ligada: descarte a ideia ou faça o post em “Editar”.');
     }
 
     public function discard(Request $request, Post $post): RedirectResponse

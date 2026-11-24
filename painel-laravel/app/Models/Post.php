@@ -8,9 +8,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Post extends Model
 {
     public const IDEA = 'idea';          // ideia proposta
-    public const CREATING = 'creating';  // o Claude está a criar
+    public const CREATING = 'creating';  // em criação (no editor ou pela IA)
     public const PENDING = 'pending';    // à espera de aprovação
-    public const REVISING = 'revising';  // o Claude está a refazer
+    public const REVISING = 'revising';  // alteração pedida, à espera da IA (ou de quem o editar)
     public const APPROVED = 'approved';  // aprovado e agendado
     public const REJECTED = 'rejected';
     public const PUBLISHED = 'published';
@@ -19,7 +19,7 @@ class Post extends Model
         self::IDEA => 'Ideia proposta',
         self::CREATING => 'Em criação',
         self::PENDING => 'À espera de aprovação',
-        self::REVISING => 'Claude a refazer',
+        self::REVISING => 'Alteração pedida',
         self::APPROVED => 'Aprovado e agendado',
         self::REJECTED => 'Rejeitado',
         self::PUBLISHED => 'Publicado',

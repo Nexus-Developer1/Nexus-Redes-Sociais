@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Models\Post;
-use App\Models\PostRequest;
 use App\Models\User;
 use App\Notifications\PostParaAprovar;
 use Illuminate\Support\Facades\Notification;
@@ -159,35 +158,17 @@ class PainelTest extends TestCase
         $this->actingAs($user)->get('/?ver=pedidos')->assertOk()->assertSee('Feriado de 1 de dezembro');
     }
 
-    public function test_comando_submeter_poe_na_fila_sem_aprovar(): void
-    {
-        $pedido = PostRequest::create(['topic' => 'Natal']);
-        $this->artisan('post:submeter', [
-            '--titulo' => 'Feliz Natal',
-            '--legenda' => 'Boas festas!',
-            '--redes' => 'Instagram,LinkedIn,TikTok',
-            '--quando' => '2026-12-24 10:00',
-            '--pedido' => $pedido->id,
-        ])->assertSuccessful();
-
-        $post = Post::where('title', 'Feliz Natal')->firstOrFail();
-        $this->assertSame(Post::PENDING, $post->status);
-        $this->assertSame(['Instagram', 'LinkedIn'], $post->networks);
-        $this->assertSame('done', $pedido->fresh()->status);
-
-        // Um post aprovado não pode ser substituído pelo comando.
-        $post->update(['status' => Post::APPROVED]);
-        $this->artisan('post:submeter', ['--post' => $post->id, '--legenda' => 'x'])->assertFailed();
-    }
-
-    public function test_submeter_avisa_o_aprovador_por_email(): void
+    public function test_enviar_para_aprovacao_avisa_o_aprovador_por_email_sem_aprovar(): void
     {
         Notification::fake();
+        $autor = User::factory()->create();
         $aprovador = User::factory()->create();
+        $post = $this->novoPost(['title' => 'Dica de redes', 'caption' => "Linha 1\nLinha 2", 'status' => Post::CREATING]);
 
-        $this->artisan('post:submeter', ['--titulo' => 'Dica de redes', '--legenda' => "Linha 1\nLinha 2"])
-            ->assertSuccessful();
+        $this->actingAs($autor)->post(route('posts.submit', $post))->assertRedirect(route('painel'));
 
+        $this->assertSame(Post::PENDING, $post->fresh()->status); // na fila, nunca aprovado sozinho
+        Notification::assertNotSentTo($autor, PostParaAprovar::class); // quem envia não recebe o próprio aviso
         Notification::assertSentTo($aprovador, PostParaAprovar::class, function ($n) use ($aprovador) {
             $mail = $n->toMail($aprovador);
 

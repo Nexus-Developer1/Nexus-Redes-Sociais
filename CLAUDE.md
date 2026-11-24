@@ -64,11 +64,8 @@ Sistema que cria posts para as redes sociais da NEXUS de forma autónoma.
   nem com a IA a trabalhar nele (`motivoParaNaoEliminar`); apaga as imagens e o histórico e fica uma linha no laravel.log. Login obrigatório; cada decisão fica no histórico (`post_reviews`) com quem e quando.
   Arrancar: `cd painel-laravel; php artisan serve` → http://localhost:8000. Testes: `php artisan test`.
   Estados do post: idea, creating, pending, revising, approved, rejected, published.
-  Comandos para o Claude:
-  - `php artisan post:pendentes` (ou `--json`): pedidos novos, alterações pedidas e ideias por criar.
-  - `php artisan post:submeter --titulo= --imagem= --legenda-ficheiro= --redes=Instagram,Facebook --quando="AAAA-MM-DD HH:MM" [--post=ID] [--pedido=ID]`:
-    põe o post na fila como "À espera de aprovação". **Nunca aprova nem publica**; recusa alterar posts já aprovados.
-  - `php artisan post:ideia --titulo= --quando= --tipo= [--post=ID]`: põe uma ideia no calendário (o painel permite "Trocar tema" e "Descartar").
+  Comandos (correm sozinhos no servidor; os antigos post:pendentes, post:submeter e post:ideia, do tempo em que o Claude fazia
+  os posts à mão, foram apagados a 24 nov — hoje tudo entra pelo painel e pela IA automática):
   - `php artisan post:publicar [--simular]`: publica na Meta os posts aprovados cuja hora chegou (cron a cada 5 min no servidor). Sem `META_PAGE_TOKEN` no `.env` não publica nada.
     Um só processo de cada vez (cache lock). Nada sai mais de 6 h depois da hora marcada (`PublicarPosts::MAX_ATRASO_HORAS`): fica uma nota para mudar a data.
     Depois de 3 falhas, o cartão tem "Tentar publicar de novo".

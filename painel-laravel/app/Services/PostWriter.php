@@ -23,6 +23,9 @@ class PostWriter
         Clientes: sobretudo empresas (B2B). Tom: profissional, próximo e direto, sem exageros.
         TXT;
 
+    /** Tipos de ideia que a IA pode propor no calendário ("Tipo: dica." na origem da ideia). */
+    public const TIPOS_IDEIA = ['produto', 'dica', 'evento', 'aviso'];
+
     public function configurado(): bool
     {
         return filled(config('ia.chave'));
@@ -160,7 +163,7 @@ class PostWriter
         $f = fn (Carbon $d) => $d->locale('pt_PT')->translatedFormat('l, j \d\e F \d\e Y');
         $lista = fn (array $l) => $l ? '- '.implode("\n- ", $l) : '(nenhum)';
         $especiais = collect($datas)->map(fn ($nome, $dia) => $f(Carbon::parse($dia)).": {$nome}")->values()->all();
-        $tipos = implode(', ', \App\Console\Commands\CriarIdeia::TIPOS);
+        $tipos = implode(', ', self::TIPOS_IDEIA);
         $periodo = $inicio->isSameDay($fim) ? $f($inicio) : 'de '.$f($inicio).' a '.$f($fim);
 
         $mensagem = ($pedido
@@ -234,7 +237,7 @@ class PostWriter
                 $quando = Carbon::parse($quando->format('Y-m-d')." $hora");
             }
             $usados[] = $quando->format('Y-m-d');
-            $tipo = in_array($ideia['tipo'] ?? '', \App\Console\Commands\CriarIdeia::TIPOS, true) ? $ideia['tipo'] : 'dica';
+            $tipo = in_array($ideia['tipo'] ?? '', self::TIPOS_IDEIA, true) ? $ideia['tipo'] : 'dica';
 
             $resultado[] = [
                 'titulo' => mb_substr(trim($this->limparTexto($ideia['titulo'])), 0, 150),

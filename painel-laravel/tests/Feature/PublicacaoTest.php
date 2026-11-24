@@ -154,27 +154,20 @@ class PublicacaoTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $this->artisan('post:ideia', [
-            '--titulo' => 'Dica: phishing',
-            '--quando' => '2026-11-10 10:00',
-            '--tipo' => 'dica',
-            '--redes' => 'Instagram,Facebook,LinkedIn',
-        ])->assertSuccessful();
-        $ideia = Post::where('title', 'Dica: phishing')->firstOrFail();
-        $this->assertSame(Post::IDEA, $ideia->status);
-        $this->assertSame('Tipo: dica.', $ideia->source);
+        $ideia = Post::create([
+            'title' => 'Dica: phishing',
+            'scheduled_at' => now()->addWeek(),
+            'networks' => ['Instagram', 'Facebook', 'LinkedIn'],
+            'status' => Post::IDEA,
+            'source' => 'Tipo: dica.',
+        ]);
 
         $this->actingAs($user)->get('/?ver=ideias')->assertOk()->assertSee('Trocar tema')->assertSee('Dica: phishing');
 
         $this->actingAs($user)->post("/posts/{$ideia->id}/trocar-ideia", ['comment' => 'Prefiro UPS Riello'])->assertRedirect();
         $ideia->refresh();
         $this->assertSame(Post::IDEA, $ideia->status);
-        $this->assertSame('Prefiro UPS Riello', $ideia->change_request);
-        $this->artisan('post:pendentes')->expectsOutputToContain('Prefiro UPS Riello')->assertSuccessful();
-
-        // O Claude troca a ideia: o pedido fica resolvido.
-        $this->artisan('post:ideia', ['--post' => $ideia->id, '--titulo' => 'UPS Riello', '--tipo' => 'produto'])->assertSuccessful();
-        $this->assertNull($ideia->fresh()->change_request);
+        $this->assertSame('Prefiro UPS Riello', $ideia->change_request); // a IA (post:tratar-pedidos) troca o tema
 
         $this->actingAs($user)->post("/posts/{$ideia->id}/descartar")->assertRedirect();
         $this->assertSame(Post::REJECTED, $ideia->fresh()->status);
