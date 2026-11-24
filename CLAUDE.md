@@ -115,6 +115,8 @@ Sistema que cria posts para as redes sociais da NEXUS de forma autónoma.
     cabeçalho com a zona abaixo da diagonal transparente (`public/modelos/email/cabecalho.png`), a foto de fundo do post a começar
     na diagonal (y=282; nunca por trás do verde, senão esconde metade da foto; sem foto, verde da marca) e o tema (rodapé do post) em caixas #004D31 como "OUT / OF OFFICE". Se falhar, o email leva o
     cabeçalho e a imagem do post. Nos testes está desligada (`EMAIL_CAPA=false`).
+    **Avisos** (`Post::isAviso()`): a capa é sempre a original da newsletter, escritório da NEXUS + "OUT OF OFFICE"
+    (`PostRenderer::CAPA_EMAIL_AVISO` = `public/modelos/email/out-of-office.jpg`, 1200×800), a pedido a 24 nov.
   **Regras de segurança (23 nov 2026):** as decisões são atómicas (`Post::decide(..., $de)` só grava se o post ainda estiver nesses estados);
   a IA ao refazer só grava se o post ainda estiver à espera DESSA alteração (fica "Em criação" enquanto gera a imagem) e só muda a data/redes se o pedido falar delas;
   aprovar exige imagem e data; "Desfazer" é recusado se o post já saiu numa rede; pedidos "a fazer" há mais de 20 min passam a falhados.

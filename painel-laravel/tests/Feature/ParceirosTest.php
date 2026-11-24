@@ -221,6 +221,15 @@ class ParceirosTest extends TestCase
         $this->assertSame(['Rede', '<b>segura</b>'], $caixas(['rodape' => 'Rede *segura*']));  // *palavra* a verde
     }
 
+    public function test_aviso_leva_a_capa_out_of_office_no_email(): void
+    {
+        $renderer = app(\App\Services\PostRenderer::class);
+        $aviso = $this->novoPost(['title' => 'Aviso: ponte', 'design' => ['modelo' => 'aviso', 'titulo' => 'Fechamos']]);
+
+        $this->assertSame(\App\Services\PostRenderer::CAPA_EMAIL_AVISO, $renderer->capaEmail($aviso));
+        $this->assertFileExists(public_path(\App\Services\PostRenderer::CAPA_EMAIL_AVISO));
+    }
+
     public function test_aprovador_ve_no_email_que_tambem_vai_aos_parceiros(): void
     {
         Parceiro::create(['nome' => 'Ana', 'email' => 'ana@x.pt']);

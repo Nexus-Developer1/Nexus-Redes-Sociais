@@ -170,6 +170,9 @@ class PostRenderer
     /** Muda quando o desenho da capa do email muda: as capas antigas são refeitas. */
     private const CAPA_EMAIL_VERSAO = 5;
 
+    /** Capa fixa do email nos avisos: a "OUT OF OFFICE" original da newsletter (1200×800). */
+    public const CAPA_EMAIL_AVISO = 'modelos/email/out-of-office.jpg';
+
     /** Onde começa a diagonal do cabeçalho (à esquerda): a foto começa aqui, nunca por trás do verde. */
     private const CAPA_EMAIL_TOPO_FOTO = 282;
 
@@ -186,6 +189,11 @@ class PostRenderer
     {
         if (! $post->exists) {
             return null;
+        }
+        // Avisos de fecho e feriados: a capa é a original da newsletter (escritório da NEXUS + "OUT OF OFFICE"),
+        // como no email "Esta sexta-feira estaremos encerrados" (24 nov, a pedido). As datas vão no texto do email.
+        if ($post->isAviso() && is_file(public_path(self::CAPA_EMAIL_AVISO))) {
+            return self::CAPA_EMAIL_AVISO;
         }
         $design = $post->design ?? [];
         $pasta = self::pasta($post);
