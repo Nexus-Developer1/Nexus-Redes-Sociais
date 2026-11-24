@@ -9,7 +9,8 @@
     $escuro = '#284E36';
     $texto = '#4B4B4B';
     $fonte = 'Helvetica, Arial, sans-serif';
-    $primeiroNome = $nome ? trim(strtok($nome, ' ')) : null;
+    // Parceiro: só o primeiro nome ("Olá Ana,"). Na pré-visualização e no teste: "[nome do parceiro]" como está.
+    $primeiroNome = $nome ? (str_starts_with($nome, '[') ? $nome : trim(strtok($nome, ' '))) : null;
     $peca = fn (string $f) => $message->embed(resource_path('email-parceiros/'.$f));
     $redes = [
         ['linkedin.png', 'https://www.linkedin.com/company/nexussolutions/', 'LinkedIn'],

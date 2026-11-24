@@ -431,7 +431,7 @@ class PostEditorController extends Controller
     /** Vertente email: o email aos parceiros tal como sai (as imagens vêm dentro da página). */
     public function partnersPreview(Request $request, Post $post): \Illuminate\Http\Response
     {
-        $html = (new \App\Mail\PostParaParceiros($post, null, $request->user()->name))->render();
+        $html = (new \App\Mail\PostParaParceiros($post, null, '[nome do parceiro]'))->render();
 
         return response($html)->header('X-Robots-Tag', 'noindex')->header('Cache-Control', 'no-store');
     }
@@ -447,7 +447,7 @@ class PostEditorController extends Controller
         }
         try {
             \Illuminate\Support\Facades\Mail::to($request->user()->email, $request->user()->name)
-                ->send(new \App\Mail\PostParaParceiros($post, null, $request->user()->name, teste: true));
+                ->send(new \App\Mail\PostParaParceiros($post, null, '[nome do parceiro]', teste: true));
         } catch (Throwable $e) {
             report($e);
 

@@ -161,8 +161,13 @@ class Post extends Model
     public function assuntoParceiros(): string
     {
         $titulo = trim(preg_replace('/\s+/u', ' ', str_replace('*', '', (string) ($this->design['titulo'] ?? ''))));
+        // No modelo "número" o número está à parte ("3" + "cuidados de TI…"): no título do email vai junto.
+        if ($titulo !== '' && ($this->design['modelo'] ?? '') === 'numero' && filled($this->design['numero'] ?? null)) {
+            $titulo = trim($this->design['numero']).' '.$titulo;
+        }
+        $titulo = $titulo !== '' ? $titulo : $this->title;
 
-        return mb_substr($titulo !== '' ? $titulo : $this->title, 0, 150);
+        return mb_substr(mb_strtoupper(mb_substr($titulo, 0, 1)).mb_substr($titulo, 1), 0, 150);
     }
 
     /** Legenda para o email aos parceiros: sem as linhas só de hashtags (no email não servem para nada). */

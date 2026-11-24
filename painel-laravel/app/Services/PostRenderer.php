@@ -168,7 +168,7 @@ class PostRenderer
     }
 
     /** Muda quando o desenho da capa do email muda: as capas antigas são refeitas. */
-    private const CAPA_EMAIL_VERSAO = 4;
+    private const CAPA_EMAIL_VERSAO = 5;
 
     /** Onde começa a diagonal do cabeçalho (à esquerda): a foto começa aqui, nunca por trás do verde. */
     private const CAPA_EMAIL_TOPO_FOTO = 282;
@@ -192,7 +192,8 @@ class PostRenderer
         $foto = (string) ($design['foto'] ?? $design['fundo'] ?? '');
         $foto = $foto !== '' && basename($foto) === $foto && is_file("{$pasta}/{$foto}") ? $foto : '';
         $caixas = self::caixasEmail($post);
-        $chave = substr(md5(json_encode([self::CAPA_EMAIL_VERSAO, $caixas, $foto, $foto ? filemtime("{$pasta}/{$foto}") : 0])), 0, 12);
+        $chave = substr(md5(json_encode([self::CAPA_EMAIL_VERSAO, $caixas, $foto, $foto ? filemtime("{$pasta}/{$foto}") : 0,
+            $design['enquadramento'] ?? 'centro'])), 0, 12);
         $relativo = "imagens-posts/design/{$post->id}/email-{$chave}.jpg";
         if (is_file(public_path($relativo))) {
             return $relativo;
@@ -202,20 +203,18 @@ class PostRenderer
         $sessao = $this->pastaDeTrabalho();
         try {
             $modelos = $this->fileUrl(public_path('modelos')).'/';
-            // A foto nunca é cortada: a altura da zona da foto é a da própria foto a 1200 de largura. Fotos muito
-            // altas ou muito largas ficam inteiras (contain) com a mesma foto desfocada a encher os lados.
+            // A zona da foto tem a altura da própria foto a 1200 de largura (fotos ao baixo e quadradas: inteiras).
+            // Fotos muito altas (ao alto) ou muito largas aparam só as pontas (até ficarem no máximo quadradas):
+            // faixas desfocadas dos lados ficavam feias. O enquadramento do post escolhe que parte fica.
             $alturaFoto = 598;
-            $ajuste = 'fill';
             if ($foto && ([$fw, $fh] = @getimagesize("{$pasta}/{$foto}") ?: [0, 0]) && $fw > 0) {
-                $natural = (int) round(1200 * $fh / $fw);
-                $alturaFoto = max(560, min(1200, $natural));
-                $ajuste = $alturaFoto === $natural ? 'fill' : 'contain';
+                $alturaFoto = max(560, min(1200, (int) round(1200 * $fh / $fw)));
             }
+            $posicao = ['topo' => 'center 20%', 'baixo' => 'center 80%'][$design['enquadramento'] ?? ''] ?? 'center 50%';
             $alturaTotal = self::CAPA_EMAIL_TOPO_FOTO + $alturaFoto;
             $src = $foto ? e(rawurlencode($foto)) : '';
             $fundo = $foto
-                ? ($ajuste === 'contain' ? '<img class="desfocada" src="'.$src.'" alt="">' : '')
-                  .'<img class="foto" src="'.$src.'" alt="" style="object-fit:'.$ajuste.'">'
+                ? '<img class="foto" src="'.$src.'" alt="" style="object-fit:cover;object-position:'.$posicao.'">'
                 : '<div class="gerado"></div>';
             $linhas = implode('', array_map(fn ($c) => '<div class="caixa">'.$c.'</div>', $caixas));
             $html = '<!doctype html><html lang="pt"><head><meta charset="utf-8"><base href="'.$this->fileUrl($pasta).'/">'
@@ -225,8 +224,7 @@ class PostRenderer
                 .'.gerado{position:absolute;left:0;top:0;width:1200px;height:'.$alturaTotal.'px}'
                 // A foto começa onde começa a diagonal: o cabeçalho só tapa o canto da diagonal à direita,
                 // nunca a metade de cima da foto (antes a foto ia de 0 a 800 e o verde escondia o que importava).
-                .'.foto,.tom,.desfocada{position:absolute;left:0;top:'.self::CAPA_EMAIL_TOPO_FOTO.'px;width:1200px;height:'.$alturaFoto.'px}'
-                .'.desfocada{object-fit:cover;filter:blur(28px) brightness(.8);transform:scale(1.08)}'
+                .'.foto,.tom{position:absolute;left:0;top:'.self::CAPA_EMAIL_TOPO_FOTO.'px;width:1200px;height:'.$alturaFoto.'px}'
                 .'.tom{background:linear-gradient(180deg,rgba(2,26,10,0) 40%,rgba(2,26,10,.35) 100%)}'
                 .'.gerado{background:radial-gradient(circle at 78% 72%,#13a24c 0%,#06602c 38%,#022d14 75%,#021a0a 100%)}'
                 .'.gerado:after{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),'

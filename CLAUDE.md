@@ -94,7 +94,8 @@ Sistema que cria posts para as redes sociais da NEXUS de forma autónoma.
     (→ /programa-parceiros-nexus/), marcas, contactos, redes e rodapé #C1D59F. Peças em `resources/email-parceiros/` (tiradas da
     versão web; o cabeçalho é o topo de OUT-OF-OFFICE.png recortado). Remetente "NEXUS IT Solutions" (`PARCEIROS_REMETENTE`).
     Capa do email = `PostRenderer::capaEmail()` (1200 de largura; a altura segue a foto, que NUNCA é cortada: só o canto da
-    diagonal tapa uma ponta; fotos muito altas/largas ficam inteiras com a mesma foto desfocada nos lados; JPEG `email-<hash>.jpg` na pasta do post, refeita só se o post mudar):
+    diagonal tapa uma ponta; fotos muito altas/largas aparam só as pontas até ficarem no máximo quadradas, conforme o
+    enquadramento — nada de faixas desfocadas, ficavam feias; JPEG `email-<hash>.jpg` na pasta do post, refeita só se o post mudar):
     cabeçalho com a zona abaixo da diagonal transparente (`public/modelos/email/cabecalho.png`), a foto de fundo do post a começar
     na diagonal (y=282; nunca por trás do verde, senão esconde metade da foto; sem foto, verde da marca) e o tema (rodapé do post) em caixas #004D31 como "OUT / OF OFFICE". Se falhar, o email leva o
     cabeçalho e a imagem do post. Nos testes está desligada (`EMAIL_CAPA=false`).

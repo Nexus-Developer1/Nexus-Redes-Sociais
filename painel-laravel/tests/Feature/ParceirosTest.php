@@ -200,6 +200,15 @@ class ParceirosTest extends TestCase
         $this->actingAs($user)->get(route('painel'))->assertSee('Emails desligados por agora');
     }
 
+    public function test_titulo_do_email_leva_o_numero_e_comeca_com_maiuscula(): void
+    {
+        $numero = new Post(['title' => 'x', 'design' => ['modelo' => 'numero', 'numero' => '3', 'titulo' => "cuidados de TI\npara a *Black Friday*"]]);
+        $this->assertSame('3 cuidados de TI para a Black Friday', $numero->assuntoParceiros());
+
+        $minuscula = new Post(['title' => 'x', 'design' => ['modelo' => 'dica', 'titulo' => "o seu backup\nestá *seguro*?"]]);
+        $this->assertSame('O seu backup está seguro?', $minuscula->assuntoParceiros());
+    }
+
     public function test_caixas_da_capa_do_email_com_o_tema_do_post(): void
     {
         $caixas = fn (array $design) => \App\Services\PostRenderer::caixasEmail(new Post(['design' => $design]));
