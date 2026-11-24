@@ -37,6 +37,7 @@ class MicrosoftGraphTransport extends AbstractTransport
 
         $payload = [
             'message' => array_filter([
+                'from' => $this->from($email->getFrom()),
                 'subject' => (string) $email->getSubject(),
                 'body' => ['contentType' => $html !== null ? 'HTML' : 'Text', 'content' => $body],
                 'toRecipients' => $this->recipients($email->getTo()),
@@ -66,6 +67,22 @@ class MicrosoftGraphTransport extends AbstractTransport
             ])
             ->throw()
             ->json('access_token'));
+    }
+
+    /**
+     * Nome de quem envia (ex.: "NEXUS IT Solutions" nos emails aos parceiros). Só com o endereço da própria caixa:
+     * enviar "em nome de" outro endereço precisaria de outra permissão no Microsoft 365. Sem nome, fica o da caixa.
+     *
+     * @param  Address[]  $from
+     */
+    private function from(array $from): ?array
+    {
+        $a = $from[0] ?? null;
+        if (! $a || $a->getName() === '' || strcasecmp($a->getAddress(), $this->sender) !== 0) {
+            return null;
+        }
+
+        return ['emailAddress' => ['address' => $this->sender, 'name' => $a->getName()]];
     }
 
     /** @param Address[] $addresses */

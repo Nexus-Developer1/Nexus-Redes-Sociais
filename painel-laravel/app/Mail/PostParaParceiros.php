@@ -6,6 +6,7 @@ use App\Models\Parceiro;
 use App\Models\Post;
 use App\Support\Miniatura;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 
@@ -25,6 +26,7 @@ class PostParaParceiros extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
+            from: new Address(config('mail.from.address'), config('painel.parceiros_remetente')),
             subject: ($this->teste ? '[Teste] ' : '').$this->post->assuntoParceiros(),
             replyTo: [config('mail.from.address')],
         );

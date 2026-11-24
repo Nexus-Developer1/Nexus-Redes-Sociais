@@ -66,4 +66,24 @@ class EmailGraphTest extends TestCase
                 && base64_decode($emAnexo['contentBytes']) === 'png-falso';
         });
     }
+
+    public function test_email_aos_parceiros_sai_com_o_nome_nexus_it_solutions(): void
+    {
+        config([
+            'mail.default' => 'msgraph',
+            'mail.from' => ['address' => 'suporte@nxs.pt', 'name' => 'NEXUS Redes Sociais'],
+            'mail.mailers.msgraph' => ['transport' => 'msgraph', 'tenant_id' => 'T', 'client_id' => 'C', 'client_secret' => 'S', 'sender' => 'suporte@nxs.pt'],
+        ]);
+        Http::fake([
+            'login.microsoftonline.com/*' => Http::response(['access_token' => 'TOKEN2', 'expires_in' => 3599]),
+            'graph.microsoft.com/*' => Http::response(null, 202),
+        ]);
+        $post = Post::create(['title' => 'UPS', 'caption' => 'Texto', 'networks' => ['Instagram'], 'status' => Post::APPROVED]);
+
+        \Illuminate\Support\Facades\Mail::to('ana@parceiro.pt')->send(new \App\Mail\PostParaParceiros($post, new \App\Models\Parceiro(['nome' => 'Ana', 'email' => 'ana@parceiro.pt'])));
+
+        Http::assertSent(fn ($r) => str_ends_with($r->url(), '/sendMail')
+            && $r['message']['from'] === ['emailAddress' => ['address' => 'suporte@nxs.pt', 'name' => 'NEXUS IT Solutions']]
+            && $r['message']['replyTo'][0]['emailAddress']['address'] === 'suporte@nxs.pt');
+    }
 }
