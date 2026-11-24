@@ -118,13 +118,22 @@
 
   var etiqueta = P.etiqueta !== undefined ? P.etiqueta : ETIQUETA[modelo];
 
-  var post = h('div', 'post ' + FORMATOS[formato] + ' m-' + modelo);
+  // Aviso de fecho/feriado = a imagem "OUT OF OFFICE" da NEXUS (escritório, logótipo e caixas já desenhados),
+  // como no email aos parceiros (24 nov, a pedido). O post só acrescenta a data e o "Voltamos na…".
+  var ooo = modelo === 'aviso' && N === 0;
+  var post = h('div', 'post ' + FORMATOS[formato] + ' m-' + modelo + (ooo ? ' ooo' : ''));
 
   // Foto de fundo (equipa, instalação, produto ou da IA de imagens), em qualquer tipo de post.
   // Na "frase" o tom verde forte é o habitual (foto toda verde, como no feed da NEXUS).
   // Nos slides do carrossel o fundo é sempre o verde da marca, para o texto se ler bem.
   var foto = N === 0 ? P.foto || P.fundo : null;
-  if (foto) {
+  if (ooo) {
+    var fgo = h('div', 'fundo-gerado');
+    fgo.innerHTML = REDE_FUNDO;
+    post.appendChild(fgo);
+    post.appendChild(imagem(BASE + 'email/out-of-office.jpg', 'ooo-fundo', 'imagem "Out of office"'));
+    post.appendChild(h('div', 'tom ooo-tom'));
+  } else if (foto) {
     var img = imagem(foto, 'fundo', 'foto');
     img.style.objectPosition = { topo: 'center 15%', baixo: 'center 85%' }[P.enquadramento] || 'center center';
     post.appendChild(img);
@@ -198,6 +207,8 @@
   // "We make IT for you" (como os posts da Riello e da ASUS).
   if (modelo === 'produto') {
     post.appendChild(h('header', 'cabeca-verde', [imagem(BASE + 'email/cabecalho.png', 'cabeca-verde-img', 'cabeçalho verde')]));
+  } else if (ooo) {
+    // o logótipo já vem na imagem "Out of office"
   } else {
     post.appendChild(h('header', 'cabeca-centro', [logoCentro]));
   }
@@ -209,8 +220,9 @@
   } else if (modelo === 'produto') {
     conteudo = [ilustracao(), parceiro, titulo(P.titulo), texto(), P.pontos && P.pontos.length ? lista(P.pontos) : null, cta()];
   } else if (modelo === 'aviso') {
-    if (!P.titulo) avisos.push('falta o título');
-    conteudo = [titulo(P.titulo), linhas([['calendario', P.data], ['relogio', P.hora]]), texto()];
+    // o título ("OUT / OF OFFICE") já vem na imagem: o do post fica para o painel e o texto alternativo
+    if (!P.data && !P.texto) avisos.push('falta a data ou o texto (ex.: "Voltamos na quarta-feira")');
+    conteudo = [linhas([['calendario', P.data], ['relogio', P.hora]]), texto()];
   } else { // evento
     var ev = P.evento || {};
     if (!ev.dia || !ev.mes) avisos.push('falta evento.dia ou evento.mes');
