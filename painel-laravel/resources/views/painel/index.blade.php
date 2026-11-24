@@ -10,8 +10,7 @@
         'agendados' => 'Aprovados: saem sozinhos à hora marcada.',
         'publicados' => 'Já saíram nas redes sociais.',
         'rejeitados' => 'Posts e ideias que não vão ser publicados.',
-        'ideias' => 'Temas do calendário'.($diasAntesIa > 0 ? ': a IA faz cada post '.$diasAntesIa.' dias antes da data' : '').'.',
-        'pedidos' => 'Os posts pedidos à IA e em que ponto estão.',
+        'ideias' => 'Temas do calendário e posts pedidos à IA'.($diasAntesIa > 0 ? ': a IA faz cada post '.$diasAntesIa.' dias antes da data' : '').'.',
     ];
 @endphp
 
@@ -77,8 +76,13 @@
         <div class="aviso erro" role="alert">{{ $errors->first('comment') }}</div>
     @endif
 
-    @if ($ver === 'pedidos')
+    {{-- Em "Ideias e em criação": no topo, os pedidos à IA ainda sem post (a fazer agora ou que falharam) --}}
+    @if ($requests->isNotEmpty())
         @include('painel.pedidos')
+    @endif
+
+    @if ($posts->isEmpty() && $requests->isNotEmpty())
+        {{-- só os pedidos: sem "Nada para mostrar" por baixo --}}
     @elseif ($posts->isEmpty())
         <div class="vazio">
             <div class="vazio__icone" aria-hidden="true">

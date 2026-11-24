@@ -155,7 +155,16 @@ class PainelTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user)->post('/pedidos', ['topic' => 'Feriado de 1 de dezembro', 'formato' => 'imagem'])->assertRedirect();
         $this->assertDatabaseHas('post_requests', ['topic' => 'Feriado de 1 de dezembro', 'status' => 'new', 'carrossel' => false]);
+        // O pedido aparece no topo de "Ideias e em criação" (a página "Pedidos de posts" juntou-se a essa secção)
+        $this->actingAs($user)->get('/?ver=ideias')->assertOk()->assertSee('Pedidos à IA')->assertSee('Feriado de 1 de dezembro')
+            ->assertDontSee('Pedidos de posts');
+        // os links antigos continuam a funcionar
         $this->actingAs($user)->get('/?ver=pedidos')->assertOk()->assertSee('Feriado de 1 de dezembro');
+
+        // Falhou: fica com "Tentar outra vez"; noutras secções não aparece.
+        \App\Models\PostRequest::query()->update(['status' => 'failed', 'error' => 'A IA respondeu com erro 429.']);
+        $this->actingAs($user)->get('/?ver=ideias')->assertSee('Tentar outra vez')->assertSee('erro 429');
+        $this->actingAs($user)->get('/')->assertDontSee('Pedidos à IA');
     }
 
     public function test_enviar_para_aprovacao_avisa_o_aprovador_por_email_sem_aprovar(): void

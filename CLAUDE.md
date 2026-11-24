@@ -80,7 +80,10 @@ Sistema que cria posts para as redes sociais da NEXUS de forma autónoma.
     (`PostWriter::resumirNoticias`, JSON: título, introdução, 4–7 destaques com os ids das notícias, "para a NEXUS", ideias de posts;
     guardado em `resumos_ia`). Segunda e quinta às 08:00; "Recolher agora" põe um pedido em cache que o `--pedido` (a cada minuto)
     atende. O texto dos feeds vai à IA como DADOS (nunca instruções) e só se mostra escapado; a IA só pode citar ids da lista.
-    Em cada destaque e ideia há "Pedir um post sobre isto" (vai para "Pedidos de posts", como o "Pedir um post à IA").
+    Em cada destaque e ideia há "Pedir um post sobre isto" (um pedido à IA, como o "Pedir um post à IA").
+  - **Menu (24 nov):** a página "Pedidos de posts" juntou-se a "Ideias e em criação": no topo dessa secção, os pedidos à IA ainda
+    sem post (a fazer agora, com rodinha, ou que falharam, com o erro e "Tentar outra vez"; `painel/pedidos.blade.php`). Os pedidos
+    de uma ideia já aparecem no cartão da ideia. `?ver=pedidos` abre "Ideias e em criação". O número do menu conta também esses pedidos.
   - **Interruptor dos emails:** `EMAILS_LIGADOS=false` no .env do servidor = não sai nenhum email (aprovação, lembretes, parceiros,
     testes); os posts continuam a ser feitos e o painel mostra "Emails desligados por agora". Nada fica marcado como enviado.
     Desligado a 24 nov a pedido (recomeço do zero); para ligar: EMAILS_LIGADOS=true e `php artisan config:cache`.

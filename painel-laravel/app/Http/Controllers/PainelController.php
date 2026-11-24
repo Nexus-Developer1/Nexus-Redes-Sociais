@@ -23,32 +23,32 @@ class PainelController extends Controller
 
     public function index(Request $request): View
     {
-        $ver = $request->query('ver', 'fila');
-        if ($ver !== 'pedidos' && ! isset(self::SECTIONS[$ver])) {
+        // "Pedidos de posts" juntou-se a "Ideias e em criação" (24 nov): os links antigos abrem lá.
+        $ver = $request->query('ver') === 'pedidos' ? 'ideias' : $request->query('ver', 'fila');
+        if (! isset(self::SECTIONS[$ver])) {
             $ver = 'fila';
         }
 
         $sections = array_map(fn ($s) => ['title' => $s[0]], self::SECTIONS);
-        $sections['pedidos'] = ['title' => 'Pedidos de posts'];
 
         $posts = collect();
-        $requests = collect();
-        if ($ver === 'pedidos') {
-            $requests = PostRequest::with(['user', 'post'])->latest()->limit(100)->get();
-        } else {
-            $antigos = in_array($ver, ['publicados', 'rejeitados'], true); // crescem sempre: vão por páginas
-            $query = Post::query()
-                // só as últimas 8 entradas do histórico de cada post (e o total, para o "Histórico (N)")
-                ->with(['reviews' => fn ($q) => $q->with('user')->limit(8)])
-                ->withCount('reviews')
-                // a IA está a fazer / falhou: perguntado de uma vez, não um pedido por cartão
-                ->withExists(['pedidos as ia_a_fazer' => fn ($q) => $q->whereIn('status', ['new', 'in_progress'])])
-                ->withExists(['pedidos as ia_falhou' => fn ($q) => $q->where('status', 'failed')])
-                ->whereIn('status', self::SECTIONS[$ver][1])
-                ->orderByRaw('scheduled_at is null')
-                ->orderBy('scheduled_at', $antigos ? 'desc' : 'asc');
-            $posts = $antigos ? $query->simplePaginate(20)->withQueryString() : $query->get();
-        }
+        // Em "Ideias e em criação", no topo: os pedidos que a IA está a fazer e os que falharam (com "Tentar outra vez").
+        // Só os que ainda não têm post ("Pedir um post à IA"): os de uma ideia já aparecem no cartão da ideia.
+        $requests = $ver === 'ideias'
+            ? PostRequest::with('user')->whereNull('post_id')->whereIn('status', ['new', 'in_progress', 'failed'])->latest()->limit(30)->get()
+            : collect();
+        $antigos = in_array($ver, ['publicados', 'rejeitados'], true); // crescem sempre: vão por páginas
+        $query = Post::query()
+            // só as últimas 8 entradas do histórico de cada post (e o total, para o "Histórico (N)")
+            ->with(['reviews' => fn ($q) => $q->with('user')->limit(8)])
+            ->withCount('reviews')
+            // a IA está a fazer / falhou: perguntado de uma vez, não um pedido por cartão
+            ->withExists(['pedidos as ia_a_fazer' => fn ($q) => $q->whereIn('status', ['new', 'in_progress'])])
+            ->withExists(['pedidos as ia_falhou' => fn ($q) => $q->where('status', 'failed')])
+            ->whereIn('status', self::SECTIONS[$ver][1])
+            ->orderByRaw('scheduled_at is null')
+            ->orderBy('scheduled_at', $antigos ? 'desc' : 'asc');
+        $posts = $antigos ? $query->simplePaginate(20)->withQueryString() : $query->get();
 
         // Resumo no topo da fila: o que espera por si, o que vai sair a seguir e se algo correu mal.
         $resumo = null;

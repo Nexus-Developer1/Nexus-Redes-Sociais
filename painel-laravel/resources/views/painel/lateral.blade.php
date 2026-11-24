@@ -3,7 +3,8 @@
     $porEstado = \App\Models\Post::contagens(); // contado uma vez por página (o resumo da fila usa o mesmo)
     $contar = fn (array $estados) => collect($estados)->sum(fn ($s) => $porEstado[$s] ?? 0);
     $verAtual = request()->routeIs('painel') ? request()->query('ver', 'fila') : null;
-    $pedidosAbertos = \App\Models\PostRequest::where('status', '!=', 'done')->count();
+    // pedidos à IA ainda sem post (a fazer ou que falharam): aparecem no topo de "Ideias e em criação"
+    $pedidosAbertos = \App\Models\PostRequest::whereNull('post_id')->whereIn('status', ['new', 'in_progress', 'failed'])->count();
     $pessoa = auth()->user();
     $iniciais = collect(preg_split('/\s+/', trim($pessoa->name)))->map(fn ($p) => mb_strtoupper(mb_substr($p, 0, 1)))->take(2)->implode('');
     $icones = [
@@ -12,7 +13,6 @@
         'publicados' => '<path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/>',
         'rejeitados' => '<circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/>',
         'ideias' => '<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.4 1 1.1 1 1.8V16h5v-.3c0-.7.4-1.4 1-1.8A6 6 0 0 0 12 3z"/>',
-        'pedidos' => '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
     ];
 @endphp
 <aside class="lateral" id="menu-lateral" data-lateral>
@@ -29,7 +29,7 @@
     <nav class="lateral__nav" aria-label="Navegação principal">
         <p class="lateral__grupo">Posts</p>
         @foreach (\App\Http\Controllers\PainelController::SECTIONS as $chave => [$titulo, $estados])
-            @php($num = $contar($estados))
+            @php($num = $contar($estados) + ($chave === 'ideias' ? $pedidosAbertos : 0))
             <a class="nav-item {{ $verAtual === $chave ? 'nav-item--activo' : '' }}" href="{{ route('painel', $chave === 'fila' ? [] : ['ver' => $chave]) }}"
                @if ($verAtual === $chave) aria-current="page" @endif>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{!! $icones[$chave] !!}</svg>
@@ -37,12 +37,6 @@
                 @if ($num > 0)<span class="nav-num {{ $chave === 'fila' ? 'nav-num--forte' : '' }}">{{ $num }}</span>@endif
             </a>
         @endforeach
-        <a class="nav-item {{ $verAtual === 'pedidos' ? 'nav-item--activo' : '' }}" href="{{ route('painel', ['ver' => 'pedidos']) }}"
-           @if ($verAtual === 'pedidos') aria-current="page" @endif>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{!! $icones['pedidos'] !!}</svg>
-            <span>Pedidos de posts</span>
-            @if ($pedidosAbertos > 0)<span class="nav-num">{{ $pedidosAbertos }}</span>@endif
-        </a>
 
         <p class="lateral__grupo">Planear</p>
         <a class="nav-item {{ request()->routeIs('calendario') ? 'nav-item--activo' : '' }}" href="{{ route('calendario') }}">

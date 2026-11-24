@@ -29,7 +29,7 @@ class PostRequestController extends Controller
 
         return back()->with('pedido_em_curso', $escritor->configurado() ? $pedido->id : null)->with('ok', $escritor->configurado()
             ? '⏳ Pedido registado. A IA está a preparar o post: quando estiver pronto, esta página abre-o em “Para aprovar” sozinha.'
-            : 'Pedido registado. Fica na lista “Pedidos de posts” até ser tratado (a IA automática ainda não está ligada).');
+            : 'Pedido registado. Fica no topo de “Ideias e em criação” até ser tratado (a IA automática ainda não está ligada).');
     }
 
     /** Volta a pôr na fila um pedido em que a IA falhou. */

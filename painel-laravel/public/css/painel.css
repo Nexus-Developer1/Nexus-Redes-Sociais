@@ -81,8 +81,6 @@ details.alterar[open] > summary { display: none; }
 .bloco h2 { margin: 0 0 12px; font-family: var(--fonte); font-weight: 600; font-size: 1.125rem; }
 
 
-.pedidos { display: flex; flex-direction: column; gap: 10px; }
-.pedidos .bloco { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; }
 
 .login { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px; background: var(--lateral-fundo); }
 .login form { background: #fff; border-radius: var(--raio-g); padding: 28px; width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 12px; }
@@ -215,10 +213,6 @@ body.ecra-editor .area { flex: 1; }
   .mes-nav h1 { min-width: 0; font-size: 20px; }
 }
 
-/* Pedidos de posts */
-.pedido-texto { min-width: 0; flex: 1 1 300px; }
-.pedido-lado { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.pedido-erro { margin-top: 6px; font-size: 13px; color: var(--perigo-600); background: var(--perigo-100); border-radius: 8px; padding: 6px 10px; }
 
 /* ---------- Cartão do post (listas do painel): compacto e arrumado ---------- */
 .post-imagem a, .post-imagem img { display: block; }
@@ -822,3 +816,21 @@ a.resumo-item:hover { border-color: var(--verde-300); color: inherit; }
 /* Resumo: os ícones das fontes de cada destaque, pequenos e lado a lado */
 .cartao-ia-logos { display: flex; flex: none; gap: 3px; }
 .cartao-ia-logos img { width: 22px; height: 22px; border-radius: 6px; object-fit: contain; background: #fff; border: 1px solid var(--borda); }
+
+/* Topo de "Ideias e em criação": os pedidos à IA ainda sem post (antes era a página "Pedidos de posts") */
+.pedidos-ia { border: 1px solid var(--borda); border-radius: var(--raio-g); background: var(--superficie); padding: 6px 18px; }
+.pedidos-ia-titulo { margin: 10px 0 4px; font-size: .8125rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--texto-fraco); }
+.pedidos-ia-titulo span { margin-left: 4px; color: var(--texto-medio); }
+.pedidos-ia ul { list-style: none; margin: 0; padding: 0; }
+.pedido-ia { display: flex; align-items: center; gap: 14px; padding: 12px 0; }
+.pedido-ia + .pedido-ia { border-top: 1px solid var(--borda); }
+.pedido-ia form { margin: 0; flex: none; }
+.pedido-ia-estado { flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--verde-50); color: var(--verde-600); }
+.pedido-ia--falhou .pedido-ia-estado { background: var(--perigo-100); color: var(--perigo-600); }
+.pedido-ia-roda { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--verde-200); border-top-color: var(--verde-600); animation: roda-ia 1s linear infinite; }
+@keyframes roda-ia { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .pedido-ia-roda { animation: none; } }
+.pedido-ia-texto { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.pedido-ia-texto b { font-weight: 600; color: var(--texto-forte); }
+.pedido-ia-texto small { font-size: .8125rem; color: var(--texto-fraco); }
+.pedido-ia-erro { margin-top: 4px; font-size: .8125rem; color: var(--perigo-600); }
