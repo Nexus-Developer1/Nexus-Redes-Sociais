@@ -804,8 +804,9 @@ a.resumo-item:hover { border-color: var(--verde-300); color: inherit; }
 .noticia-cartao { display: flex; gap: 14px; align-items: flex-start; padding: 14px 16px; border-radius: var(--raio-g); background: var(--superficie);
   border: 1px solid var(--borda); color: inherit; text-decoration: none; transition: border-color .15s, box-shadow .15s; }
 .noticia-cartao:hover { border-color: var(--verde-200); box-shadow: var(--sombra-cartao); }
-.noticia-simbolo { flex: none; width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; color: #fff;
-  font-size: .75rem; font-weight: 700; letter-spacing: .02em; }
+/* Ícone oficial da fonte (public/img/fontes); sem ícone, as iniciais a verde */
+.noticia-logo { flex: none; width: 40px; height: 40px; border-radius: 10px; object-fit: contain; background: #fff; border: 1px solid var(--borda); }
+.noticia-iniciais { display: grid; place-items: center; background: var(--verde-600); border: 0; color: #fff; font-size: .75rem; font-weight: 700; }
 .noticia-texto { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
 .noticia-texto b { font-weight: 600; line-height: 1.35; color: var(--texto-forte); }
 .noticia-cartao:hover .noticia-texto b { color: var(--verde-600); }
@@ -818,3 +819,6 @@ a.resumo-item:hover { border-color: var(--verde-300); color: inherit; }
 .resumos-cartoes a { display: flex; flex-direction: column; gap: 6px; padding: 16px 18px; color: inherit; text-decoration: none; height: 100%; }
 .resumos-cartoes a:hover { border-color: var(--verde-200); }
 .resumos-cartoes small { color: var(--texto-fraco); }
+/* Resumo: os ícones das fontes de cada destaque, pequenos e lado a lado */
+.cartao-ia-logos { display: flex; flex: none; gap: 3px; }
+.cartao-ia-logos img { width: 22px; height: 22px; border-radius: 6px; object-fit: contain; background: #fff; border: 1px solid var(--borda); }

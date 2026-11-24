@@ -7,13 +7,12 @@
     $dia = fn ($d) => $d?->locale('pt_PT')->translatedFormat('j \d\e F');
     // "Pedir um post sobre isto": vai para a IA como um pedido normal (fica em "Para aprovar"; nada sai sem aprovação)
     $tema = fn (string $t) => mb_substr($t, 0, 1900);
-    // Separador "Notícias": símbolo de cada fonte, as iniciais com a cor da marca (as outras ficam a verde NEXUS)
-    $marcas = [
-        'OpenAI' => ['OA', '#111827'], 'Google AI' => ['G', '#1a73e8'], 'NVIDIA' => ['NV', '#76b900'],
-        'Hugging Face' => ['HF', '#f59e0b'], 'Microsoft' => ['MS', '#0078d4'], 'AWS Machine Learning' => ['AWS', '#ff9900'],
-        'TechCrunch' => ['TC', '#0a9e01'], 'The Verge' => ['V', '#e2127a'], 'MIT Technology Review' => ['MIT', '#a31f34'],
-    ];
-    $simbolo = fn (string $f) => $marcas[$f] ?? [mb_strtoupper(mb_substr($f, 0, 2)), '#16a34a'];
+    // Ícone oficial de cada fonte (guardado em public/img/fontes/<nome>.png); sem ícone, as iniciais
+    $logo = function (string $fonte) {
+        $ficheiro = 'img/fontes/'.\Illuminate\Support\Str::slug($fonte).'.png';
+
+        return is_file(public_path($ficheiro)) ? asset($ficheiro) : null;
+    };
     $maisIcone = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
 @endphp
 
@@ -88,6 +87,12 @@
                         <div class="cartao-ia-topo">
                             <span class="cartao-ia-num">{{ $i + 1 }}</span>
                             @if ($deste->isNotEmpty())
+                                {{-- os ícones das fontes deste destaque, pequenos e lado a lado --}}
+                                <span class="cartao-ia-logos" aria-hidden="true">
+                                    @foreach ($deste->pluck('fonte')->unique()->take(4) as $nomeFonte)
+                                        @if ($u = $logo($nomeFonte))<img src="{{ $u }}" alt="" width="22" height="22">@endif
+                                    @endforeach
+                                </span>
                                 <span class="cartao-ia-fontes">{{ $deste->count() }} {{ $deste->count() === 1 ? 'fonte' : 'fontes' }} · {{ $deste->pluck('fonte')->unique()->implode(', ') }}</span>
                             @endif
                         </div>
@@ -172,9 +177,12 @@
                     </h3>
                     <div class="noticias-cartoes">
                         @foreach ($doDia as $n)
-                            @php([$iniciais, $cor] = $simbolo($n->fonte))
                             <a class="noticia-cartao" href="{{ $n->link }}" target="_blank" rel="noopener noreferrer">
-                                <span class="noticia-simbolo" style="background: {{ $cor }}" aria-hidden="true">{{ $iniciais }}</span>
+                                @if ($u = $logo($n->fonte))
+                                    <img class="noticia-logo" src="{{ $u }}" alt="" width="40" height="40" loading="lazy">
+                                @else
+                                    <span class="noticia-logo noticia-iniciais" aria-hidden="true">{{ mb_strtoupper(mb_substr($n->fonte, 0, 2)) }}</span>
+                                @endif
                                 <span class="noticia-texto">
                                     <b>{{ $n->titulo }}</b>
                                     @if ($n->descricao)<span class="noticia-desc">{{ $n->descricao }}</span>@endif
