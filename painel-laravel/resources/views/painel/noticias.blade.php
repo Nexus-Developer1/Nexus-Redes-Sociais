@@ -45,90 +45,87 @@
         @else
             @php
                 $c = $resumo->conteudo;
-                // "Para a NEXUS": a 1.ª frase à vista, o resto em "Ler mais"
-                [$nexus1, $nexusResto] = array_pad(preg_split('/(?<=[.!?])\s+/u', trim($c['para_a_nexus'] ?? ''), 2), 2, '');
+                // O título sem "Resumo de IA:" (a página já diz o que é)
+                $titulo = trim(preg_replace('/^\s*(resumo( semanal)?( de| das not[ií]cias de)? ia\s*[:\-–]\s*)/iu', '', $c['titulo'] ?? '')) ?: 'Notícias de IA';
             @endphp
-            {{-- Ao abrir, só o essencial: título e panorama; o resto abre quando se carrega --}}
-            <div class="resumo-simples">
-                <header class="resumo-topo">
-                    <span class="resumo-ia-periodo">{{ $dia($resumo->inicio) }} a {{ $dia($resumo->fim) }}</span>
-                    <h2>{{ $c['titulo'] ?? 'Notícias de IA' }}</h2>
-                    @if (! empty($c['introducao']))<p class="resumo-ia-intro">{{ $c['introducao'] }}</p>@endif
-                    <p class="resumo-meta">{{ $resumo->n_noticias }} notícias de {{ $fontesDoResumo }} {{ $fontesDoResumo === 1 ? 'fonte' : 'fontes' }}</p>
-                </header>
+            {{-- Faixa escura no topo (cores do menu lateral): o período, o título e o panorama --}}
+            <header class="resumo-faixa">
+                <div class="resumo-faixa-texto">
+                    <span class="resumo-faixa-periodo">{{ $dia($resumo->inicio) }} a {{ $dia($resumo->fim) }}</span>
+                    <h2>{{ $titulo }}</h2>
+                    @if (! empty($c['introducao']))<p>{{ $c['introducao'] }}</p>@endif
+                </div>
+                <dl class="resumo-faixa-numeros">
+                    <div><dt>notícias</dt><dd>{{ $resumo->n_noticias }}</dd></div>
+                    <div><dt>fontes</dt><dd>{{ $fontesDoResumo }}</dd></div>
+                    <div><dt>destaques</dt><dd>{{ count($c['destaques'] ?? []) }}</dd></div>
+                </dl>
+            </header>
 
-                @if ($nexus1 !== '')
-                    <section class="para-nexus">
-                        <h3>
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg>
-                            O que significa para a NEXUS
-                        </h3>
-                        <p>{{ $nexus1 }}</p>
-                        @if ($nexusResto !== '')
-                            <details class="ler-mais">
-                                <summary>Ler mais</summary>
-                                <p>{{ $nexusResto }}</p>
-                            </details>
-                        @endif
-                    </section>
+            {{-- Grelha de cartões: primeiro o que interessa à NEXUS, depois um cartão por destaque --}}
+            <div class="cartoes-ia">
+                @if (! empty($c['para_a_nexus']))
+                    <article class="cartao-ia cartao-nexus">
+                        <span class="cartao-ia-etiqueta">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg>
+                            Para a NEXUS
+                        </span>
+                        <p class="cartao-ia-texto">{{ $c['para_a_nexus'] }}</p>
+                        <details class="cartao-ia-mais"><summary>Ler tudo</summary><p>{{ $c['para_a_nexus'] }}</p></details>
+                    </article>
                 @endif
 
-                {{-- Destaques: só os títulos; cada um abre com o resumo, as fontes e o "+ Post" --}}
-                <section>
-                    <h3 class="secao-titulo">Destaques <span>{{ count($c['destaques'] ?? []) }}</span></h3>
-                    <ol class="destaques-lista">
-                        @foreach ($c['destaques'] ?? [] as $i => $d)
-                            @php($deste = collect($d['noticias'] ?? [])->map(fn ($id) => $noticiasDoResumo[$id] ?? null)->filter())
-                            <li>
-                                <details class="destaque-linha">
-                                    <summary>
-                                        <span class="destaque-num">{{ $i + 1 }}</span>
-                                        <span class="destaque-titulo">{{ $d['titulo'] }}</span>
-                                        <svg class="destaque-seta" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
-                                    </summary>
-                                    <div class="destaque-corpo">
-                                        <p>{{ $d['resumo'] }}</p>
-                                        @if ($deste->isNotEmpty())
-                                            <ul class="destaque-fontes">
-                                                @foreach ($deste as $n)
-                                                    <li><a href="{{ $n->link }}" target="_blank" rel="noopener noreferrer">{{ $n->titulo }} ↗</a> <small>{{ $n->fonte }}</small></li>
-                                                @endforeach
-                                            </ul>
-                                        @endif
-                                        <form method="POST" action="{{ route('requests.store') }}" data-a-enviar="A pedir…">
-                                            @csrf
-                                            <input type="hidden" name="topic" value="{{ $tema('Post a partir das notícias de IA: '.$d['titulo'].'. '.$d['resumo']) }}">
-                                            <input type="hidden" name="formato" value="imagem">
-                                            <button type="submit" class="btn-post" title="Pedir à IA um post sobre este tema">{!! $maisIcone !!} Pedir um post sobre isto</button>
-                                        </form>
-                                    </div>
-                                </details>
-                            </li>
-                        @endforeach
-                    </ol>
-                </section>
-
-                @if (! empty($c['ideias_posts']))
-                    <details class="ideias-fechadas">
-                        <summary>{{ count($c['ideias_posts']) }} {{ count($c['ideias_posts']) === 1 ? 'ideia de post' : 'ideias de posts' }} para as redes</summary>
-                        <ul>
-                            @foreach ($c['ideias_posts'] as $ideia)
-                                <li>
-                                    <span>{{ $ideia }}</span>
-                                    <form method="POST" action="{{ route('requests.store') }}" data-a-enviar="A pedir…">
-                                        @csrf
-                                        <input type="hidden" name="topic" value="{{ $tema($ideia) }}">
-                                        <input type="hidden" name="formato" value="imagem">
-                                        <button type="submit" class="btn-post" title="Pedir à IA este post">{!! $maisIcone !!} Post</button>
-                                    </form>
-                                </li>
-                            @endforeach
-                        </ul>
-                    </details>
-                @endif
-
-                <p class="resumo-ia-nota">Resumo feito pela IA a partir dos títulos e descrições das notícias: confirme na fonte antes de usar um número ou um dado.</p>
+                @foreach ($c['destaques'] ?? [] as $i => $d)
+                    @php($deste = collect($d['noticias'] ?? [])->map(fn ($id) => $noticiasDoResumo[$id] ?? null)->filter())
+                    <article class="cartao-ia">
+                        <div class="cartao-ia-topo">
+                            <span class="cartao-ia-num">{{ $i + 1 }}</span>
+                            @if ($deste->isNotEmpty())
+                                <span class="cartao-ia-fontes">{{ $deste->count() }} {{ $deste->count() === 1 ? 'fonte' : 'fontes' }} · {{ $deste->pluck('fonte')->unique()->implode(', ') }}</span>
+                            @endif
+                        </div>
+                        <h3>{{ $d['titulo'] }}</h3>
+                        <p class="cartao-ia-texto">{{ $d['resumo'] }}</p>
+                        <details class="cartao-ia-mais">
+                            <summary>Ler tudo e ver as fontes</summary>
+                            <p>{{ $d['resumo'] }}</p>
+                            @if ($deste->isNotEmpty())
+                                <ul class="cartao-ia-links">
+                                    @foreach ($deste as $n)
+                                        <li><a href="{{ $n->link }}" target="_blank" rel="noopener noreferrer">{{ $n->titulo }} ↗</a> <small>{{ $n->fonte }}</small></li>
+                                    @endforeach
+                                </ul>
+                            @endif
+                        </details>
+                        <form method="POST" action="{{ route('requests.store') }}" class="cartao-ia-pe" data-a-enviar="A pedir…">
+                            @csrf
+                            <input type="hidden" name="topic" value="{{ $tema('Post a partir das notícias de IA: '.$d['titulo'].'. '.$d['resumo']) }}">
+                            <input type="hidden" name="formato" value="imagem">
+                            <button type="submit" class="btn-post" title="Pedir à IA um post sobre este tema">{!! $maisIcone !!} Pedir um post</button>
+                        </form>
+                    </article>
+                @endforeach
             </div>
+
+            @if (! empty($c['ideias_posts']))
+                {{-- Ideias de posts: cartões pequenos numa fila --}}
+                <section class="ideias-fila">
+                    <h3>Ideias de posts para as redes</h3>
+                    <div class="ideias-fila-cartoes">
+                        @foreach ($c['ideias_posts'] as $ideia)
+                            <form method="POST" action="{{ route('requests.store') }}" class="ideia-cartao" data-a-enviar="A pedir…">
+                                @csrf
+                                <input type="hidden" name="topic" value="{{ $tema($ideia) }}">
+                                <input type="hidden" name="formato" value="imagem">
+                                <p>{{ $ideia }}</p>
+                                <button type="submit" class="btn-post" title="Pedir à IA este post">{!! $maisIcone !!} Pedir este post</button>
+                            </form>
+                        @endforeach
+                    </div>
+                </section>
+            @endif
+
+            <p class="resumo-ia-nota">Resumo feito pela IA a partir dos títulos e descrições das notícias: confirme na fonte antes de usar um número ou um dado.</p>
         @endif
 
     @elseif ($ver === 'noticias')
