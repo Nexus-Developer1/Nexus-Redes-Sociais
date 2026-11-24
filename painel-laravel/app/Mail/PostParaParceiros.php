@@ -4,7 +4,9 @@ namespace App\Mail;
 
 use App\Models\Parceiro;
 use App\Models\Post;
+use App\Services\PostRenderer;
 use App\Support\Miniatura;
+use Throwable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Content;
@@ -38,12 +40,24 @@ class PostParaParceiros extends Mailable
             fn ($img) => Miniatura::caminho($img, self::LARGURA),
             $this->post->imagens()
         )));
+        // Capa no modelo da newsletter (cabeçalho verde + foto + tema em caixas). Se falhar, o email leva o
+        // cabeçalho e a imagem do post, como antes: um parceiro nunca fica sem o email por causa da capa.
+        $capa = null;
+        if (config('painel.email_capa')) {
+            try {
+                $relativo = app(PostRenderer::class)->capaEmail($this->post);
+                $capa = $relativo ? public_path($relativo) : null;
+            } catch (Throwable $e) {
+                report($e);
+            }
+        }
         $remover = 'mailto:'.config('mail.from.address').'?subject='.rawurlencode('Remover da lista de parceiros NEXUS');
 
         return new Content(view: 'emails.post-parceiros', with: [
             'post' => $this->post,
             'nome' => $this->parceiro?->nome ?? $this->nomeTeste,
             'imagens' => $imagens,
+            'capa' => $capa,
             'legenda' => $this->post->legendaParaEmail(),
             'remover' => $remover,
             'teste' => $this->teste,

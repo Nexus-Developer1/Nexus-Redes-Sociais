@@ -157,6 +157,18 @@ class ParceirosTest extends TestCase
         $this->assertSame(Post::PENDING, $post->fresh()->status);
     }
 
+    public function test_caixas_da_capa_do_email_com_o_tema_do_post(): void
+    {
+        $caixas = fn (array $design) => \App\Services\PostRenderer::caixasEmail(new Post(['design' => $design]));
+
+        $this->assertSame(['UPS &amp;', 'Proteção'], $caixas(['modelo' => 'produto', 'rodape' => 'UPS & Proteção']));
+        $this->assertSame(['Backup &amp;', 'Disaster Recovery'], $caixas(['rodape' => 'Backup & Disaster Recovery']));
+        $this->assertSame(['Cibersegurança'], $caixas(['rodape' => 'Cibersegurança']));
+        $this->assertSame(['Aviso'], $caixas(['modelo' => 'aviso']));                         // sem rodapé: o tipo de post
+        $this->assertSame(['&lt;b&gt;x&lt;/b&gt;'], $caixas(['rodape' => '<b>x</b>']));       // texto nunca entra como HTML
+        $this->assertSame(['Rede', '<b>segura</b>'], $caixas(['rodape' => 'Rede *segura*']));  // *palavra* a verde
+    }
+
     public function test_aprovador_ve_no_email_que_tambem_vai_aos_parceiros(): void
     {
         Parceiro::create(['nome' => 'Ana', 'email' => 'ana@x.pt']);

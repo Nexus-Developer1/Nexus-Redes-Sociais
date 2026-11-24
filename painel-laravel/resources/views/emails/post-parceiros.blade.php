@@ -45,18 +45,22 @@
 
 <table role="presentation" class="caixa" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:600px;background:#ffffff;">
 
-    {{-- Cabeçalho verde: NEXUS · WE MAKE IT FOR YOU --}}
-    <tr><td style="padding:0;font-size:0;line-height:0;">
-        <a href="https://nexus-solutions.pt/" target="_blank"><img class="fluida" src="{{ $peca('cabecalho.jpg') }}" width="600" alt="NEXUS · We make IT for you." style="display:block;width:600px;"></a>
-    </td></tr>
-
-    {{-- Imagem do post (num carrossel, todas por ordem) --}}
-    @foreach ($imagens as $i => $img)
-        <tr><td align="center" style="padding:{{ $i ? '12px' : '0' }} 40px 0;font-size:0;line-height:0;">
-            <img class="fluida" src="{{ $message->embed($img) }}" width="520" alt="{{ $i ? 'Imagem '.($i + 1).' do post' : ($post->image_alt ?: $post->assuntoParceiros()) }}"
-                 style="display:block;width:520px;max-width:100%;">
+    @if ($capa)
+        {{-- Capa: cabeçalho verde (NEXUS · We make IT for you) com a foto do post por trás e o tema em caixas --}}
+        <tr><td style="padding:0;font-size:0;line-height:0;">
+            <a href="https://nexus-solutions.pt/" target="_blank"><img class="fluida" src="{{ $message->embed($capa) }}" width="600" alt="NEXUS · {{ $post->assuntoParceiros() }}" style="display:block;width:600px;"></a>
         </td></tr>
-    @endforeach
+    @else
+        {{-- Sem capa (o browser falhou): o cabeçalho e a imagem do post --}}
+        <tr><td style="padding:0;font-size:0;line-height:0;">
+            <a href="https://nexus-solutions.pt/" target="_blank"><img class="fluida" src="{{ $peca('cabecalho.jpg') }}" width="600" alt="NEXUS · We make IT for you." style="display:block;width:600px;"></a>
+        </td></tr>
+        @foreach (array_slice($imagens, 0, 1) as $img)
+            <tr><td align="center" style="padding:0 40px;font-size:0;line-height:0;">
+                <img class="fluida" src="{{ $message->embed($img) }}" width="520" alt="{{ $post->image_alt ?: $post->assuntoParceiros() }}" style="display:block;width:520px;max-width:100%;">
+            </td></tr>
+        @endforeach
+    @endif
 
     {{-- Título a verde --}}
     <tr><td style="padding:22px 20px 6px;font-family:{{ $fonte }};font-size:24px;line-height:30px;font-weight:bold;color:{{ $verde }};text-align:center;">

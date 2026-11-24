@@ -83,6 +83,10 @@ Sistema que cria posts para as redes sociais da NEXUS de forma autónoma.
     a diagonal, imagem do post, título #00BA4C, texto #4B4B4B, "WE MAKE IT FOR YOU", produtos (→ configurador), "Torne-se um parceiro"
     (→ /programa-parceiros-nexus/), marcas, contactos, redes e rodapé #C1D59F. Peças em `resources/email-parceiros/` (tiradas da
     versão web; o cabeçalho é o topo de OUT-OF-OFFICE.png recortado). Remetente "NEXUS IT Solutions" (`PARCEIROS_REMETENTE`).
+    Capa do email = `PostRenderer::capaEmail()` (1200×800 JPEG `email-<hash>.jpg` na pasta do post, refeita só se o post mudar):
+    cabeçalho com a zona abaixo da diagonal transparente (`public/modelos/email/cabecalho.png`), a foto de fundo do post por trás
+    (sem foto, verde da marca) e o tema (rodapé do post) em caixas #004D31 como "OUT / OF OFFICE". Se falhar, o email leva o
+    cabeçalho e a imagem do post. Nos testes está desligada (`EMAIL_CAPA=false`).
   **Regras de segurança (23 nov 2026):** as decisões são atómicas (`Post::decide(..., $de)` só grava se o post ainda estiver nesses estados);
   a IA ao refazer só grava se o post ainda estiver à espera DESSA alteração (fica "Em criação" enquanto gera a imagem) e só muda a data/redes se o pedido falar delas;
   aprovar exige imagem e data; "Desfazer" é recusado se o post já saiu numa rede; pedidos "a fazer" há mais de 20 min passam a falhados.

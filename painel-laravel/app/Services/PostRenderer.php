@@ -167,6 +167,114 @@ class PostRenderer
         return ['path' => $caminhos[0], 'slides' => $total > 1 ? array_values($caminhos) : [], 'story' => $story, 'avisos' => $avisos];
     }
 
+    /** Muda quando o desenho da capa do email muda: as capas antigas são refeitas. */
+    private const CAPA_EMAIL_VERSAO = 2;
+
+    /**
+     * Capa do email aos parceiros, no modelo da newsletter da NEXUS (1200×800, JPEG): o cabeçalho verde com a
+     * diagonal e, por trás, a foto de fundo do post (sem foto, o verde da marca), com o tema do post em caixas
+     * verde-escuras (como o "OUT / OF OFFICE" do original). Fica guardada na pasta do post e só é refeita se o
+     * post mudar. Devolve o caminho relativo a public/, ou null se o post ainda não foi guardado.
+     *
+     * @throws RuntimeException se o browser não gerar a imagem
+     */
+    public function capaEmail(Post $post): ?string
+    {
+        if (! $post->exists) {
+            return null;
+        }
+        $design = $post->design ?? [];
+        $pasta = self::pasta($post);
+        $foto = (string) ($design['foto'] ?? $design['fundo'] ?? '');
+        $foto = $foto !== '' && basename($foto) === $foto && is_file("{$pasta}/{$foto}") ? $foto : '';
+        $caixas = self::caixasEmail($post);
+        $chave = substr(md5(json_encode([self::CAPA_EMAIL_VERSAO, $caixas, $foto, $foto ? filemtime("{$pasta}/{$foto}") : 0,
+            $design['enquadramento'] ?? 'centro'])), 0, 12);
+        $relativo = "imagens-posts/design/{$post->id}/email-{$chave}.jpg";
+        if (is_file(public_path($relativo))) {
+            return $relativo;
+        }
+
+        File::ensureDirectoryExists($pasta);
+        $sessao = $this->pastaDeTrabalho();
+        try {
+            $modelos = $this->fileUrl(public_path('modelos')).'/';
+            $posicao = ['topo' => 'center 25%', 'baixo' => 'center 85%'][$design['enquadramento'] ?? ''] ?? 'center 55%';
+            $fundo = $foto
+                ? '<img class="foto" src="'.e(rawurlencode($foto)).'" alt="" style="object-position:'.$posicao.'">'
+                : '<div class="gerado"></div>';
+            $linhas = implode('', array_map(fn ($c) => '<div class="caixa">'.$c.'</div>', $caixas));
+            $html = '<!doctype html><html lang="pt"><head><meta charset="utf-8"><base href="'.$this->fileUrl($pasta).'/">'
+                .'<style>'
+                .'@font-face{font-family:Rajdhani;font-weight:700;src:url("'.$modelos.'fontes/rajdhani-700.woff2") format("woff2")}'
+                .'html,body{margin:0;width:1200px;height:800px;overflow:hidden;background:#021a0a}'
+                .'.foto,.gerado,.tom{position:absolute;left:0;top:0;width:1200px;height:800px}'
+                .'.foto{object-fit:cover}'
+                .'.tom{background:linear-gradient(180deg,rgba(2,26,10,0) 40%,rgba(2,26,10,.35) 100%)}'
+                .'.gerado{background:radial-gradient(circle at 78% 72%,#13a24c 0%,#06602c 38%,#022d14 75%,#021a0a 100%)}'
+                .'.gerado:after{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),'
+                .'linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px);background-size:60px 60px}'
+                .'.cabecalho{position:absolute;left:0;top:0;width:1200px}'
+                .'.caixas{position:absolute;left:188px;bottom:100px;display:flex;flex-direction:column;align-items:flex-start;gap:22px}'
+                .'.caixa{background:#004d31;color:#fff;font:700 64px/1 Rajdhani,sans-serif;text-transform:uppercase;letter-spacing:1px;'
+                .'padding:22px 24px 14px;border-radius:12px;white-space:nowrap}'
+                .'.caixa b{color:#3dff7a;font-weight:700}'
+                .'</style></head><body>'.$fundo.'<div class="tom"></div>'
+                .'<img class="cabecalho" src="'.$modelos.'email/cabecalho.png" alt="">'
+                .'<div class="caixas">'.$linhas.'</div>'
+                // As caixas não podem passar da margem direita nem subir até à diagonal: a letra diminui até caber.
+                .'<script>document.fonts.ready.then(function(){var c=document.querySelector(".caixas"),t=64;'
+                .'function cabe(){var r=c.getBoundingClientRect();return r.right<=1140&&r.top>=440}'
+                .'while(!cabe()&&t>34){t-=2;c.querySelectorAll(".caixa").forEach(function(e){e.style.fontSize=t+"px"})}'
+                .'console.log("NEXUS-ESTADO:pronto")});</script>'
+                .'</body></html>';
+            File::put("{$sessao}/email.html", $html);
+            $png = "{$sessao}/email.png";
+            $r = Process::timeout(90)
+                ->env(['HOME' => $sessao, 'XDG_CONFIG_HOME' => $sessao, 'XDG_CACHE_HOME' => $sessao])
+                ->run($this->comando($this->browser(), "{$sessao}/email.html", $png, 1200, 800, "{$sessao}/perfil"));
+            if (! is_file($png)) {
+                throw new RuntimeException('O browser não gerou a capa do email. '.trim(mb_substr($r->errorOutput(), 0, 300)));
+            }
+            // JPEG: a foto em PNG pesaria mais de 1 MB no email.
+            $img = imagecreatefrompng($png);
+            imagejpeg($img, public_path($relativo), 86);
+            imagedestroy($img);
+        } finally {
+            File::deleteDirectory($sessao);
+        }
+        foreach (File::glob("{$pasta}/email-*.jpg") as $antiga) {
+            if (basename($antiga) !== basename($relativo)) {
+                File::delete($antiga);
+            }
+        }
+
+        return $relativo;
+    }
+
+    /**
+     * Texto das caixas da capa do email: o tema do post (o rodapé da imagem, ex.: "UPS & Proteção") em uma ou duas
+     * caixas, como "OUT / OF OFFICE". Já em HTML seguro; *palavra* fica a verde.
+     *
+     * @return string[]
+     */
+    public static function caixasEmail(Post $post): array
+    {
+        $d = $post->design ?? [];
+        $tema = trim((string) ($d['rodape'] ?? '')) ?: trim((string) ($d['etiqueta'] ?? '')) ?: (self::NOMES[$d['modelo'] ?? ''] ?? 'NEXUS');
+        $tema = mb_substr(preg_replace('/\s+/u', ' ', $tema), 0, 40);
+        $palavras = explode(' ', $tema);
+        if (count($palavras) === 1) {
+            $linhas = [$tema];
+        } elseif (($e = array_search('&', $palavras, true)) !== false && $e > 0 && $e < count($palavras) - 1) {
+            $linhas = [implode(' ', array_slice($palavras, 0, $e + 1)), implode(' ', array_slice($palavras, $e + 1))];
+        } else {
+            $linhas = [$palavras[0], implode(' ', array_slice($palavras, 1))];
+        }
+
+        return array_map(fn ($l) => preg_replace('/\*([^*]+)\*/u', '<b>$1</b>', e($l)), $linhas);
+    }
+
     /**
      * Pasta de trabalho só deste render (páginas HTML e imagens antes de irem para a pasta pública).
      * No servidor fica em RENDER_PASTA, partilhada com o utilizador que corre o browser (RENDER_UTILIZADOR),
