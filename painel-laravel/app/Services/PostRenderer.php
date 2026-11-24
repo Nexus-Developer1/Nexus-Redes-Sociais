@@ -168,10 +168,10 @@ class PostRenderer
     }
 
     /** Muda quando o desenho da capa do email muda: as capas antigas são refeitas. */
-    private const CAPA_EMAIL_VERSAO = 2;
+    private const CAPA_EMAIL_VERSAO = 3;
 
     /**
-     * Capa do email aos parceiros, no modelo da newsletter da NEXUS (1200×800, JPEG): o cabeçalho verde com a
+     * Capa do email aos parceiros, no modelo da newsletter da NEXUS (1200×880, JPEG): o cabeçalho verde com a
      * diagonal e, por trás, a foto de fundo do post (sem foto, o verde da marca), com o tema do post em caixas
      * verde-escuras (como o "OUT / OF OFFICE" do original). Fica guardada na pasta do post e só é refeita se o
      * post mudar. Devolve o caminho relativo a public/, ou null se o post ainda não foi guardado.
@@ -199,7 +199,7 @@ class PostRenderer
         $sessao = $this->pastaDeTrabalho();
         try {
             $modelos = $this->fileUrl(public_path('modelos')).'/';
-            $posicao = ['topo' => 'center 25%', 'baixo' => 'center 85%'][$design['enquadramento'] ?? ''] ?? 'center 55%';
+            $posicao = ['topo' => 'center 15%', 'baixo' => 'center 85%'][$design['enquadramento'] ?? ''] ?? 'center 50%';
             $fundo = $foto
                 ? '<img class="foto" src="'.e(rawurlencode($foto)).'" alt="" style="object-position:'.$posicao.'">'
                 : '<div class="gerado"></div>';
@@ -207,8 +207,11 @@ class PostRenderer
             $html = '<!doctype html><html lang="pt"><head><meta charset="utf-8"><base href="'.$this->fileUrl($pasta).'/">'
                 .'<style>'
                 .'@font-face{font-family:Rajdhani;font-weight:700;src:url("'.$modelos.'fontes/rajdhani-700.woff2") format("woff2")}'
-                .'html,body{margin:0;width:1200px;height:800px;overflow:hidden;background:#021a0a}'
-                .'.foto,.gerado,.tom{position:absolute;left:0;top:0;width:1200px;height:800px}'
+                .'html,body{margin:0;width:1200px;height:880px;overflow:hidden;background:#021a0a}'
+                .'.gerado{position:absolute;left:0;top:0;width:1200px;height:880px}'
+                // A foto começa onde começa a diagonal (y=282): o cabeçalho só tapa o canto da diagonal à direita,
+                // nunca a metade de cima da foto (antes a foto ia de 0 a 800 e o verde escondia o que importava).
+                .'.foto,.tom{position:absolute;left:0;top:282px;width:1200px;height:598px}'
                 .'.foto{object-fit:cover}'
                 .'.tom{background:linear-gradient(180deg,rgba(2,26,10,0) 40%,rgba(2,26,10,.35) 100%)}'
                 .'.gerado{background:radial-gradient(circle at 78% 72%,#13a24c 0%,#06602c 38%,#022d14 75%,#021a0a 100%)}'
@@ -232,7 +235,7 @@ class PostRenderer
             $png = "{$sessao}/email.png";
             $r = Process::timeout(90)->path($sessao) // corre na pasta de trabalho (o browser não chega a outras)
                 ->env(['HOME' => $sessao, 'XDG_CONFIG_HOME' => $sessao, 'XDG_CACHE_HOME' => $sessao])
-                ->run($this->comando($this->browser(), "{$sessao}/email.html", $png, 1200, 800, "{$sessao}/perfil"));
+                ->run($this->comando($this->browser(), "{$sessao}/email.html", $png, 1200, 880, "{$sessao}/perfil"));
             if (! is_file($png)) {
                 throw new RuntimeException('O browser não gerou a capa do email. '.trim(mb_substr($r->errorOutput(), 0, 300)));
             }
