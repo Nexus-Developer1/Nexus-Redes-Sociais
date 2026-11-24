@@ -550,6 +550,7 @@ a.resumo-item:hover { border-color: var(--verde-300); color: inherit; }
 .ig-galeria { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
 .ig-galeria::-webkit-scrollbar { display: none; }
 .ig-galeria img { flex: 0 0 100%; width: 100%; aspect-ratio: 4 / 5; object-fit: cover; display: block; scroll-snap-align: start; }
+.ig-galeria--quadrado img { aspect-ratio: 1; } /* post 1:1: mostra-se inteiro, como no Instagram (antes cortava as laterais) */
 .ig-contador { position: absolute; top: 10px; right: 10px; padding: 2px 8px; border-radius: 999px; background: rgba(0,0,0,.6); color: #fff; font-size: 12px; }
 .ig-pontos { display: flex; justify-content: center; gap: 4px; position: absolute; left: 0; right: 0; bottom: -18px; }
 .ig-pontos i { width: 6px; height: 6px; border-radius: 50%; background: #C7C7C7; }

@@ -661,7 +661,10 @@ class PostWriter
             }
         }
 
+        $referencia = $r['publicar_em'] instanceof Carbon ? $r['publicar_em'] : now();
         foreach ($this->revisorPt($textos) as $chave => $t) {
+            // a IA engana-se no dia da semana ("Sábado, 30 de novembro" num ano em que é segunda): acerta-se aqui
+            $t = \App\Support\AvisoDatas::acertarDiasDaSemana($t, $referencia);
             if ($chave === 'legenda' || $chave === 'titulo_interno') {
                 $r[$chave] = $t;
             } elseif (str_starts_with($chave, 'design.')) {
@@ -706,7 +709,6 @@ class PostWriter
         if ($querCarrossel && $slides) {
             $design['carrossel'] = true;
             $design['slides'] = $slides;
-            $design['formato'] = ($design['formato'] ?? '') === '1:1' ? '1:1' : '4:5';
             if (! in_array($design['modelo'] ?? '', ['dica', 'numero', 'produto', 'frase', 'montra'], true)) {
                 $design['modelo'] = 'dica'; // aviso e evento não têm carrossel
             }
@@ -716,6 +718,7 @@ class PostWriter
         } else {
             unset($design['carrossel'], $design['slides'], $design['fecho']);
         }
+        $design['formato'] = '4:5'; // padrão do feed da NEXUS (24 nov): a IA já não faz posts 1:1
         $produtoBib = (int) ($d['produto_biblioteca'] ?? 0);
         $permitidos = ['dica', 'produto', 'aviso', 'evento', 'numero', 'frase'];
         if ($produtoBib > 0) {
@@ -769,12 +772,16 @@ class PostWriter
     private function instrucoes(): string
     {
         $hoje = now()->locale('pt_PT')->translatedFormat('l, j \d\e F \d\e Y, H:i');
+        $calendario = \App\Support\AvisoDatas::calendarioParaIa();
         $icones = implode(', ', PostRenderer::ICONES);
         $empresa = self::EMPRESA;
 
         return <<<TXT
         És o redator das redes sociais (Instagram, Facebook e LinkedIn) da NEXUS IT Solutions.
         Hoje é {$hoje} (hora de Portugal).
+        Calendário dos próximos dias (usa-o para o dia da semana de qualquer data; nunca contes de cabeça):
+        {$calendario}
+        Num aviso de fecho ou ponte, o regresso é o primeiro dia útil depois do fecho (sem fins de semana nem feriados).
 
         A EMPRESA
         {$empresa}
@@ -813,7 +820,7 @@ class PostWriter
         - "rodape": tema do post em 2 a 4 palavras (ex.: "Backup & Disaster Recovery", "UPS & Proteção"). Aparece nas caixas da capa
           do email aos parceiros, por isso tem de ser curto e claro.
         - "etiqueta": deixa "" (usa a do tipo de post), a não ser que outra palavra seja claramente melhor.
-        - "formato": "4:5" (normal) ou "1:1" (avisos curtos).
+        - "formato": sempre "4:5" (o padrão do feed da NEXUS, também nos avisos).
         - Sem emojis no texto da imagem.
         - "pesquisa_imagem": 2 a 4 palavras EM INGLÊS para procurar uma foto de fundo num banco de fotos
           (ex.: "server room", "it technician laptop", "office computers desk", "data center cables", "hard drive storage").
@@ -852,7 +859,7 @@ class PostWriter
           "titulo_interno": "nome curto do post para o painel",
           "modelo": "dica|produto|aviso|evento|numero|frase|montra",
           "numero": "",
-          "formato": "4:5|1:1",
+          "formato": "4:5",
           "titulo": "...",
           "texto": "...",
           "etiqueta": "",

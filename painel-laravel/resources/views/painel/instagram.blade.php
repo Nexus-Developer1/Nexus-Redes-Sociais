@@ -25,7 +25,7 @@
                 </header>
                 <div class="ig-media">
                     @if ($imagensIg)
-                        <div class="ig-galeria" tabindex="0" @if (count($imagensIg) > 1) aria-label="Carrossel com {{ count($imagensIg) }} imagens" @endif>
+                        <div @class(["ig-galeria", "ig-galeria--quadrado" => ($post->design["formato"] ?? null) === "1:1"]) tabindex="0" @if (count($imagensIg) > 1) aria-label="Carrossel com {{ count($imagensIg) }} imagens" @endif>
                             @foreach ($imagensIg as $i => $img)
                                 <img src="{{ \App\Support\Miniatura::url($img, 720) }}" alt="{{ $i ? 'Imagem '.($i + 1) : ($post->image_alt ?? $post->title) }}" loading="lazy">
                             @endforeach

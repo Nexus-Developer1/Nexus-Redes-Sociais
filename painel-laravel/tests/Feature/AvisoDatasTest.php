@@ -52,4 +52,28 @@ class AvisoDatasTest extends TestCase
             ->assertSee('feriados:', false)
             ->assertSee(now()->year.'-12-25');
     }
+
+    public function test_acerta_o_dia_da_semana_que_a_ia_errou(): void
+    {
+        $ref = Carbon::parse('2026-11-26 10:00'); // 30 nov 2026 é segunda; 2 dez é quarta
+        $this->assertSame('Segunda-feira, 30 de novembro', AvisoDatas::acertarDiasDaSemana('Sábado, 30 de novembro', $ref));
+        $this->assertSame('Segunda-feira, 30 de novembro', AvisoDatas::acertarDiasDaSemana('Sexta-feira, 30 de novembro', $ref));
+        $this->assertSame('Voltamos na quarta-feira, 2 de dezembro.', AvisoDatas::acertarDiasDaSemana('Voltamos na quinta-feira, 2 de dezembro.', $ref));
+        $this->assertSame('encerra na próxima segunda-feira, 30 de novembro.', AvisoDatas::acertarDiasDaSemana('encerra no próximo sábado, 30 de novembro.', $ref));
+        $this->assertSame('Abrimos no domingo, 6 de dezembro', AvisoDatas::acertarDiasDaSemana('Abrimos na sexta-feira, 6 de dezembro', $ref));
+        $this->assertSame('SEGUNDA, 30 DE NOVEMBRO', AvisoDatas::acertarDiasDaSemana('SEXTA, 30 DE NOVEMBRO', $ref));
+        // já certo, sem dia da semana ou noutro ano (janeiro a seguir): não estraga
+        $this->assertSame('Terça-feira, 1 de dezembro', AvisoDatas::acertarDiasDaSemana('Terça-feira, 1 de dezembro', $ref));
+        $this->assertSame('Retomamos a 2 de dezembro.', AvisoDatas::acertarDiasDaSemana('Retomamos a 2 de dezembro.', $ref));
+        $this->assertSame('sexta-feira, 1 de janeiro', AvisoDatas::acertarDiasDaSemana('domingo, 1 de janeiro', $ref)); // 1 jan 2027
+    }
+
+    public function test_calendario_para_a_ia_tem_os_feriados(): void
+    {
+        $this->travelTo(Carbon::parse('2026-11-24 09:00'));
+        $cal = AvisoDatas::calendarioParaIa(10);
+        $this->assertStringStartsWith('ter 24/11; qua 25/11', $cal);
+        $this->assertStringContainsString('seg 30/11; ter 1/12 (feriado: ', $cal);
+    }
 }
+

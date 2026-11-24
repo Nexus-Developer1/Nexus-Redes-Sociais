@@ -38,6 +38,10 @@ Sistema que cria posts para as redes sociais da NEXUS de forma autónoma.
   cima, foto a ocupar o post (pouco escurecida), título em caixas #004D31 em baixo à esquerda, texto de apoio em maiúsculas,
   sem etiqueta nem barra de rodapé; produto e montra com o cabeçalho verde "We make IT for you" (`modelos/email/cabecalho.png`);
   carrossel com "›››". O estilo antigo (fundo escuro, barras verdes, rodapé com o site) já não se usa.
+  Os posts da IA são sempre 4:5 (o prompt já não oferece 1:1; `PostWriter::normalizar` força-o). A pré-visualização do Instagram
+  mostra os 1:1 antigos inteiros (`.ig-galeria--quadrado`). Datas: a IA recebe um calendário dos próximos 45 dias com os feriados
+  (`AvisoDatas::calendarioParaIa`) e, depois do revisor, `AvisoDatas::acertarDiasDaSemana` corrige o dia da semana de cada
+  "<dia>, D de <mês>" (e o "no próximo"/"na próxima"): a IA escrevia "Sábado, 30 de novembro" num ano em que é segunda.
   Cada post novo = pasta com `dados.json` → `.\scripts\gerar-post.ps1 -Pasta <pasta>` cria `post.html` + `post.png`
   e avisa (código 2) se o texto não couber ou faltar uma imagem. Usar sempre os modelos para posts novos.
   **Editor no painel** (para a equipa): "+ Criar post" e "Editar" → `PostEditorController`; a imagem é gerada no servidor pelo
