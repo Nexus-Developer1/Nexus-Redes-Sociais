@@ -168,12 +168,16 @@ class PostRenderer
     }
 
     /** Muda quando o desenho da capa do email muda: as capas antigas são refeitas. */
-    private const CAPA_EMAIL_VERSAO = 3;
+    private const CAPA_EMAIL_VERSAO = 4;
+
+    /** Onde começa a diagonal do cabeçalho (à esquerda): a foto começa aqui, nunca por trás do verde. */
+    private const CAPA_EMAIL_TOPO_FOTO = 282;
 
     /**
-     * Capa do email aos parceiros, no modelo da newsletter da NEXUS (1200×880, JPEG): o cabeçalho verde com a
-     * diagonal e, por trás, a foto de fundo do post (sem foto, o verde da marca), com o tema do post em caixas
-     * verde-escuras (como o "OUT / OF OFFICE" do original). Fica guardada na pasta do post e só é refeita se o
+     * Capa do email aos parceiros, no modelo da newsletter da NEXUS (1200 de largura, JPEG): o cabeçalho verde com a
+     * diagonal e, logo a partir da diagonal, a foto de fundo do post INTEIRA (a altura da capa segue a proporção da
+     * foto; só o canto da diagonal tapa uma ponta), com o tema do post em caixas verde-escuras (como o "OUT / OF
+     * OFFICE" do original). Sem foto: o verde da marca. Fica guardada na pasta do post e só é refeita se o
      * post mudar. Devolve o caminho relativo a public/, ou null se o post ainda não foi guardado.
      *
      * @throws RuntimeException se o browser não gerar a imagem
@@ -188,8 +192,7 @@ class PostRenderer
         $foto = (string) ($design['foto'] ?? $design['fundo'] ?? '');
         $foto = $foto !== '' && basename($foto) === $foto && is_file("{$pasta}/{$foto}") ? $foto : '';
         $caixas = self::caixasEmail($post);
-        $chave = substr(md5(json_encode([self::CAPA_EMAIL_VERSAO, $caixas, $foto, $foto ? filemtime("{$pasta}/{$foto}") : 0,
-            $design['enquadramento'] ?? 'centro'])), 0, 12);
+        $chave = substr(md5(json_encode([self::CAPA_EMAIL_VERSAO, $caixas, $foto, $foto ? filemtime("{$pasta}/{$foto}") : 0])), 0, 12);
         $relativo = "imagens-posts/design/{$post->id}/email-{$chave}.jpg";
         if (is_file(public_path($relativo))) {
             return $relativo;
@@ -199,20 +202,31 @@ class PostRenderer
         $sessao = $this->pastaDeTrabalho();
         try {
             $modelos = $this->fileUrl(public_path('modelos')).'/';
-            $posicao = ['topo' => 'center 15%', 'baixo' => 'center 85%'][$design['enquadramento'] ?? ''] ?? 'center 50%';
+            // A foto nunca é cortada: a altura da zona da foto é a da própria foto a 1200 de largura. Fotos muito
+            // altas ou muito largas ficam inteiras (contain) com a mesma foto desfocada a encher os lados.
+            $alturaFoto = 598;
+            $ajuste = 'fill';
+            if ($foto && ([$fw, $fh] = @getimagesize("{$pasta}/{$foto}") ?: [0, 0]) && $fw > 0) {
+                $natural = (int) round(1200 * $fh / $fw);
+                $alturaFoto = max(560, min(1200, $natural));
+                $ajuste = $alturaFoto === $natural ? 'fill' : 'contain';
+            }
+            $alturaTotal = self::CAPA_EMAIL_TOPO_FOTO + $alturaFoto;
+            $src = $foto ? e(rawurlencode($foto)) : '';
             $fundo = $foto
-                ? '<img class="foto" src="'.e(rawurlencode($foto)).'" alt="" style="object-position:'.$posicao.'">'
+                ? ($ajuste === 'contain' ? '<img class="desfocada" src="'.$src.'" alt="">' : '')
+                  .'<img class="foto" src="'.$src.'" alt="" style="object-fit:'.$ajuste.'">'
                 : '<div class="gerado"></div>';
             $linhas = implode('', array_map(fn ($c) => '<div class="caixa">'.$c.'</div>', $caixas));
             $html = '<!doctype html><html lang="pt"><head><meta charset="utf-8"><base href="'.$this->fileUrl($pasta).'/">'
                 .'<style>'
                 .'@font-face{font-family:Rajdhani;font-weight:700;src:url("'.$modelos.'fontes/rajdhani-700.woff2") format("woff2")}'
-                .'html,body{margin:0;width:1200px;height:880px;overflow:hidden;background:#021a0a}'
-                .'.gerado{position:absolute;left:0;top:0;width:1200px;height:880px}'
-                // A foto começa onde começa a diagonal (y=282): o cabeçalho só tapa o canto da diagonal à direita,
+                .'html,body{margin:0;width:1200px;height:'.$alturaTotal.'px;overflow:hidden;background:#021a0a}'
+                .'.gerado{position:absolute;left:0;top:0;width:1200px;height:'.$alturaTotal.'px}'
+                // A foto começa onde começa a diagonal: o cabeçalho só tapa o canto da diagonal à direita,
                 // nunca a metade de cima da foto (antes a foto ia de 0 a 800 e o verde escondia o que importava).
-                .'.foto,.tom{position:absolute;left:0;top:282px;width:1200px;height:598px}'
-                .'.foto{object-fit:cover}'
+                .'.foto,.tom,.desfocada{position:absolute;left:0;top:'.self::CAPA_EMAIL_TOPO_FOTO.'px;width:1200px;height:'.$alturaFoto.'px}'
+                .'.desfocada{object-fit:cover;filter:blur(28px) brightness(.8);transform:scale(1.08)}'
                 .'.tom{background:linear-gradient(180deg,rgba(2,26,10,0) 40%,rgba(2,26,10,.35) 100%)}'
                 .'.gerado{background:radial-gradient(circle at 78% 72%,#13a24c 0%,#06602c 38%,#022d14 75%,#021a0a 100%)}'
                 .'.gerado:after{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),'
@@ -235,7 +249,7 @@ class PostRenderer
             $png = "{$sessao}/email.png";
             $r = Process::timeout(90)->path($sessao) // corre na pasta de trabalho (o browser não chega a outras)
                 ->env(['HOME' => $sessao, 'XDG_CONFIG_HOME' => $sessao, 'XDG_CACHE_HOME' => $sessao])
-                ->run($this->comando($this->browser(), "{$sessao}/email.html", $png, 1200, 880, "{$sessao}/perfil"));
+                ->run($this->comando($this->browser(), "{$sessao}/email.html", $png, 1200, $alturaTotal, "{$sessao}/perfil"));
             if (! is_file($png)) {
                 throw new RuntimeException('O browser não gerou a capa do email. '.trim(mb_substr($r->errorOutput(), 0, 300)));
             }
