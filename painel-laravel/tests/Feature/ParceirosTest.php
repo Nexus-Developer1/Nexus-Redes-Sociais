@@ -115,6 +115,11 @@ class ParceirosTest extends TestCase
         $this->assertStringContainsString('Fale connosco: nexus-solutions.pt', $html);
         $this->assertStringNotContainsString('#UPS', $html);
         $this->assertStringContainsString('mailto:', $html);
+        // modelo da newsletter da NEXUS: produtos, "Torne-se um parceiro" e redes
+        $this->assertStringContainsString('TORNE-SE UM PARCEIRO NEXUS', $html);
+        $this->assertStringContainsString('https://nexus-solutions.pt/programa-parceiros-nexus/', $html);
+        $this->assertStringContainsString('https://configurador.nexus-solutions.pt/', $html);
+        $this->assertStringContainsString('linkedin.com/company/nexussolutions', $html);
     }
 
     public function test_marcar_so_antes_de_aprovar_e_nao_elimina_depois_de_enviado(): void

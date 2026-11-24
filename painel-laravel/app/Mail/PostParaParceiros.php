@@ -38,7 +38,6 @@ class PostParaParceiros extends Mailable
             fn ($img) => Miniatura::caminho($img, self::LARGURA),
             $this->post->imagens()
         )));
-        $logo = public_path('modelos/logo-nexus.png');
         $remover = 'mailto:'.config('mail.from.address').'?subject='.rawurlencode('Remover da lista de parceiros NEXUS');
 
         return new Content(view: 'emails.post-parceiros', with: [
@@ -46,7 +45,6 @@ class PostParaParceiros extends Mailable
             'nome' => $this->parceiro?->nome ?? $this->nomeTeste,
             'imagens' => $imagens,
             'legenda' => $this->post->legendaParaEmail(),
-            'logo' => is_file($logo) ? $logo : null,
             'remover' => $remover,
             'teste' => $this->teste,
         ]);
