@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Post extends Model
@@ -140,11 +139,6 @@ class Post extends Model
     public static function contagens(): \Illuminate\Support\Collection
     {
         return once(fn () => static::query()->selectRaw('status, count(*) as total')->groupBy('status')->pluck('total', 'status'));
-    }
-
-    public function decider(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'decided_by');
     }
 
     /** Pode ser editado no painel? Aprovado ou publicado não (desfazer a aprovação primeiro). */

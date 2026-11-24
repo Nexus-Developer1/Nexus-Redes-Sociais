@@ -13,7 +13,6 @@ scripts/
   gerar-post.ps1   Gera um post (post.html + post.png) a partir de um dados.json, com os modelos
 posts/             Posts feitos fora do painel (os primeiros posts de teste estão aqui)
 marca/             Logótipo NEXUS (tirado do site; falta a versão em alta resolução)
-painel/            Protótipo inicial do painel (formato do canvas Design do claude.ai), só para referência
 ```
 
 ## Painel

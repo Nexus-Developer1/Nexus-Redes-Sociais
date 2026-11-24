@@ -41,8 +41,9 @@ Sistema que cria posts para as redes sociais da NEXUS de forma autónoma.
   imagens em `public/imagens-posts/design/<id>/`.
 - `posts/aviso-fecho/`: aviso "Amanhã estamos fechados" (23 out 2026), 100% em código.
 - `posts/dica-backup/`: dica da regra 3-2-1 de backup, com fundo do Pollinations.
-- `painel/`: protótipo do painel de aprovação (formato do canvas Design do claude.ai). Online: https://claude.ai/artifact/V5St7mNn398ZmY99MaAYgc
-  Contém a fila de posts para aprovar (Aprovar e agendar / Pedir alteração / Rejeitar), os próximos posts e uma caixa "Pedir um post".
+- `posts/nvidia-elite-partner/`: post NVIDIA Elite Partner feito à mão (exemplo).
+- O protótipo inicial do painel (pasta `painel/`) foi apagado a 24 nov; continua no histórico do git e em
+  https://claude.ai/artifact/V5St7mNn398ZmY99MaAYgc
 - `painel-laravel/`: **painel de aprovação a sério**, em Laravel 13 + SQLite (PHP 8.3 e Composer em `C:\Users\dev01\tools\php83`).
   Sem Vite/npm. **Aspeto = ADN Nexus** (desde 23 nov 2026): `public/css/suite.css` é o sistema de desenho partilhado com o portal,
   a Nexus Infra e a Knowledgebase (verde #16A34A, Poppins, barra lateral escura `painel/lateral.blade.php`). **Não se edita aqui**:
