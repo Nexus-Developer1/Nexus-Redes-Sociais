@@ -49,14 +49,8 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>
             <span>Calendário</span>
         </a>
-        <a class="nav-item {{ request()->routeIs('biblioteca') ? 'nav-item--activo' : '' }}" href="{{ route('biblioteca') }}">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 17l-5-5-9 8"/></svg>
-            <span>Biblioteca</span>
-        </a>
-        <a class="nav-item {{ request()->routeIs('parceiros*') ? 'nav-item--activo' : '' }}" href="{{ route('parceiros') }}">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>
-            <span>Parceiros</span>
-        </a>
+        {{-- Biblioteca e Parceiros saíram do menu a 24 nov (a pedido): as páginas continuam em /biblioteca e /parceiros
+             e abrem-se pelo editor ("Da biblioteca…" e a ligação "lista" no passo 4). --}}
 
         <p class="lateral__grupo">Acompanhar</p>
         <a class="nav-item {{ request()->routeIs('noticias*') ? 'nav-item--activo' : '' }}" href="{{ route('noticias') }}">
