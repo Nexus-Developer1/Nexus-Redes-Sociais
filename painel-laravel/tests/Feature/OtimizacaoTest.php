@@ -104,7 +104,24 @@ class OtimizacaoTest extends TestCase
                 'scheduled_at' => now()->subDays($i)]);
         }
 
-        $this->actingAs($user)->get('/?ver=publicados')->assertOk()->assertSee('Mais antigos')->assertSee('Antigo 1')->assertDontSee('Antigo 25');
-        $this->actingAs($user)->get('/?ver=publicados&page=2')->assertOk()->assertSee('Antigo 25');
+        $this->actingAs($user)->get('/?ver=historico')->assertOk()->assertSee('Mais antigos')->assertSee('Antigo 1')->assertDontSee('Antigo 25');
+        $this->actingAs($user)->get('/?ver=historico&estado=publicados&page=2')->assertOk()->assertSee('Antigo 25');
+    }
+
+    public function test_historico_junta_publicados_e_rejeitados(): void
+    {
+        $user = User::factory()->create();
+        Post::create(['title' => 'Saiu na rede', 'networks' => ['Instagram'], 'status' => Post::PUBLISHED, 'scheduled_at' => now()->subDay()]);
+        Post::create(['title' => 'Ficou de fora', 'networks' => ['Instagram'], 'status' => Post::REJECTED, 'scheduled_at' => now()->addDay()]);
+
+        // uma só entrada no menu, com os filtros e os números
+        $this->actingAs($user)->get('/?ver=historico')->assertOk()
+            ->assertSee('Histórico')->assertSee('Saiu na rede')->assertDontSee('Ficou de fora')
+            ->assertSee('estado=rejeitados', false)->assertDontSee('ver=rejeitados', false);
+        $this->actingAs($user)->get('/?ver=historico&estado=rejeitados')->assertOk()
+            ->assertSee('Ficou de fora')->assertDontSee('Saiu na rede');
+        // os links antigos continuam a funcionar
+        $this->actingAs($user)->get('/?ver=rejeitados')->assertOk()->assertSee('Ficou de fora')->assertDontSee('Saiu na rede');
+        $this->actingAs($user)->get('/?ver=publicados')->assertOk()->assertSee('Saiu na rede')->assertDontSee('Ficou de fora');
     }
 }

@@ -10,8 +10,7 @@
     $icones = [
         'fila' => '<path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/>',
         'agendados' => '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
-        'publicados' => '<path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/>',
-        'rejeitados' => '<circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/>',
+        'historico' => '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/>',
         'ideias' => '<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.4 1 1.1 1 1.8V16h5v-.3c0-.7.4-1.4 1-1.8A6 6 0 0 0 12 3z"/>',
     ];
 @endphp
@@ -29,7 +28,8 @@
     <nav class="lateral__nav" aria-label="Navegação principal">
         <p class="lateral__grupo">Posts</p>
         @foreach (\App\Http\Controllers\PainelController::SECTIONS as $chave => [$titulo, $estados])
-            @php($num = $contar($estados) + ($chave === 'ideias' ? $pedidosAbertos : 0))
+            {{-- o Histórico só cresce: sem número (o número do menu é o que pede atenção) --}}
+            @php($num = $chave === 'historico' ? 0 : $contar($estados) + ($chave === 'ideias' ? $pedidosAbertos : 0))
             <a class="nav-item {{ $verAtual === $chave ? 'nav-item--activo' : '' }}" href="{{ route('painel', $chave === 'fila' ? [] : ['ver' => $chave]) }}"
                @if ($verAtual === $chave) aria-current="page" @endif>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{!! $icones[$chave] !!}</svg>

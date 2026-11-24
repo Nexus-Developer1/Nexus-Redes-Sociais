@@ -715,7 +715,7 @@ a.resumo-item:hover { border-color: var(--verde-300); color: inherit; }
 .parceiros-txt { color: var(--verde-600); font-weight: 600; }
 
 /* ---------- Notícias de IA ---------- */
-/* Separadores: Resumo · Notícias · Resumos anteriores */
+/* Separadores: Resumo · Notícias · Resumos anteriores (e Publicados | Rejeitados no Histórico) */
 .separadores { display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid var(--borda); }
 .separadores a { padding: 10px 16px; margin-bottom: -1px; border-bottom: 2px solid transparent; color: var(--texto-medio); font-weight: 600;
   font-size: .9375rem; text-decoration: none; white-space: nowrap; }

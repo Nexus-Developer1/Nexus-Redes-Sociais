@@ -83,7 +83,9 @@ Sistema que cria posts para as redes sociais da NEXUS de forma autónoma.
     Em cada destaque e ideia há "Pedir um post sobre isto" (um pedido à IA, como o "Pedir um post à IA").
   - **Menu (24 nov):** a página "Pedidos de posts" juntou-se a "Ideias e em criação": no topo dessa secção, os pedidos à IA ainda
     sem post (a fazer agora, com rodinha, ou que falharam, com o erro e "Tentar outra vez"; `painel/pedidos.blade.php`). Os pedidos
-    de uma ideia já aparecem no cartão da ideia. `?ver=pedidos` abre "Ideias e em criação". O número do menu conta também esses pedidos.
+    de uma ideia já aparecem no cartão da ideia. `?ver=pedidos` abre "Ideias e em criação". O número do menu conta também esses pedidos. **"Publicados" e "Rejeitados" são agora uma só entrada, "Histórico"** (`?ver=historico&estado=publicados|rejeitados`,
+    `PainelController::HISTORICO`), com os separadores "Publicados | Rejeitados" e os números; vai por páginas e não tem número no menu.
+    `?ver=publicados` e `?ver=rejeitados` continuam a funcionar.
   - **Interruptor dos emails:** `EMAILS_LIGADOS=false` no .env do servidor = não sai nenhum email (aprovação, lembretes, parceiros,
     testes); os posts continuam a ser feitos e o painel mostra "Emails desligados por agora". Nada fica marcado como enviado.
     Desligado a 24 nov a pedido (recomeço do zero); para ligar: EMAILS_LIGADOS=true e `php artisan config:cache`.

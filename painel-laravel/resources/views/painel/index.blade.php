@@ -8,8 +8,7 @@
     $subtitulos = [
         'fila' => 'Nada é publicado sem a sua aprovação.',
         'agendados' => 'Aprovados: saem sozinhos à hora marcada.',
-        'publicados' => 'Já saíram nas redes sociais.',
-        'rejeitados' => 'Posts e ideias que não vão ser publicados.',
+        'historico' => 'Os posts que já saíram nas redes sociais e os que foram rejeitados.',
         'ideias' => 'Temas do calendário e posts pedidos à IA'.($diasAntesIa > 0 ? ': a IA faz cada post '.$diasAntesIa.' dias antes da data' : '').'.',
     ];
 @endphp
@@ -76,6 +75,18 @@
         <div class="aviso erro" role="alert">{{ $errors->first('comment') }}</div>
     @endif
 
+    {{-- "Histórico": Publicados | Rejeitados (antes eram duas entradas do menu) --}}
+    @if ($ver === 'historico')
+        @php($porEstado = \App\Models\Post::contagens())
+        <nav class="separadores" aria-label="Histórico">
+            @foreach (\App\Http\Controllers\PainelController::HISTORICO as $chave => [$nome, $estadoPost])
+                <a href="{{ route('painel', ['ver' => 'historico', 'estado' => $chave]) }}" @if ($estado === $chave) aria-current="page" @endif>
+                    {{ $nome }} <span>{{ $porEstado[$estadoPost] ?? 0 }}</span>
+                </a>
+            @endforeach
+        </nav>
+    @endif
+
     {{-- Em "Ideias e em criação": no topo, os pedidos à IA ainda sem post (a fazer agora ou que falharam) --}}
     @if ($requests->isNotEmpty())
         @include('painel.pedidos')
@@ -95,6 +106,9 @@
                     <button type="button" class="btn btn-principal" data-abrir-dialogo="dlg-pedir">Pedir um post à IA</button>
                     <a class="btn" href="{{ route('calendario') }}">Ver o calendário</a>
                 </div>
+            @elseif ($ver === 'historico')
+                <h2>{{ $estado === 'rejeitados' ? 'Nenhum post rejeitado' : 'Ainda não saiu nenhum post' }}</h2>
+                <p><a href="{{ route('painel') }}">Voltar à fila de aprovação</a></p>
             @else
                 <h2>Nada para mostrar aqui</h2>
                 <p><a href="{{ route('painel') }}">Voltar à fila de aprovação</a></p>

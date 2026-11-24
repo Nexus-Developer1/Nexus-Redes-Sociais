@@ -16,18 +16,32 @@ class PainelController extends Controller
     public const SECTIONS = [
         'fila' => ['Para aprovar', [Post::PENDING, Post::REVISING]],
         'agendados' => ['Agendados', [Post::APPROVED]],
-        'publicados' => ['Publicados', [Post::PUBLISHED]],
-        'rejeitados' => ['Rejeitados', [Post::REJECTED]],
         'ideias' => ['Ideias e em criação', [Post::IDEA, Post::CREATING]],
+        // Publicados e rejeitados juntaram-se (24 nov) numa só entrada, com os filtros "Publicados | Rejeitados" (?estado=)
+        'historico' => ['Histórico', [Post::PUBLISHED, Post::REJECTED]],
+    ];
+
+    /** Filtros de "Histórico": ?estado= => [nome, estado do post]. O primeiro é o de defeito. */
+    public const HISTORICO = [
+        'publicados' => ['Publicados', Post::PUBLISHED],
+        'rejeitados' => ['Rejeitados', Post::REJECTED],
     ];
 
     public function index(Request $request): View
     {
-        // "Pedidos de posts" juntou-se a "Ideias e em criação" (24 nov): os links antigos abrem lá.
-        $ver = $request->query('ver') === 'pedidos' ? 'ideias' : $request->query('ver', 'fila');
+        // Links antigos: "Pedidos de posts" está em "Ideias e em criação"; "Publicados" e "Rejeitados" em "Histórico".
+        $ver = $request->query('ver', 'fila');
+        $estado = $request->query('estado');
+        if ($ver === 'pedidos') {
+            $ver = 'ideias';
+        } elseif (isset(self::HISTORICO[$ver])) {
+            [$estado, $ver] = [$ver, 'historico'];
+        }
         if (! isset(self::SECTIONS[$ver])) {
             $ver = 'fila';
         }
+        $estado = isset(self::HISTORICO[$estado]) ? $estado : array_key_first(self::HISTORICO);
+        $estados = $ver === 'historico' ? [self::HISTORICO[$estado][1]] : self::SECTIONS[$ver][1];
 
         $sections = array_map(fn ($s) => ['title' => $s[0]], self::SECTIONS);
 
@@ -37,7 +51,7 @@ class PainelController extends Controller
         $requests = $ver === 'ideias'
             ? PostRequest::with('user')->whereNull('post_id')->whereIn('status', ['new', 'in_progress', 'failed'])->latest()->limit(30)->get()
             : collect();
-        $antigos = in_array($ver, ['publicados', 'rejeitados'], true); // crescem sempre: vão por páginas
+        $antigos = $ver === 'historico'; // cresce sempre: vai por páginas
         $query = Post::query()
             // só as últimas 8 entradas do histórico de cada post (e o total, para o "Histórico (N)")
             ->with(['reviews' => fn ($q) => $q->with('user')->limit(8)])
@@ -45,7 +59,7 @@ class PainelController extends Controller
             // a IA está a fazer / falhou: perguntado de uma vez, não um pedido por cartão
             ->withExists(['pedidos as ia_a_fazer' => fn ($q) => $q->whereIn('status', ['new', 'in_progress'])])
             ->withExists(['pedidos as ia_falhou' => fn ($q) => $q->where('status', 'failed')])
-            ->whereIn('status', self::SECTIONS[$ver][1])
+            ->whereIn('status', $estados)
             ->orderByRaw('scheduled_at is null')
             ->orderBy('scheduled_at', $antigos ? 'desc' : 'asc');
         $posts = $antigos ? $query->simplePaginate(20)->withQueryString() : $query->get();
@@ -68,6 +82,7 @@ class PainelController extends Controller
         return view('painel.index', [
             'resumo' => $resumo,
             'ver' => $ver,
+            'estado' => $estado,
             'sections' => $sections,
             'posts' => $posts,
             'requests' => $requests,
