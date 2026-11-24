@@ -61,13 +61,20 @@
                             <h3>{{ $d['titulo'] }}</h3>
                             <p>{{ $d['resumo'] }}</p>
                             <div class="destaque-ia-pe">
-                                <span class="destaque-ia-fontes">
-                                    @foreach ($d['noticias'] ?? [] as $id)
-                                        @if ($n = $noticiasDoResumo[$id] ?? null)
-                                            <a href="{{ $n->link }}" target="_blank" rel="noopener noreferrer" title="{{ $n->titulo }}">{{ $n->fonte }} ↗</a>
-                                        @endif
-                                    @endforeach
-                                </span>
+                                @php($deste = collect($d['noticias'] ?? [])->map(fn ($id) => $noticiasDoResumo[$id] ?? null)->filter())
+                                @if ($deste->isNotEmpty())
+                                    {{-- "14 fontes · The Verge, TechCrunch": ao abrir, o título de cada notícia com o link --}}
+                                    <details class="destaque-ia-fontes">
+                                        <summary>{{ $deste->count() }} {{ $deste->count() === 1 ? 'fonte' : 'fontes' }} · {{ $deste->pluck('fonte')->unique()->implode(', ') }}</summary>
+                                        <ul>
+                                            @foreach ($deste as $n)
+                                                <li><a href="{{ $n->link }}" target="_blank" rel="noopener noreferrer">{{ $n->titulo }} ↗</a> <small>{{ $n->fonte }}</small></li>
+                                            @endforeach
+                                        </ul>
+                                    </details>
+                                @else
+                                    <span></span>
+                                @endif
                                 <form method="POST" action="{{ route('requests.store') }}" data-a-enviar="A pedir…">
                                     @csrf
                                     <input type="hidden" name="topic" value="{{ $pedir('Post a partir das notícias de IA: '.$d['titulo'].'. '.$d['resumo']) }}">

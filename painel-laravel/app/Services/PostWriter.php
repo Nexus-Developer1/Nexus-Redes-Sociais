@@ -357,7 +357,9 @@ class PostWriter
         - Não inventes nada que não esteja nas notícias (números, datas, preços, nomes). Nomes de empresas e produtos como estão.
         - "para_a_nexus": 2 a 4 frases sobre o que isto significa para os clientes da NEXUS (empresas: servidores, workstations,
           GPUs NVIDIA, cibersegurança, backup, redes).
-        - "ideias_posts": 3 ideias curtas de posts para as redes sociais da NEXUS, a partir destas notícias.
+        - "ideias_posts": 3 ideias curtas de posts para as redes sociais da NEXUS, a partir destas notícias. Só temas úteis para
+          empresas (tecnologia, produtos, segurança, boas práticas). Nunca política, escândalos, polémicas ou pessoas, e nunca nada
+          negativo sobre marcas: NVIDIA, Supermicro, Riello, ASUS e outras são parceiras da NEXUS. Sem emojis.
 
         RESPONDE SÓ com um objeto JSON:
         {"titulo": "título curto do resumo", "introducao": "2 ou 3 frases com o panorama",
@@ -506,6 +508,7 @@ class PostWriter
         'detectado' => 'detetado', 'detectada' => 'detetada', 'detectados' => 'detetados', 'detectadas' => 'detetadas',
         'detecção' => 'deteção', 'detecções' => 'deteções',
         'equipe' => 'equipa', 'equipes' => 'equipas',
+        'roteamento' => 'encaminhamento', 'governança' => 'governação',
         'usuário' => 'utilizador', 'usuários' => 'utilizadores', 'usuária' => 'utilizadora',
         'tela' => 'ecrã', 'telas' => 'ecrãs', 'celular' => 'telemóvel', 'celulares' => 'telemóveis',
         'arquivo' => 'ficheiro', 'arquivos' => 'ficheiros',

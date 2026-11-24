@@ -734,9 +734,13 @@ a.resumo-item:hover { border-color: var(--verde-300); color: inherit; }
 .destaque-ia h3 { margin: 0 0 6px; font-size: 1rem; }
 .destaque-ia p { margin: 0; line-height: 1.55; color: var(--texto-medio); }
 .destaque-ia-pe { margin-top: 10px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
-.destaque-ia-fontes { display: flex; gap: 6px 12px; flex-wrap: wrap; font-size: .8125rem; }
-.destaque-ia-fontes a { color: var(--verde-600); font-weight: 600; text-decoration: none; }
-.destaque-ia-fontes a:hover { text-decoration: underline; }
+.destaque-ia-pe { align-items: flex-start; }
+.destaque-ia-fontes { flex: 1; min-width: 0; font-size: .8125rem; }
+.destaque-ia-fontes > summary { cursor: pointer; color: var(--verde-600); font-weight: 600; padding: 6px 0; width: fit-content; }
+.destaque-ia-fontes ul { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.destaque-ia-fontes a { color: var(--texto-forte); text-decoration: none; }
+.destaque-ia-fontes a:hover { color: var(--verde-600); text-decoration: underline; }
+.destaque-ia-fontes small { color: var(--texto-fraco); }
 .destaque-ia-pe form, .ideias-ia form { margin: 0; }
 .para-nexus { background: var(--verde-50); border: 1px solid var(--verde-100); border-radius: var(--raio-g); padding: 14px 16px; }
 .para-nexus h3, .ideias-ia h3 { margin: 0 0 6px; font-size: 1rem; }
