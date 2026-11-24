@@ -29,7 +29,28 @@ id "$USR" >/dev/null 2>&1 || useradd --system --home-dir "$DIR" --shell /usr/sbi
 
 echo "== código"
 mkdir -p "$DIR"
+# Lista dos ficheiros que cada deploy instala (fora da pasta da app e só do root: a app não a pode mudar).
+# Um ficheiro que veio no deploy anterior e já não vem neste foi apagado no git: sai também do servidor.
+# Só se apagam ficheiros da lista, por isso .env, uploads, storage e vendor nunca são tocados.
+LISTAS=/var/lib/$APP-deploy
+mkdir -p "$LISTAS"
+chown root:root "$LISTAS"
+chmod 700 "$LISTAS"
+NOVA="$LISTAS/ficheiros.novo"
+tar -tzf "$TGZ" | grep -v '/$' | sed 's|^\./||' | LC_ALL=C sort -u > "$NOVA"
+[ -s "$NOVA" ] || { echo "O .tgz não tem ficheiros."; exit 1; }
 tar -xzf "$TGZ" -C "$DIR"
+if [ -f "$LISTAS/ficheiros" ]; then
+    LC_ALL=C comm -23 "$LISTAS/ficheiros" "$NOVA" | while IFS= read -r f; do
+        case "$f" in ''|/*|../*|*/../*|*/..|.env) continue ;; esac   # só caminhos dentro da pasta, nunca o .env
+        if [ -f "$DIR/$f" ] || [ -L "$DIR/$f" ]; then
+            rm -f -- "$DIR/$f"
+            echo "   apagado (saiu do git): $f"
+            rmdir --ignore-fail-on-non-empty -p "$(dirname "$DIR/$f")" 2>/dev/null || true   # pastas que ficaram vazias
+        fi
+    done
+fi
+mv "$NOVA" "$LISTAS/ficheiros"
 mkdir -p "$DIR"/storage/{logs,framework/{sessions,views,cache/data}} "$DIR"/bootstrap/cache
 
 as_app() { sudo -u "$USR" env HOME=/tmp COMPOSER_HOME=/tmp/composer-$USR "$@"; }

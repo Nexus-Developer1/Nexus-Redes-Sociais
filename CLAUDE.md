@@ -113,9 +113,9 @@ Sistema que cria posts para as redes sociais da NEXUS de forma autónoma.
   (`/etc/sudoers.d/nexus-redes-sociais-render`), numa pasta partilhada `/var/lib/nexus-render/trabalho` (`RENDER_UTILIZADOR`, `RENDER_PASTA`).
   O Chrome atualiza-se sozinho à segunda-feira (`deploy/atualizar-chrome.sh`, cron como root).
   Nota: o `instalar-servidor.sh` que corre é o que já está no servidor; quando o próprio script muda, correr a instalação duas vezes.
-  O deploy descompacta por cima e **não apaga** ficheiros removidos do git: depois de apagar ficheiros, comparar
-  `app resources routes config database/migrations public/css public/js public/modelos tests` com `git ls-tree` e apagar
-  os que sobram com sudo (o código é do root; a app não o consegue mudar).
+  Ficheiros apagados no git saem também do servidor (desde 24 nov): o script guarda a lista do que cada deploy instala
+  em `/var/lib/nexus-redes-sociais-deploy/ficheiros` (só do root) e apaga o que vinha no deploy anterior e já não vem.
+  Só apaga ficheiros dessa lista: `.env`, uploads (`public/imagens-posts`), `storage` e `vendor` nunca são tocados.
   Para o tinker como app-social usar um HOME temporário: `H=$(sudo -u app-social mktemp -d); sudo -u app-social env HOME=$H php artisan tinker`.
 
 ## Próximos passos / em aberto
