@@ -400,13 +400,25 @@ class PostWriter
                         'introducao' => $texto($d['introducao'] ?? '', 900),
                         'destaques' => $destaques,
                         'para_a_nexus' => $texto($d['para_a_nexus'] ?? '', 1200),
-                        'ideias_posts' => array_values(array_filter(array_map(fn ($i) => $texto($i, 200), array_slice((array) ($d['ideias_posts'] ?? []), 0, 5)))),
+                        'ideias_posts' => array_values(array_filter(
+                            array_map(fn ($i) => $texto($i, 200), array_slice((array) ($d['ideias_posts'] ?? []), 0, 5)),
+                            fn ($i) => $i !== '' && ! self::ideiaPolemica($i))),
                     ];
                 }
             }
         }
 
         throw new RuntimeException('A IA não devolveu um resumo válido.');
+    }
+
+    /**
+     * Ideia de post sobre polémica, política ou problemas de uma marca: nunca vai para as redes da NEXUS (as marcas
+     * são parceiras). A instrução à IA não chega sempre, por isso estas saem mesmo que ela as proponha.
+     */
+    public static function ideiaPolemica(string $ideia): bool
+    {
+        return (bool) preg_match('/\b(instabilidade|esc[aâ]ndal|pol[eé]mic|controv[eé]rs|crise|demiss|despedi|pol[ií]tic|trump|governo|'
+            .'esp[ií][aã]o?|espia|acusa|processo judicial|tribunal|huang|musk)/iu', $ideia);
     }
 
     /** Passa uma pesquisa de fotos escrita em português para palavras-chave em inglês (os bancos de fotos funcionam melhor). */

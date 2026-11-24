@@ -88,6 +88,14 @@ class NoticiasIaTest extends TestCase
         $this->assertSame(1, ResumoIa::count());
     }
 
+    public function test_ideias_polemicas_nunca_ficam(): void
+    {
+        $this->assertTrue(\App\Services\PostWriter::ideiaPolemica('O impacto da instabilidade na Nvidia no mercado de GPUs'));
+        $this->assertTrue(\App\Services\PostWriter::ideiaPolemica('A polémica volta de Jensen Huang'));
+        $this->assertFalse(\App\Services\PostWriter::ideiaPolemica('Como reduzir os custos de inferência de IA com cache distribuído'));
+        $this->assertFalse(\App\Services\PostWriter::ideiaPolemica('GPUs NVIDIA para workstations de IA'));
+    }
+
     public function test_pagina_e_botao_recolher_agora(): void
     {
         $user = User::factory()->create();
