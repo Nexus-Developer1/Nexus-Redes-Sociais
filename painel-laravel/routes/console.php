@@ -14,6 +14,11 @@ Schedule::command('post:tratar-pedidos')->everyMinute()->withoutOverlapping(15)-
 // Calendário automático: troca temas pedidos, faz as ideias uns dias antes da data e propõe as da semana seguinte.
 Schedule::command('post:calendario-ia')->everyMinute()->withoutOverlapping(15)->runInBackground();
 
+// Notícias de IA: o agente recolhe as notícias e a IA faz o resumo, à segunda e à quinta-feira às 08:00;
+// e a cada minuto atende o botão "Recolher agora" (sem pedido, não faz nada).
+Schedule::command('ia:noticias')->days([1, 4])->at('08:00')->withoutOverlapping(30)->runInBackground();
+Schedule::command('ia:noticias --pedido')->everyMinute()->withoutOverlapping(15)->runInBackground();
+
 // Envia por email aos parceiros os posts aprovados marcados com "Enviar também aos parceiros", à hora marcada.
 Schedule::command('post:enviar-parceiros')->everyFiveMinutes()->withoutOverlapping(30)->runInBackground();
 

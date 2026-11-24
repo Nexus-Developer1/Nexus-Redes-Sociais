@@ -5,6 +5,7 @@ use App\Http\Controllers\CalendarioController;
 use App\Http\Controllers\ContaController;
 use App\Http\Controllers\EmailDecisionController;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\NoticiasIaController;
 use App\Http\Controllers\PainelController;
 use App\Http\Controllers\ParceirosController;
 use App\Http\Controllers\PostDecisionController;
@@ -74,6 +75,10 @@ Route::middleware(['auth', 'auth.session'])->group(function () {
     Route::post('/posts/{post}/parceiros', [PostEditorController::class, 'partners'])->name('posts.partners');
     Route::get('/posts/{post}/email-parceiros', [PostEditorController::class, 'partnersPreview'])->name('posts.partnersPreview');
     Route::post('/posts/{post}/parceiros/teste', [PostEditorController::class, 'partnersTest'])->name('posts.partnersTest')->middleware('throttle:10,1');
+
+    // Notícias de IA: resumo do agente (segunda e quinta-feira)
+    Route::get('/noticias-ia', [NoticiasIaController::class, 'index'])->name('noticias');
+    Route::post('/noticias-ia/recolher', [NoticiasIaController::class, 'recolher'])->name('noticias.recolher')->middleware('throttle:6,1');
 
     // Parceiros: quem recebe os posts por email
     Route::get('/parceiros', [ParceirosController::class, 'index'])->name('parceiros');

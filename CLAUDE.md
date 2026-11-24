@@ -74,6 +74,13 @@ Sistema que cria posts para as redes sociais da NEXUS de forma autónoma.
     Um só processo de cada vez (cache lock). Nada sai mais de 6 h depois da hora marcada (`PublicarPosts::MAX_ATRASO_HORAS`): fica uma nota para mudar a data.
     Depois de 3 falhas, o cartão tem "Tentar publicar de novo".
   - `php artisan post:lembrar`: de hora a hora (8h–20h) envia um lembrete por email dos posts ainda por aprovar a menos de 48 h da data (um por versão, `posts.lembrete_em`).
+  - `php artisan ia:noticias [--pedido]` — **página "Notícias de IA"** (desde 24 nov): o agente lê os feeds RSS/Atom de
+    `config/ia.php` `fontes_noticias` (9 fontes: OpenAI, Google AI, NVIDIA, Hugging Face, Microsoft, AWS ML, TechCrunch, The Verge,
+    MIT Tech Review; só texto, últimos 10 dias, 15 por fonte, guarda em `noticias_ia` sem repetir o link) e a IA faz o resumo
+    (`PostWriter::resumirNoticias`, JSON: título, introdução, 4–7 destaques com os ids das notícias, "para a NEXUS", ideias de posts;
+    guardado em `resumos_ia`). Segunda e quinta às 08:00; "Recolher agora" põe um pedido em cache que o `--pedido` (a cada minuto)
+    atende. O texto dos feeds vai à IA como DADOS (nunca instruções) e só se mostra escapado; a IA só pode citar ids da lista.
+    Em cada destaque e ideia há "Pedir um post sobre isto" (vai para "Pedidos de posts", como o "Pedir um post à IA").
   - **Interruptor dos emails:** `EMAILS_LIGADOS=false` no .env do servidor = não sai nenhum email (aprovação, lembretes, parceiros,
     testes); os posts continuam a ser feitos e o painel mostra "Emails desligados por agora". Nada fica marcado como enviado.
     Desligado a 24 nov a pedido (recomeço do zero); para ligar: EMAILS_LIGADOS=true e `php artisan config:cache`.
