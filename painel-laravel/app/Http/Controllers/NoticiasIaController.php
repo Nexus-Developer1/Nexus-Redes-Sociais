@@ -11,8 +11,8 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 /**
- * Página "Notícias de IA", em quatro separadores: o resumo (o último ou um anterior), todas as notícias de IA recolhidas
- * (com filtro por fonte), as notícias dos parceiros tecnológicos da NEXUS (com filtro por marca) e os resumos anteriores.
+ * Página "Notícias", em duas vertentes: a Inteligência Artificial (o resumo, o último ou um anterior; todas as notícias de IA
+ * com filtro por fonte; os resumos anteriores) e os parceiros tecnológicos da NEXUS (?ver=parceiros, com filtro por marca).
  */
 class NoticiasIaController extends Controller
 {
@@ -44,10 +44,6 @@ class NoticiasIaController extends Controller
             ? NoticiaIa::deParceiros()->when($marca, fn ($q) => $q->where('fonte', $marca))
                 ->orderByDesc('publicada_em')->simplePaginate(30)->withQueryString()
             : collect();
-        // no resumo: a novidade mais recente de cada parceiro (até 6 marcas), numa faixa
-        $novidades = $ver === 'resumo'
-            ? NoticiaIa::deParceiros()->orderByDesc('publicada_em')->limit(60)->get()->unique('fonte')->take(6)->values()
-            : collect();
 
         return view('painel.noticias', [
             'ver' => $ver,
@@ -65,7 +61,6 @@ class NoticiasIaController extends Controller
             'marca' => $marca,
             'parceiros' => $parceiros,
             'totalParceiros' => $contagem->sum(),
-            'novidades' => $novidades,
             'aTrabalhar' => Cache::has(NoticiasIaCommand::A_TRABALHAR) || Cache::has(NoticiasIaCommand::PEDIDO),
         ]);
     }

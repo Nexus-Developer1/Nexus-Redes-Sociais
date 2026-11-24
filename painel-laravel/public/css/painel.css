@@ -838,7 +838,7 @@ a.resumo-item:hover { border-color: var(--verde-300); color: inherit; }
 .pedido-ia-texto small { font-size: .8125rem; color: var(--texto-fraco); }
 .pedido-ia-erro { margin-top: 4px; font-size: .8125rem; color: var(--perigo-600); }
 
-/* Notícias de IA → "Parceiros": uma etiqueta por marca (com o logótipo) e cada notícia com "Post" à direita */
+/* Notícias: as duas vertentes (IA e parceiros tecnológicos) em cima, como dois cartões; nos parceiros, uma etiqueta por marca (com o logótipo) e cada notícia com "Post" à direita */
 .marcas-filtro { display: flex; flex-wrap: wrap; gap: 8px; }
 .marcas-filtro a { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--borda);
   background: var(--superficie); color: var(--texto-medio); font-size: .875rem; font-weight: 600; text-decoration: none; }
@@ -852,7 +852,16 @@ a.resumo-item:hover { border-color: var(--verde-300); color: inherit; }
 .noticia-parceiro .noticia-texto a:hover b { color: var(--verde-600); text-decoration: underline; }
 .noticia-parceiro:hover .noticia-texto b { color: var(--texto-forte); }
 .noticia-parceiro form { flex: none; margin: 0; }
-.novidades-parceiros { display: flex; flex-direction: column; gap: 12px; }
-.novidades-topo { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
-.novidades-topo h3 { margin: 0; font-size: 1.0625rem; }
-.novidades-topo a { font-size: .875rem; font-weight: 600; color: var(--verde-600); text-decoration: none; }
+.vertentes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.vertente { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-radius: var(--raio-g); border: 1px solid var(--borda);
+  background: var(--superficie); color: inherit; text-decoration: none; transition: border-color .15s, box-shadow .15s; }
+.vertente:hover { border-color: var(--verde-200); box-shadow: var(--sombra-cartao); }
+.vertente[aria-current] { border-color: var(--verde-600); box-shadow: inset 0 0 0 1px var(--verde-600); background: var(--verde-50); }
+.vertente-icone { flex: none; display: grid; place-items: center; width: 46px; height: 46px; border-radius: 12px; background: var(--fundo); color: var(--texto-medio); }
+.vertente-icone svg { width: 24px; height: 24px; }
+.vertente[aria-current] .vertente-icone { background: var(--verde-600); color: #fff; }
+.vertente-texto { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.vertente-texto b { font-size: 1.0625rem; color: var(--texto-forte); }
+.vertente[aria-current] .vertente-texto b { color: var(--verde-600); }
+.vertente-texto small { font-size: .8125rem; color: var(--texto-medio); }
+@media (max-width: 640px) { .vertentes { grid-template-columns: 1fr; } }

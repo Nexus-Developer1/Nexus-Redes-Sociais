@@ -49,7 +49,7 @@
         <p class="lateral__grupo">Acompanhar</p>
         <a class="nav-item {{ request()->routeIs('noticias*') ? 'nav-item--activo' : '' }}" href="{{ route('noticias') }}">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h13a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M19 9h1a1 1 0 0 1 1 1v8a3 3 0 0 1-3 3"/><path d="M8 9h7M8 13h7M8 17h4"/></svg>
-            <span>Notícias de IA</span>
+            <span>Notícias</span>
         </a>
 
         @if ($pessoa->is_admin)

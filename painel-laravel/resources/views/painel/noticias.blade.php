@@ -1,6 +1,6 @@
 @extends('layout')
 
-@section('title', 'Notícias de IA')
+@section('title', 'Notícias')
 
 @section('body')
 @php
@@ -13,11 +13,12 @@
 
         return is_file(public_path($ficheiro)) ? asset($ficheiro) : null;
     };
+    $vertenteIa = $ver !== 'parceiros'; // as duas vertentes da página: IA ou parceiros tecnológicos
     $maisIcone = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
 @endphp
 
 <div class="pagina">
-    <x-cabecalho titulo="Notícias de IA" :sub="'Um agente recolhe as notícias de '.$fontes.' fontes de IA e dos '.$marcas->count().' parceiros da NEXUS à segunda e à quinta-feira, às 08:00, e a IA faz o resumo.'">
+    <x-cabecalho titulo="Notícias" sub="Um agente recolhe as notícias à segunda e à quinta-feira, às 08:00.">
         <form method="POST" action="{{ route('noticias.recolher') }}" data-a-enviar="A pedir…">
             @csrf
             <button type="submit" class="btn btn-principal" @disabled($aTrabalhar)>
@@ -35,13 +36,36 @@
         </p>
     @endif
 
-    {{-- Separadores: o resumo fica sozinho; as notícias e os resumos anteriores à parte --}}
-    <nav class="separadores" aria-label="Notícias de IA">
-        <a href="{{ route('noticias', array_filter(['resumo' => request('resumo')])) }}" @if ($ver === 'resumo') aria-current="page" @endif>Resumo</a>
-        <a href="{{ route('noticias', ['ver' => 'noticias']) }}" @if ($ver === 'noticias') aria-current="page" @endif>Notícias <span>{{ $totalNoticias }}</span></a>
-        <a href="{{ route('noticias', ['ver' => 'parceiros']) }}" @if ($ver === 'parceiros') aria-current="page" @endif>Parceiros <span>{{ $totalParceiros }}</span></a>
-        <a href="{{ route('noticias', ['ver' => 'anteriores']) }}" @if ($ver === 'anteriores') aria-current="page" @endif>Resumos anteriores <span>{{ $resumos->count() }}</span></a>
+    {{-- Duas vertentes: a Inteligência Artificial (resumo da IA, notícias, resumos anteriores) e os parceiros tecnológicos --}}
+    <nav class="vertentes" aria-label="Vertentes">
+        <a class="vertente" href="{{ route('noticias') }}" @if ($vertenteIa) aria-current="page" @endif>
+            <span class="vertente-icone" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M10 10h4v4h-4zM9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></svg>
+            </span>
+            <span class="vertente-texto">
+                <b>Inteligência Artificial</b>
+                <small>{{ $fontes }} fontes · resumo da IA duas vezes por semana</small>
+            </span>
+        </a>
+        <a class="vertente" href="{{ route('noticias', ['ver' => 'parceiros']) }}" @if (! $vertenteIa) aria-current="page" @endif>
+            <span class="vertente-icone" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/><path d="M7 7h.01M7 17h.01M11 7h6M11 17h6"/></svg>
+            </span>
+            <span class="vertente-texto">
+                <b>Parceiros tecnológicos</b>
+                <small>{{ $marcas->count() }} marcas · {{ $totalParceiros }} {{ $totalParceiros === 1 ? 'novidade' : 'novidades' }}</small>
+            </span>
+        </a>
     </nav>
+
+    @if ($vertenteIa)
+        {{-- Separadores da IA: o resumo fica sozinho; as notícias e os resumos anteriores à parte --}}
+        <nav class="separadores" aria-label="Inteligência Artificial">
+            <a href="{{ route('noticias', array_filter(['resumo' => request('resumo')])) }}" @if ($ver === 'resumo') aria-current="page" @endif>Resumo</a>
+            <a href="{{ route('noticias', ['ver' => 'noticias']) }}" @if ($ver === 'noticias') aria-current="page" @endif>Notícias <span>{{ $totalNoticias }}</span></a>
+            <a href="{{ route('noticias', ['ver' => 'anteriores']) }}" @if ($ver === 'anteriores') aria-current="page" @endif>Resumos anteriores <span>{{ $resumos->count() }}</span></a>
+        </nav>
+    @endif
 
     @if ($ver === 'resumo')
         @if (! $resumo)
@@ -139,21 +163,6 @@
             @endif
 
             <p class="resumo-ia-nota">Resumo feito pela IA a partir dos títulos e descrições das notícias: confirme na fonte antes de usar um número ou um dado.</p>
-        @endif
-
-        @if ($novidades->isNotEmpty())
-            {{-- As novidades mais recentes dos parceiros (o resumo da IA é só das notícias de IA) --}}
-            <section class="novidades-parceiros">
-                <div class="novidades-topo">
-                    <h3>Novidades dos parceiros</h3>
-                    <a href="{{ route('noticias', ['ver' => 'parceiros']) }}">Ver todas ›</a>
-                </div>
-                <div class="noticias-cartoes">
-                    @foreach ($novidades as $n)
-                        @include('painel.noticia-parceiro')
-                    @endforeach
-                </div>
-            </section>
         @endif
 
     @elseif ($ver === 'noticias')

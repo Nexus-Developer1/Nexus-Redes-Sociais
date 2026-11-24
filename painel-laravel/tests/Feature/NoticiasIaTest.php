@@ -55,8 +55,10 @@ class NoticiasIaTest extends TestCase
         Http::assertNotSent(fn (Request $r) => str_contains($r->url(), 'ia.teste') && str_contains($r->body(), 'EPYC'));
 
         $user = User::factory()->create();
-        $this->actingAs($user)->get(route('noticias'))->assertOk()->assertSee('Novidades dos parceiros')->assertSee('AMD anuncia EPYC');
-        $this->actingAs($user)->get(route('noticias', ['ver' => 'parceiros']))->assertOk()
+        // duas vertentes: a da IA não mostra os parceiros; a dos parceiros não tem os separadores da IA
+        $this->actingAs($user)->get(route('noticias'))->assertOk()->assertSee('Inteligência Artificial')->assertSee('Parceiros tecnológicos')
+            ->assertSee('Resumos anteriores')->assertDontSee('AMD anuncia EPYC');
+        $this->actingAs($user)->get(route('noticias', ['ver' => 'parceiros']))->assertOk()->assertDontSee('Resumos anteriores')
             ->assertSee('AMD anuncia EPYC')->assertSee('Intel lança novo Xeon')->assertSee('nosso parceiro AMD', false);
         $this->actingAs($user)->get(route('noticias', ['ver' => 'parceiros', 'marca' => 'AMD']))->assertOk()
             ->assertSee('AMD anuncia EPYC')->assertDontSee('Intel lança novo Xeon');

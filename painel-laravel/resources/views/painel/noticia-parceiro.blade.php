@@ -1,4 +1,4 @@
-{{-- Uma notícia de um parceiro tecnológico (separador "Parceiros" das Notícias de IA): ligação para a fonte e
+{{-- Uma notícia de um parceiro tecnológico (vertente "Parceiros tecnológicos" das Notícias): ligação para a fonte e
      "Pedir um post" (um pedido normal à IA: fica em "Para aprovar", nada sai sem aprovação). O texto vem de fora: só como texto. --}}
 <article class="noticia-cartao noticia-parceiro">
     @if ($u = $logo($n->fonte))
