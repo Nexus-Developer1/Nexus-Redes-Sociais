@@ -789,17 +789,29 @@ a.resumo-item:hover { border-color: var(--verde-300); color: inherit; }
 .ideia-cartao .btn-post { align-self: flex-start; }
 .resumo-ia-nota { margin: 0; font-size: .75rem; line-height: 1.45; color: var(--texto-fraco); }
 
-/* Separador "Notícias": filtro por fonte e lista por dia */
-.filtros-fontes { margin-left: 0; }
-.noticias-dias { padding: 6px 22px 10px; }
-.noticias-dias section + section { border-top: 1px solid var(--borda); }
-.noticias-dias h3 { margin: 14px 0 4px; font-size: .8125rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--texto-fraco); }
-.noticias-lista { list-style: none; margin: 0; padding: 0; }
-.noticias-lista li { display: flex; align-items: baseline; gap: 12px; padding: 8px 0; }
-.noticias-lista a { color: var(--texto-forte); text-decoration: none; line-height: 1.4; }
-.noticias-lista a:hover { color: var(--verde-600); text-decoration: underline; }
-.fonte-etiqueta { flex: none; width: 150px; font-size: .75rem; font-weight: 600; color: var(--verde-600); }
-@media (max-width: 640px) { .noticias-lista li { flex-direction: column; gap: 2px; } .fonte-etiqueta { width: auto; } }
+/* Separador "Notícias": barra (fonte + pesquisa) e cartões em 2 colunas, agrupados por dia */
+.noticias-barra { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; padding: 14px 16px; border-radius: var(--raio-g);
+  background: var(--superficie); border: 1px solid var(--borda); }
+.noticias-campo { display: flex; flex-direction: column; gap: 4px; font-size: .75rem; font-weight: 600; color: var(--texto-medio); }
+.noticias-campo select, .noticias-campo input { font: inherit; font-size: .9375rem; font-weight: 400; padding: 8px 10px; min-width: 240px;
+  border: 1px solid #D1D5DB; border-radius: var(--raio); background: #fff; color: var(--texto-forte); }
+.noticias-procura { flex: 1; }
+.noticias-procura input { width: 100%; }
+.noticias-dia h3 { margin: 6px 0 10px; display: flex; align-items: center; gap: 8px; font-size: .8125rem; font-weight: 700; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--texto-fraco); }
+.noticias-dia h3 span { padding: 1px 8px; border-radius: 999px; background: var(--fundo); color: var(--texto-medio); letter-spacing: 0; }
+.noticias-cartoes { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 460px), 1fr)); gap: 12px; }
+.noticia-cartao { display: flex; gap: 14px; align-items: flex-start; padding: 14px 16px; border-radius: var(--raio-g); background: var(--superficie);
+  border: 1px solid var(--borda); color: inherit; text-decoration: none; transition: border-color .15s, box-shadow .15s; }
+.noticia-cartao:hover { border-color: var(--verde-200); box-shadow: var(--sombra-cartao); }
+.noticia-simbolo { flex: none; width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; color: #fff;
+  font-size: .75rem; font-weight: 700; letter-spacing: .02em; }
+.noticia-texto { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.noticia-texto b { font-weight: 600; line-height: 1.35; color: var(--texto-forte); }
+.noticia-cartao:hover .noticia-texto b { color: var(--verde-600); }
+.noticia-desc { font-size: .875rem; line-height: 1.45; color: var(--texto-medio);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.noticia-texto small { font-size: .75rem; color: var(--texto-fraco); }
 
 /* Separador "Resumos anteriores" */
 .resumos-cartoes { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }

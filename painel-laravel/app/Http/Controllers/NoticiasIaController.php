@@ -26,8 +26,12 @@ class NoticiasIaController extends Controller
 
         $porFonte = NoticiaIa::selectRaw('fonte, count(*) as n')->groupBy('fonte')->orderBy('fonte')->pluck('n', 'fonte');
         $fonte = $porFonte->has($request->query('fonte')) ? $request->query('fonte') : null;
+        $procura = mb_substr(trim((string) $request->query('q')), 0, 80);
         $noticias = $ver === 'noticias'
-            ? NoticiaIa::when($fonte, fn ($q) => $q->where('fonte', $fonte))->orderByDesc('publicada_em')->simplePaginate(40)->withQueryString()
+            ? NoticiaIa::when($fonte, fn ($q) => $q->where('fonte', $fonte))
+                ->when($procura !== '', fn ($q) => $q->where(fn ($q) => $q->where('titulo', 'like', '%'.$procura.'%')
+                    ->orWhere('descricao', 'like', '%'.$procura.'%')))
+                ->orderByDesc('publicada_em')->simplePaginate(40)->withQueryString()
             : collect();
 
         $noticiasDoResumo = $resumo?->noticias() ?? collect();
@@ -41,6 +45,7 @@ class NoticiasIaController extends Controller
             'noticias' => $noticias,
             'porFonte' => $porFonte,
             'fonte' => $fonte,
+            'procura' => $procura,
             'totalNoticias' => $porFonte->sum(),
             'fontes' => count((array) config('ia.fontes_noticias')),
             'aTrabalhar' => Cache::has(NoticiasIaCommand::A_TRABALHAR) || Cache::has(NoticiasIaCommand::PEDIDO),

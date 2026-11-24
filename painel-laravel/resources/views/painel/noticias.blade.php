@@ -7,6 +7,13 @@
     $dia = fn ($d) => $d?->locale('pt_PT')->translatedFormat('j \d\e F');
     // "Pedir um post sobre isto": vai para a IA como um pedido normal (fica em "Para aprovar"; nada sai sem aprovação)
     $tema = fn (string $t) => mb_substr($t, 0, 1900);
+    // Separador "Notícias": símbolo de cada fonte, as iniciais com a cor da marca (as outras ficam a verde NEXUS)
+    $marcas = [
+        'OpenAI' => ['OA', '#111827'], 'Google AI' => ['G', '#1a73e8'], 'NVIDIA' => ['NV', '#76b900'],
+        'Hugging Face' => ['HF', '#f59e0b'], 'Microsoft' => ['MS', '#0078d4'], 'AWS Machine Learning' => ['AWS', '#ff9900'],
+        'TechCrunch' => ['TC', '#0a9e01'], 'The Verge' => ['V', '#e2127a'], 'MIT Technology Review' => ['MIT', '#a31f34'],
+    ];
+    $simbolo = fn (string $f) => $marcas[$f] ?? [mb_strtoupper(mb_substr($f, 0, 2)), '#16a34a'];
     $maisIcone = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
 @endphp
 
@@ -129,31 +136,55 @@
         @endif
 
     @elseif ($ver === 'noticias')
-        {{-- Todas as notícias recolhidas: filtro por fonte e agrupadas por dia --}}
-        <div class="filtros-bib filtros-fontes" role="group" aria-label="Fonte">
-            <a href="{{ route('noticias', ['ver' => 'noticias']) }}" class="{{ $fonte ? '' : 'ativo' }}">Todas <b>{{ $totalNoticias }}</b></a>
-            @foreach ($porFonte as $nome => $n)
-                <a href="{{ route('noticias', ['ver' => 'noticias', 'fonte' => $nome]) }}" class="{{ $fonte === $nome ? 'ativo' : '' }}">{{ $nome }} <b>{{ $n }}</b></a>
-            @endforeach
-        </div>
+        {{-- Barra: fonte e pesquisa (em vez de 10 etiquetas em duas filas) --}}
+        <form method="GET" action="{{ route('noticias') }}" class="noticias-barra" data-filtro-noticias>
+            <input type="hidden" name="ver" value="noticias">
+            <label class="noticias-campo">
+                <span>Fonte</span>
+                <select name="fonte">
+                    <option value="">Todas as fontes ({{ $totalNoticias }})</option>
+                    @foreach ($porFonte as $nome => $n)
+                        <option value="{{ $nome }}" @selected($fonte === $nome)>{{ $nome }} ({{ $n }})</option>
+                    @endforeach
+                </select>
+            </label>
+            <label class="noticias-campo noticias-procura">
+                <span>Procurar</span>
+                <input type="search" name="q" value="{{ $procura }}" placeholder="Ex.: GPU, agentes, segurança…">
+            </label>
+            <button type="submit" class="btn">Filtrar</button>
+            @if ($fonte || $procura !== '')
+                <a class="btn btn-link" href="{{ route('noticias', ['ver' => 'noticias']) }}">Limpar</a>
+            @endif
+        </form>
+
         @if ($noticias->isEmpty())
-            <div class="vazio"><h2>Ainda não há notícias recolhidas</h2><p>Carregue em “Recolher agora”.</p></div>
-        @else
-            <div class="bloco noticias-dias">
-                @foreach ($noticias->groupBy(fn ($n) => $n->publicada_em?->format('Y-m-d') ?? '—') as $quando => $doDia)
-                    <section>
-                        <h3>{{ $quando === '—' ? 'Sem data' : ucfirst(\Illuminate\Support\Carbon::parse($quando)->locale('pt_PT')->translatedFormat('l, j \d\e F')) }}</h3>
-                        <ul class="noticias-lista">
-                            @foreach ($doDia as $n)
-                                <li>
-                                    <span class="fonte-etiqueta">{{ $n->fonte }}</span>
-                                    <a href="{{ $n->link }}" target="_blank" rel="noopener noreferrer">{{ $n->titulo }}</a>
-                                </li>
-                            @endforeach
-                        </ul>
-                    </section>
-                @endforeach
+            <div class="vazio">
+                <h2>{{ $fonte || $procura !== '' ? 'Nenhuma notícia com estes filtros' : 'Ainda não há notícias recolhidas' }}</h2>
+                <p>{{ $fonte || $procura !== '' ? 'Experimente outra fonte ou outra palavra.' : 'Carregue em “Recolher agora”.' }}</p>
             </div>
+        @else
+            @foreach ($noticias->groupBy(fn ($n) => $n->publicada_em?->format('Y-m-d') ?? '—') as $quando => $doDia)
+                <section class="noticias-dia">
+                    <h3>
+                        {{ $quando === '—' ? 'Sem data' : ucfirst(\Illuminate\Support\Carbon::parse($quando)->locale('pt_PT')->translatedFormat('l, j \d\e F')) }}
+                        <span>{{ $doDia->count() }}</span>
+                    </h3>
+                    <div class="noticias-cartoes">
+                        @foreach ($doDia as $n)
+                            @php([$iniciais, $cor] = $simbolo($n->fonte))
+                            <a class="noticia-cartao" href="{{ $n->link }}" target="_blank" rel="noopener noreferrer">
+                                <span class="noticia-simbolo" style="background: {{ $cor }}" aria-hidden="true">{{ $iniciais }}</span>
+                                <span class="noticia-texto">
+                                    <b>{{ $n->titulo }}</b>
+                                    @if ($n->descricao)<span class="noticia-desc">{{ $n->descricao }}</span>@endif
+                                    <small>{{ $n->fonte }}{{ $n->publicada_em ? ' · '.$n->publicada_em->format('H:i') : '' }} ↗</small>
+                                </span>
+                            </a>
+                        @endforeach
+                    </div>
+                </section>
+            @endforeach
             @if ($noticias->previousPageUrl() || $noticias->nextPageUrl())
                 <nav class="paginas" aria-label="Páginas">
                     @if ($noticias->previousPageUrl())<a class="btn" href="{{ $noticias->previousPageUrl() }}">‹ Mais recentes</a>@endif
@@ -162,6 +193,12 @@
                 </nav>
             @endif
         @endif
+        <script>
+        // Mudar a fonte filtra logo (a pesquisa continua com "Filtrar" ou Enter).
+        document.querySelectorAll('[data-filtro-noticias] select').forEach(function (s) {
+            s.addEventListener('change', function () { s.form.submit(); });
+        });
+        </script>
 
     @else
         {{-- Resumos anteriores --}}

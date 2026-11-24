@@ -116,6 +116,8 @@ class NoticiasIaTest extends TestCase
             ->assertSee('Agentes')->assertSee('https://rss.teste/a', false)->assertSee('Pedir à IA um post sobre este tema');
         $this->actingAs($user)->get(route('noticias', ['ver' => 'noticias', 'fonte' => 'Blog Atom']))->assertOk()
             ->assertSee('Agentes nas empresas')->assertDontSee('Novo modelo');                // filtro por fonte
+        $this->actingAs($user)->get(route('noticias', ['ver' => 'noticias', 'q' => 'GPUs']))->assertOk()
+            ->assertSee('Novo modelo')->assertDontSee('Agentes nas empresas');                // pesquisa
         $this->actingAs($user)->get(route('noticias', ['ver' => 'anteriores']))->assertOk()->assertSee('Resumo');
     }
 }
