@@ -1,8 +1,8 @@
 {{-- Uma notícia de um parceiro tecnológico (vertente "Parceiros tecnológicos" das Notícias): ligação para a fonte e
      "Pedir um post" (um pedido normal à IA: fica em "Para aprovar", nada sai sem aprovação). O texto vem de fora: só como texto. --}}
 <article class="noticia-cartao noticia-parceiro">
-    @if ($u = $logo($n->fonte))
-        <img class="noticia-logo" src="{{ $u }}" alt="" width="40" height="40" loading="lazy">
+    @if ($u = $logoMarca($n->fonte))
+        <img class="noticia-marca" src="{{ $u }}" alt="{{ $n->fonte }}" loading="lazy">
     @else
         <span class="noticia-logo noticia-iniciais" aria-hidden="true">{{ mb_strtoupper(mb_substr($n->fonte, 0, 3)) }}</span>
     @endif

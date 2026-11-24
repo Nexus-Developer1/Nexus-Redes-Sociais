@@ -844,7 +844,11 @@ a.resumo-item:hover { border-color: var(--verde-300); color: inherit; }
   background: var(--superficie); color: var(--texto-medio); font-size: .875rem; font-weight: 600; text-decoration: none; }
 .marcas-filtro a:hover { border-color: var(--verde-200); color: var(--texto-forte); }
 .marcas-filtro a[aria-current] { border-color: var(--verde-600); background: var(--verde-50); color: var(--verde-600); }
-.marcas-filtro img { border-radius: 4px; object-fit: contain; }
+.marcas-filtro a { min-height: 36px; }
+.marca-logo { display: block; height: 20px; width: auto; max-width: 84px; object-fit: contain; }
+/* logótipo oficial da marca (largo) no cartão da notícia, numa caixa branca */
+.noticia-marca { flex: none; width: 92px; height: 46px; padding: 6px 8px; box-sizing: border-box; object-fit: contain; background: #fff;
+  border: 1px solid var(--borda); border-radius: 10px; }
 .marcas-filtro a span { padding: 0 6px; border-radius: 999px; background: var(--fundo); font-size: .75rem; color: var(--texto-medio); }
 .noticia-parceiro { align-items: center; }
 .noticia-parceiro .noticia-texto { flex: 1; }

@@ -13,6 +13,19 @@
 
         return is_file(public_path($ficheiro)) ? asset($ficheiro) : null;
     };
+    // Logótipo oficial de cada parceiro (public/img/marcas/<marca>.svg ou .png). Altaro, DataCore e Ubiquiti só
+    // têm o símbolo: nas etiquetas aparece também o nome.
+    $logoMarca = function (string $marca) {
+        foreach (['svg', 'png'] as $ext) {
+            $ficheiro = 'img/marcas/'.\Illuminate\Support\Str::slug($marca).'.'.$ext;
+            if (is_file(public_path($ficheiro))) {
+                return asset($ficheiro);
+            }
+        }
+
+        return null;
+    };
+    $soSimbolo = ['Altaro', 'DataCore', 'Ubiquiti'];
     $vertenteIa = $ver !== 'parceiros'; // as duas vertentes da página: IA ou parceiros tecnológicos
     $maisIcone = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
 @endphp
@@ -238,9 +251,10 @@
         <nav class="marcas-filtro" aria-label="Marcas">
             <a href="{{ route('noticias', ['ver' => 'parceiros']) }}" @if (! $marca) aria-current="true" @endif>Todas <span>{{ $totalParceiros }}</span></a>
             @foreach ($marcas as $nome => $num)
-                <a href="{{ route('noticias', ['ver' => 'parceiros', 'marca' => $nome]) }}" @if ($marca === $nome) aria-current="true" @endif>
-                    @if ($u = $logo($nome))<img src="{{ $u }}" alt="" width="18" height="18">@endif
-                    {{ $nome }} <span>{{ $num }}</span>
+                <a href="{{ route('noticias', ['ver' => 'parceiros', 'marca' => $nome]) }}" title="{{ $nome }}" @if ($marca === $nome) aria-current="true" @endif>
+                    @if ($u = $logoMarca($nome))<img class="marca-logo" src="{{ $u }}" alt="{{ $nome }}">@endif
+                    @if (! $u || in_array($nome, $soSimbolo, true)){{ $nome }}@endif
+                    <span>{{ $num }}</span>
                 </a>
             @endforeach
         </nav>
