@@ -11,6 +11,7 @@ use App\Services\PostRenderer;
 use App\Services\PostWriter;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
+use RuntimeException;
 use Throwable;
 
 /**
@@ -242,10 +243,34 @@ class TratarPedidos extends Command
         }
 
         try {
-            // A IA vê as candidatas e escolhe a que serve (ou nenhuma): nunca fica a primeira à sorte.
-            $fotos = $pexels->procurarNovas($pesquisa, $design['formato'] ?? '4:5', 12, $post);
+            // A IA vê as candidatas e escolhe a que serve. A foto é o centro do post (padrão do feed), por isso:
+            // se nenhuma servir, tenta outra pesquisa; se a IA não responder (limite do plano), fica a 1.ª da
+            // pesquisa (o banco ordena pela relevância) em vez de o post ficar sem foto.
+            $escritor = app(PostWriter::class);
             $tema = trim($post->title.' — '.str_replace(['*', "\n"], ['', ' '], (string) ($design['titulo'] ?? '')));
-            $escolhida = app(PostWriter::class)->escolherFoto($tema, $fotos);
+            $escolhida = null;
+            foreach ([$pesquisa, null] as $tentativa) {
+                if ($tentativa === null) {
+                    $tentativa = rescue(fn () => $escritor->pesquisaNova($tema, [$pesquisa]), '', false);
+                    if ($tentativa === '' || $tentativa === $pesquisa) {
+                        break;
+                    }
+                }
+                $fotos = $pexels->procurarNovas($tentativa, $design['formato'] ?? '4:5', 12, $post);
+                if (! $fotos) {
+                    continue;
+                }
+                try {
+                    $escolhida = $escritor->escolherFoto($tema, $fotos);
+                } catch (RuntimeException $e) {
+                    $escolhida = $fotos[0]['id']; // a IA não respondeu: a mais relevante da pesquisa
+                    $this->warn("Post #{$post->id}: {$e->getMessage()} Fica a foto mais relevante de \"{$tentativa}\".");
+                }
+                if ($escolhida) {
+                    $pesquisa = $tentativa;
+                    break;
+                }
+            }
             if (! $escolhida) {
                 $this->line("Post #{$post->id}: nenhuma foto servia para \"{$pesquisa}\"; fica o fundo verde.");
 

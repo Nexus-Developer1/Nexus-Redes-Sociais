@@ -133,7 +133,8 @@ class PostWriter
                 'temperature' => 0,
             ]);
         if ($resposta->failed()) {
-            return null;
+            // Não é "nenhuma serve": a IA não respondeu (ex.: limite do plano gratuito). Quem chama decide o que fazer.
+            throw new RuntimeException('A IA não conseguiu escolher a foto (erro '.$resposta->status().').');
         }
         preg_match('/\d+/', (string) $resposta->json('choices.0.message.content'), $m);
         $id = (int) ($m[0] ?? 0);

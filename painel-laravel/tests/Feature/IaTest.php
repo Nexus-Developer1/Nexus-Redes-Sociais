@@ -122,6 +122,26 @@ class IaTest extends TestCase
             && str_contains($r->url(), 'w=1080&h=1350'));
     }
 
+    public function test_ia_sem_resposta_na_escolha_da_foto_fica_a_mais_relevante(): void
+    {
+        // Plano gratuito esgotado (429) só na escolha da foto: o post não pode ficar sem foto (padrão do feed).
+        config(['services.pexels.key' => null, 'services.pixabay.key' => 'pixabay-teste']);
+        $hit = fn (int $id) => ['id' => $id, 'tags' => 'server', 'user' => 'Rui', 'webformatURL' => "https://pixabay.com/get/w{$id}.jpg",
+            'largeImageURL' => "https://pixabay.com/get/large{$id}.jpg", 'imageWidth' => 3000, 'imageHeight' => 4000];
+        Http::fake([
+            'ia.teste/*' => Http::sequence()->push($this->respostaIa(['pesquisa_imagem' => 'server room']))
+                ->push(['choices' => [['message' => ['content' => '{}']]]])   // revisor
+                ->push(['error' => ['message' => 'Rate limit']], 429),        // escolher a foto
+            'pixabay.com/api/*' => Http::response(['hits' => [$hit(31), $hit(32)]]),
+            'pixabay.com/get/*' => Http::response($this->jpeg(), 200, ['Content-Type' => 'image/jpeg']),
+        ]);
+        PostRequest::create(['topic' => 'Servidores']);
+
+        $this->artisan('post:tratar-pedidos')->assertSuccessful();
+
+        $this->assertSame('pixabay-31.jpg', PostRequest::first()->post->design['foto']);
+    }
+
     public function test_procurar_e_usar_foto_no_editor(): void
     {
         $this->fingirPexels();

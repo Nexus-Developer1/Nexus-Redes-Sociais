@@ -28,8 +28,10 @@ class DatabaseSeeder extends Seeder
             }
         }
 
-        if (Post::exists()) {
-            return; // não duplica os exemplos
+        // Posts de exemplo só no PC de desenvolvimento. No servidor, o deploy corre o seeder a cada instalação:
+        // com o painel vazio (ex.: o recomeço de 24 nov) voltava a criar estes exemplos de outubro.
+        if (Post::exists() || app()->isProduction()) {
+            return;
         }
 
         // Os dois posts já feitos (pasta posts/ do projeto).

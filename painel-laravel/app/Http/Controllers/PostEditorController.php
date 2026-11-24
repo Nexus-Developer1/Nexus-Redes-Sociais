@@ -269,7 +269,11 @@ class PostEditorController extends Controller
                     break;
                 }
             }
-            $id = $escritor->configurado() ? $escritor->escolherFoto($tema, array_slice($candidatas, 0, 12)) : ($candidatas[0]['id'] ?? null);
+            try {
+                $id = $escritor->configurado() ? $escritor->escolherFoto($tema, array_slice($candidatas, 0, 12)) : ($candidatas[0]['id'] ?? null);
+            } catch (RuntimeException $e) {
+                $id = $candidatas[0]['id'] ?? null; // a IA não respondeu (limite do plano): a mais relevante da pesquisa
+            }
             if (! $id) {
                 return back()->with('erro', 'Não encontrei outra foto adequada para “'.$post->title.'”. Experimente “Procurar imagem” no Editar.');
             }
