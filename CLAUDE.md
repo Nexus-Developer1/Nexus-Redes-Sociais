@@ -64,7 +64,7 @@ Sistema que cria posts para as redes sociais da NEXUS de forma autónoma.
   origem, histórico) está no menu "⋯" (`details.mais-opcoes`). Clicar na imagem abre a pré-visualização do Instagram
   (`painel/instagram.blade.php`). O estado só aparece quando diz algo (Atrasado, Em criação, Alteração pedida).
   Editor: uma coluna de campos por passos (1 Texto da imagem · 2 Fundo · 3 Legenda · 4 Publicação) dentro de `#design`
-  (o editor.js só lê `[data-campo]` dentro de `#design`); ícone/botão/etiqueta/rodapé em "Mais opções da imagem"; na legenda,
+  (o editor.js só lê `[data-campo]` dentro de `#design`); ícone, botão e tema (`rodape`, para a capa do email) em "Mais opções da imagem"; o campo "etiqueta" saiu a 25 nov (já não aparecia na imagem); na legenda,
   "Escrever com IA" à vista e o resto em "Melhorar com IA". Aviso: sai na véspera, por isso a "Data" da imagem = dia seguinte
   à publicação e o texto "Voltamos na …" = próximo dia útil (`App\Support\AvisoDatas`; o editor.js repete o cálculo quando se
   muda o dia e só troca campos vazios, o exemplo ou o último valor automático). "Eliminar post" (`posts.destroy`, `painel/eliminar.blade.php`) está

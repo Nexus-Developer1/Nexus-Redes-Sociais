@@ -15,7 +15,6 @@
   var FORMATOS = { '4:5': 'f-4x5', '1:1': 'f-1x1', '9:16': 'f-9x16' };
   var ESCALA = { '4:5': 1, '1:1': 0.86, '9:16': 1.1 };
   var TITULO = { dica: 88, produto: 80, aviso: 124, evento: 80, numero: 60, frase: 100, montra: 46, slide: 72, fecho: 110 };
-  var ETIQUETA = { dica: 'Dica', aviso: 'Aviso', evento: 'Evento', produto: '', numero: '', frase: '', montra: '', slide: '', fecho: '' };
 
   var I = 'stroke-width="7"';
   var ICONES = {
@@ -116,8 +115,6 @@
   var TOTAL = SLIDES.length ? SLIDES.length + 2 : 1;
   if (N > 0) modelo = N > SLIDES.length ? 'fecho' : 'slide';
 
-  var etiqueta = P.etiqueta !== undefined ? P.etiqueta : ETIQUETA[modelo];
-
   // Aviso de fecho/feriado = a imagem "OUT OF OFFICE" da NEXUS (escritório, logótipo e caixas já desenhados),
   // como no email aos parceiros (24 nov, a pedido). O post só acrescenta a data e o "Voltamos na…".
   var ooo = modelo === 'aviso' && N === 0;
@@ -144,8 +141,6 @@
     fg.innerHTML = REDE_FUNDO;
     post.appendChild(fg);
   }
-
-  var logo = h('div', 'logo', [imagem(BASE + 'logo-nexus.png', '', 'logótipo'), h('div', 'sub', ['IT SOLUTIONS'])]);
 
   var logoCentro = h('div', 'logo-centro', [imagem(BASE + 'logo-nexus.png', '', 'logótipo'), h('div', 'sub', ['IT SOLUTIONS'])]);
   var contador = (N + 1) + ' / ' + TOTAL;
@@ -259,7 +254,7 @@
     }
     var il = post.querySelector('.ilustracao');
     if (il && il.clientHeight < 200) return false;
-    var largos = post.querySelectorAll('.caixa, .grande, .ponto, .linha, .lista li, .numero-titulo, .frase-titulo, .montra-titulo, .slide-destaque');
+    var largos = post.querySelectorAll('.caixa, .ponto, .linha, .lista li, .numero-titulo, .frase-titulo, .montra-titulo, .slide-destaque');
     for (var i = 0; i < largos.length; i++) if (largos[i].scrollWidth > largos[i].clientWidth + 1) return false;
     if (inteiro) {
       var caixas = post.querySelectorAll('.caixa');

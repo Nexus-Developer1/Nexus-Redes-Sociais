@@ -284,7 +284,7 @@ class PostRenderer
     public static function caixasEmail(Post $post): array
     {
         $d = $post->design ?? [];
-        $tema = trim((string) ($d['rodape'] ?? '')) ?: trim((string) ($d['etiqueta'] ?? '')) ?: (self::NOMES[$d['modelo'] ?? ''] ?? 'NEXUS');
+        $tema = trim((string) ($d['rodape'] ?? '')) ?: (self::NOMES[$d['modelo'] ?? ''] ?? 'NEXUS');
         $tema = mb_substr(preg_replace('/\s+/u', ' ', $tema), 0, 40);
         $palavras = explode(' ', $tema);
         if (count($palavras) === 1) {
@@ -360,7 +360,7 @@ class PostRenderer
             'modelo' => in_array($d['modelo'] ?? '', self::MODELOS, true) ? $d['modelo'] : 'dica',
             'formato' => isset(self::FORMATOS[$d['formato'] ?? '']) ? $d['formato'] : '4:5',
         ];
-        foreach (['numero' => 4, 'titulo' => 300, 'texto' => 600, 'etiqueta' => 40, 'rodape' => 80, 'site' => 60,
+        foreach (['numero' => 4, 'titulo' => 300, 'texto' => 600, 'rodape' => 80, 'site' => 60,
             'cta' => 80, 'data' => 80, 'hora' => 40, 'fecho' => 80] as $campo => $max) {
             if (isset($d[$campo]) && ($v = $texto($d[$campo], $max)) !== '') {
                 $limpo[$campo] = $v;

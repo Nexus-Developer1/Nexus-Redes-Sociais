@@ -637,7 +637,7 @@ class PostWriter
     private function revisto(array $r): array
     {
         $textos = ['legenda' => $r['legenda'], 'titulo_interno' => $r['titulo_interno']];
-        foreach (['titulo', 'texto', 'cta', 'rodape', 'etiqueta', 'data', 'hora', 'fecho'] as $c) {
+        foreach (['titulo', 'texto', 'cta', 'rodape', 'data', 'hora', 'fecho'] as $c) {
             if (isset($r['design'][$c]) && is_string($r['design'][$c])) {
                 $textos['design.'.$c] = $r['design'][$c];
             }
@@ -687,7 +687,7 @@ class PostWriter
     {
         $d = $this->limparTexto($d);
         $design = array_intersect_key($d, array_flip([
-            'modelo', 'formato', 'numero', 'titulo', 'texto', 'etiqueta', 'rodape', 'icone', 'cta', 'pontos', 'data', 'hora', 'evento',
+            'modelo', 'formato', 'numero', 'titulo', 'texto', 'rodape', 'icone', 'cta', 'pontos', 'data', 'hora', 'evento',
             'carrossel', 'slides', 'fecho',
         ]));
         // Carrossel: decide quem pediu, nunca a IA (ver $this->carrossel). Só no feed; o limparDesign confirma o resto.
@@ -726,9 +726,6 @@ class PostWriter
         }
         if (! in_array($design['modelo'] ?? '', $permitidos, true)) {
             $design['modelo'] = 'dica'; // "montra" precisa da foto oficial do produto, que a IA não tem
-        }
-        if (($design['etiqueta'] ?? null) === '') {
-            unset($design['etiqueta']); // vazio = a etiqueta do tipo de post
         }
 
         // Vertente das redes sociais: sempre Instagram, Facebook e LinkedIn (a IA não tira nenhuma; os Stories juntam-se depois).
@@ -819,7 +816,6 @@ class PostWriter
         - "icone": um destes: {$icones} (ou "" para nenhum). Escolhe o que combina com o tema.
         - "rodape": tema do post em 2 a 4 palavras (ex.: "Backup & Disaster Recovery", "UPS & Proteção"). Aparece nas caixas da capa
           do email aos parceiros, por isso tem de ser curto e claro.
-        - "etiqueta": deixa "" (usa a do tipo de post), a não ser que outra palavra seja claramente melhor.
         - "formato": sempre "4:5" (o padrão do feed da NEXUS, também nos avisos).
         - Sem emojis no texto da imagem.
         - "pesquisa_imagem": 2 a 4 palavras EM INGLÊS para procurar uma foto de fundo num banco de fotos
@@ -862,7 +858,6 @@ class PostWriter
           "formato": "4:5",
           "titulo": "...",
           "texto": "...",
-          "etiqueta": "",
           "rodape": "...",
           "icone": "...",
           "cta": "",

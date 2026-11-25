@@ -39,9 +39,8 @@ Mudar o aspeto de todos os posts = mudar `painel-laravel/public/modelos/modelos.
 | `formato` | todos | `4:5` (feed, por defeito), `1:1` (quadrado) ou `9:16` (Stories/Reels) |
 | `titulo` | todos | `\n` muda de linha; `*palavra*` fica a verde |
 | `texto` | todos | frase por baixo do título (aceita `\n` e `*...*`) |
-| `etiqueta` | todos | etiqueta no canto (por defeito: Dica / Aviso / Evento; `""` para nenhuma) |
-| `rodape` | todos | texto à esquerda no rodapé (tema do post) |
-| `site` | todos | à direita no rodapé (por defeito `nexus-solutions.pt`) |
+| `rodape` | todos | tema do post (2 a 4 palavras): vai nas caixas da capa do email aos parceiros |
+| `site` | montra, carrossel | no rodapé da montra e no último slide (por defeito `nexus-solutions.pt`) |
 | `fundo` | todos | imagem de fundo (IA de imagens). Sem fundo, usa o fundo verde feito em código |
 | `icone` | dica, produto, evento | `escudo`, `servidor`, `nuvem`, `rede`, `energia`, `monitor`, `chip` |
 | `pontos` | dica, produto | dica: `[{"destaque":"3","texto":"cópias"}]` = cartões; só texto = lista com ✓ |

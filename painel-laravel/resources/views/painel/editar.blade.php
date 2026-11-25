@@ -144,7 +144,7 @@
 
                         {{-- Pormenores: raramente se mudam --}}
                         <details class="mais-campos" data-modelos="dica produto aviso evento montra">
-                            <summary>Mais opções da imagem <small>ícone, botão, etiqueta e rodapé</small></summary>
+                            <summary>Mais opções da imagem <small>ícone, botão e tema</small></summary>
                             <div class="mais-campos-corpo">
                                 <div class="dupla">
                                     <label data-modelos="dica produto evento montra">Ícone
@@ -157,10 +157,7 @@
                                         <input data-campo="cta" placeholder="ex.: Peça a sua proposta">
                                     </label>
                                 </div>
-                                <div class="dupla">
-                                    <label>Etiqueta <input data-campo="etiqueta" placeholder="(a do tipo de post)"></label>
-                                    <label>Rodapé <input data-campo="rodape" placeholder="tema do post"></label>
-                                </div>
+                                <label>Tema <input data-campo="rodape" placeholder="2 a 4 palavras, para as caixas da capa do email aos parceiros"></label>
                             </div>
                         </details>
                     </section>
