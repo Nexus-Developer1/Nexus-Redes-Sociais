@@ -122,6 +122,59 @@ class Post extends Model
             || mb_stripos((string) $this->title, 'aviso') === 0;
     }
 
+    /** Um aviso sai até 10 dias antes do feriado a que se refere (numa ponte, antes do fim de semana). */
+    public const AVISO_DIAS_ANTES = 10;
+
+    /** Feriado ('AAAA-MM-DD') de que um aviso fala: o primeiro feriado a partir do dia em que sai. Null se não houver. */
+    public function feriadoDoAviso(): ?string
+    {
+        if (! $this->isAviso() || ! $this->scheduled_at) {
+            return null;
+        }
+        $dia = $this->scheduled_at->copy()->startOfDay();
+        foreach (\App\Services\DatasEspeciais::entre($dia, $dia->copy()->addDays(self::AVISO_DIAS_ANTES)) as $data => $nome) {
+            if (str_starts_with($nome, 'Feriado')) {
+                return $data;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Outros avisos (não rejeitados) para o mesmo fecho: o mesmo feriado ou, num fecho sem feriado, o mesmo dia.
+     * Ex.: "ponte de 30 de novembro" e "encerrados a 1 de dezembro" falam os dois do feriado de 1 de dezembro.
+     *
+     * @return \Illuminate\Support\Collection<int, self>
+     */
+    public function avisosRepetidos(): \Illuminate\Support\Collection
+    {
+        if (! $this->isAviso() || ! $this->scheduled_at) {
+            return collect();
+        }
+        $feriado = $this->feriadoDoAviso();
+        $dia = $this->scheduled_at->toDateString();
+
+        return self::where('status', '!=', self::REJECTED)->whereKeyNot($this->id)
+            ->whereBetween('scheduled_at', [
+                $this->scheduled_at->copy()->subDays(self::AVISO_DIAS_ANTES)->startOfDay(),
+                $this->scheduled_at->copy()->addDays(self::AVISO_DIAS_ANTES)->endOfDay(),
+            ])
+            ->orderBy('scheduled_at')->get()
+            ->filter(fn (self $p) => $p->isAviso() && ($feriado ? $p->feriadoDoAviso() === $feriado : $p->scheduled_at->toDateString() === $dia))
+            ->values();
+    }
+
+    /** Avisos (não rejeitados) que já falam deste feriado ('AAAA-MM-DD'), mesmo que saiam na semana anterior. */
+    public static function avisosDoFeriado(string $feriado): \Illuminate\Support\Collection
+    {
+        $dia = \Illuminate\Support\Carbon::parse($feriado);
+
+        return self::where('status', '!=', self::REJECTED)
+            ->whereBetween('scheduled_at', [$dia->copy()->subDays(self::AVISO_DIAS_ANTES)->startOfDay(), $dia->copy()->endOfDay()])
+            ->get()->filter(fn (self $p) => $p->isAviso() && $p->feriadoDoAviso() === $feriado)->values();
+    }
+
     /** Vai também para os Stories do Instagram? */
     public function temStories(): bool
     {

@@ -153,9 +153,17 @@ class CalendarioIa extends Command
         // Os avisos são extra: não contam para os posts da semana.
         $faltam = $porSemana - $daSemana->reject->isAviso()->count();
         // Feriados em dia útil que ainda não têm aviso: a IA pode propor o aviso, além dos posts da semana.
-        $feriados = collect(DatasEspeciais::entre($inicio, $fim))
-            ->filter(fn ($nome, $dia) => str_starts_with($nome, 'Feriado') && ! Carbon::parse($dia)->isWeekend())->count();
-        $avisosEmFalta = max(0, $feriados - $daSemana->filter->isAviso()->count());
+        // Conta também o aviso que sai na semana anterior (numa ponte, o aviso sai antes do fim de semana).
+        $especiais = DatasEspeciais::entre($inicio, $fim);
+        $comAviso = [];
+        foreach ($especiais as $dia => $nome) {
+            if (str_starts_with($nome, 'Feriado') && Post::avisosDoFeriado($dia)->isNotEmpty()) {
+                $comAviso[] = $dia;
+                $especiais[$dia] = $nome.' (já tem aviso: não proponhas outro)';
+            }
+        }
+        $avisosEmFalta = collect($especiais)
+            ->filter(fn ($nome, $dia) => str_starts_with($nome, 'Feriado') && ! in_array($dia, $comAviso, true) && ! Carbon::parse($dia)->isWeekend())->count();
         if ($faltam <= 0 && $avisosEmFalta === 0) {
             Cache::put($feito, 1, now()->addDays(14));
             $this->line('A semana de '.$inicio->format('d/m').' já tem posts suficientes.');
@@ -164,7 +172,7 @@ class CalendarioIa extends Command
         }
 
         try {
-            $ideias = $escritor->proporIdeias($inicio, $fim, max(0, $faltam) + $avisosEmFalta, DatasEspeciais::entre($inicio, $fim), $this->recentes(),
+            $ideias = $escritor->proporIdeias($inicio, $fim, max(0, $faltam) + $avisosEmFalta, $especiais, $this->recentes(),
                 $daSemana->map(fn ($p) => $p->scheduled_at->format('Y-m-d'))->unique()->values()->all());
             // Fica no máximo o número de posts em falta, mais os avisos dos feriados.
             $avisos = array_filter($ideias, fn ($i) => $i['tipo'] === 'aviso');

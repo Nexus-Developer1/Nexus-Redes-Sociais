@@ -187,6 +187,41 @@ class CalendarioIaTest extends TestCase
         Http::assertNothingSent();
     }
 
+    public function test_aviso_da_ponte_na_semana_anterior_conta_para_o_feriado(): void
+    {
+        $this->travelTo(Carbon::parse('2026-11-23 09:00')); // semana seguinte: 30 nov a 6 dez (1 dez = feriado)
+        config(['ia.ideias_por_semana' => 1]);
+        Http::fake();
+        // a ponte: o aviso sai na quinta antes (26 nov), fora da semana do feriado
+        $this->ideia('2026-11-26 10:00', ['title' => 'Aviso: ponte de 30 de novembro', 'source' => 'Tipo: aviso.', 'status' => Post::PENDING]);
+        $this->ideia('2026-12-02 10:00', ['status' => Post::PENDING]);
+
+        $this->artisan('post:calendario-ia')->assertSuccessful();
+
+        Http::assertNothingSent(); // não pede outro aviso para o 1 de dezembro
+    }
+
+    public function test_avisos_repetidos_para_o_mesmo_fecho(): void
+    {
+        $ponte = $this->ideia('2026-11-26 10:00', ['title' => 'Aviso: ponte de 30 de novembro', 'status' => Post::PENDING]);
+        $outro = $this->ideia('2026-11-30 10:00', ['title' => 'Aviso: encerrados a 1 de dezembro', 'status' => Post::PENDING]);
+        $natal = $this->ideia('2026-12-24 10:00', ['title' => 'Aviso: Encerramento por Natal', 'source' => 'Tipo: aviso.']);
+        $anoNovo = $this->ideia('2026-12-28 18:00', ['title' => 'Aviso: Encerramento por Ano Novo', 'source' => 'Tipo: aviso.']);
+        $this->ideia('2026-11-27 10:00'); // uma dica na mesma altura não é aviso
+
+        $this->assertSame('2026-12-01', $ponte->feriadoDoAviso());
+        $this->assertSame([$outro->id], $ponte->avisosRepetidos()->pluck('id')->all());
+        $this->assertTrue($natal->avisosRepetidos()->isEmpty());   // Natal e Ano Novo: 4 dias de diferença, mas são fechos diferentes
+        $this->assertTrue($anoNovo->avisosRepetidos()->isEmpty());
+
+        $this->actingAs(User::factory()->create())->get(route('painel'))->assertOk()
+            ->assertSee('Pode ser repetido')->assertSee('Aviso: encerrados a 1 de dezembro');
+
+        // rejeitado deixa de contar
+        $outro->update(['status' => Post::REJECTED]);
+        $this->assertTrue($ponte->fresh()->avisosRepetidos()->isEmpty());
+    }
+
     public function test_semana_cheia_nao_chama_a_ia(): void
     {
         Http::fake();

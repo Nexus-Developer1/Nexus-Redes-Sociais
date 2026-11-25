@@ -167,6 +167,17 @@
             <div class="pedido-alteracao"><strong>Alteração pedida:</strong> {{ $post->change_request }}</div>
         @endif
 
+        {{-- Dois avisos para o mesmo fecho (ex.: pedidos repetidos): avisa antes de aprovar os dois --}}
+        @if (! in_array($post->status, [\App\Models\Post::PUBLISHED, \App\Models\Post::REJECTED], true) && ($repetidos = $post->avisosRepetidos())->isNotEmpty())
+            <p class="nota-atraso nota-repetido">
+                Pode ser repetido: já há
+                @foreach ($repetidos as $r)
+                    <a href="{{ route('posts.edit', $r) }}">“{{ $r->title }}”</a> ({{ \Illuminate\Support\Str::lower($r->statusLabel()) }}, {{ $r->whenLabel() }}){{ $loop->last ? '' : ' e' }}
+                @endforeach
+                para o mesmo fecho. Se for, elimine um deles.
+            </p>
+        @endif
+
         {{-- Botões: o principal à esquerda, o perigoso à direita --}}
         @if ($post->status === \App\Models\Post::PENDING)
             @if ($atrasado)

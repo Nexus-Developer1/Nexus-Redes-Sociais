@@ -143,7 +143,10 @@ Sistema que cria posts para as redes sociais da NEXUS de forma autónoma.
     seguinte até `IA_IDEIAS_POR_SEMANA` (3 por defeito; **1 no servidor desde 23 nov 2026**), a pensar nos feriados e dias especiais (`App\Services\DatasEspeciais`).
     Os **avisos não contam** (`Post::isAviso()`: modelo "aviso", "Tipo: aviso" ou título começado por "Aviso"); num feriado em dia útil sem aviso,
     a IA pode propor o aviso além do post da semana. Botão "✨ Propor ideias" no calendário
-    (ou `--propor`). 0 em qualquer das duas desliga essa parte. Ideias cujo pedido falhou não se repetem sozinhas (fica o botão).
+    (ou `--propor`). 0 em qualquer das duas desliga essa parte.
+    **Avisos repetidos (25 nov):** cada aviso fala do primeiro feriado nos 10 dias a seguir à publicação (`Post::feriadoDoAviso`);
+    um feriado que já tem aviso (mesmo a sair na semana anterior, como numa ponte) não pede outro (`Post::avisosDoFeriado`), e o
+    cartão de um aviso com outro para o mesmo fecho mostra "Pode ser repetido" (`Post::avisosRepetidos`; sem feriado = mesmo dia). Ideias cujo pedido falhou não se repetem sozinhas (fica o botão).
   - **Carrossel**: `design.carrossel` + `design.slides` (até 8: destaque, título, texto) + `design.fecho`. Capa = o modelo normal com "Deslize ›",
     depois um slide por ponto e no fim os contactos (automático). O `PostRenderer` gera uma imagem por slide (3 browsers de cada vez);
     a capa fica em `image_path` e todas em `posts.imagens_carrossel`. **A IA nunca decide sozinha**: quem pede escolhe "Imagem única"
