@@ -1,6 +1,7 @@
 /* Painel das redes sociais NEXUS — o que é próprio deste painel.
    A base (cores, letra Poppins, barra lateral, botões) é o ADN Nexus em suite.css, igual no portal,
-   na Nexus Infra e na Knowledgebase: não se muda aqui. Estes nomes apontam para as cores de lá. */
+   na Nexus Infra e na Knowledgebase: não se muda aqui. Estes nomes apontam para as cores de lá.
+   A ordem conta: os blocos mais abaixo (ex.: "Organização das páginas", "Editor arrumado") acertam os de cima. */
 :root {
   --verde-neon: var(--lateral-barra);      /* #22C55E */
   --verde-claro: var(--verde-50);
@@ -295,7 +296,6 @@ body.ecra-editor .area { flex: 1; }
 .filtros-bib a { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--borda); background: #fff; color: #374151; text-decoration: none; font-size: 14px; }
 .filtros-bib a:hover { border-color: var(--verde); color: var(--verde); }
 .filtros-bib a.ativo { background: var(--verde); border-color: var(--verde); color: #fff; font-weight: 600; }
-/* ---------- biblioteca da NEXUS ---------- */
 .filtros-bib a b { font-weight: 700; margin-left: 2px; opacity: .75; }
 .biblioteca { display: grid; grid-template-columns: minmax(320px, 400px) minmax(0, 1fr); gap: 24px; padding: 20px 24px 40px; align-items: start; }
 .biblioteca-lado { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 16px; min-width: 0; }
@@ -687,7 +687,7 @@ a.resumo-item:hover { border-color: var(--verde-300); color: inherit; }
 .bloco-topo { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .bloco-topo .conta { color: var(--texto-2); font-size: 12.5px; }
 .imagem-campo .nome { color: var(--texto); }
-/* "Mais opções da imagem": ícone, botão, etiqueta e rodapé ficam fechados até serem precisos */
+/* "Mais opções da imagem": ícone, botão e tema ficam fechados até serem precisos */
 .mais-campos { border: 1px solid var(--borda); border-radius: 10px; }
 .mais-campos > summary { cursor: pointer; padding: 10px 12px; font-size: 14px; font-weight: 600; color: #374151; list-style: none; display: flex; align-items: baseline; gap: 8px; }
 .mais-campos > summary::-webkit-details-marker { display: none; }

@@ -5,7 +5,8 @@ namespace App\Console\Commands;
 use App\Models\Post;
 use App\Models\PostRequest;
 use App\Services\DatasEspeciais;
-use App\Services\PostWriter;
+use App\Services\Ia\ClienteIa;
+use App\Services\Ia\IdeiasCalendario;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -33,9 +34,9 @@ class CalendarioIa extends Command
     /** Enquanto a IA está a propor as ideias (para o calendário se atualizar sozinho no fim). */
     public const A_PROPOR = 'calendario-ia:a-propor';
 
-    public function handle(PostWriter $escritor): int
+    public function handle(ClienteIa $ia, IdeiasCalendario $escritor): int
     {
-        if (! $escritor->configurado()) {
+        if (! $ia->configurado()) {
             $this->line('IA não configurada (IA_CHAVE): nada a fazer.');
 
             return self::SUCCESS;
@@ -67,7 +68,7 @@ class CalendarioIa extends Command
     }
 
     /** 1. Ideias com "Trocar tema": a IA propõe outro tema para a mesma data. */
-    private function trocarTemas(PostWriter $escritor): void
+    private function trocarTemas(IdeiasCalendario $escritor): void
     {
         $ideias = Post::where('status', Post::IDEA)->whereNotNull('change_request')->oldest('updated_at')->limit(2)->get();
         foreach ($ideias as $ideia) {
@@ -77,7 +78,7 @@ class CalendarioIa extends Command
             }
             $quando = $ideia->scheduled_at ?? now()->addDays(7)->setTime(10, 0);
             try {
-                $nova = $escritor->proporIdeias($quando, $quando, 1, DatasEspeciais::entre($quando, $quando),
+                $nova = $escritor->propor($quando, $quando, 1, DatasEspeciais::entre($quando, $quando),
                     $this->recentes(), [], 'Tema atual: “'.$ideia->title.'”. Pedido: '.$ideia->change_request)[0] ?? null;
                 if (! $nova) {
                     throw new \RuntimeException('A IA não propôs nenhum tema.');
@@ -125,7 +126,7 @@ class CalendarioIa extends Command
     }
 
     /** 3. Ideias da semana seguinte (ou da semana $semana a contar desta: 0 = o resto desta), até ao número de posts por semana. */
-    private function proporSemana(PostWriter $escritor, bool $agora, int $semana = 1): void
+    private function proporSemana(IdeiasCalendario $escritor, bool $agora, int $semana = 1): void
     {
         $porSemana = (int) config('ia.ideias_por_semana');
         $inicio = now()->startOfWeek()->addWeeks($semana);   // segunda-feira dessa semana
@@ -172,7 +173,7 @@ class CalendarioIa extends Command
         }
 
         try {
-            $ideias = $escritor->proporIdeias($inicio, $fim, max(0, $faltam) + $avisosEmFalta, $especiais, $this->recentes(),
+            $ideias = $escritor->propor($inicio, $fim, max(0, $faltam) + $avisosEmFalta, $especiais, $this->recentes(),
                 $daSemana->map(fn ($p) => $p->scheduled_at->format('Y-m-d'))->unique()->values()->all());
             // Fica no máximo o número de posts em falta, mais os avisos dos feriados.
             $avisos = array_filter($ideias, fn ($i) => $i['tipo'] === 'aviso');

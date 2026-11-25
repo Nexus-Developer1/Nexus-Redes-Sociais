@@ -38,13 +38,13 @@ Sistema que cria posts para as redes sociais da NEXUS de forma autónoma.
   cima, foto a ocupar o post (pouco escurecida), título em caixas #004D31 em baixo à esquerda, texto de apoio em maiúsculas,
   sem etiqueta nem barra de rodapé; produto e montra com o cabeçalho verde "We make IT for you" (`modelos/email/cabecalho.png`);
   carrossel com "›››". O estilo antigo (fundo escuro, barras verdes, rodapé com o site) já não se usa.
-  Os posts da IA são sempre 4:5 (o prompt já não oferece 1:1; `PostWriter::normalizar` força-o). A pré-visualização do Instagram
+  Os posts da IA são sempre 4:5 (o prompt já não oferece 1:1; `Ia\PostWriter::normalizar` força-o). A pré-visualização do Instagram
   mostra os 1:1 antigos inteiros (`.ig-galeria--quadrado`). Datas: a IA recebe um calendário dos próximos 45 dias com os feriados
   (`AvisoDatas::calendarioParaIa`) e, depois do revisor, `AvisoDatas::acertarDiasDaSemana` corrige o dia da semana de cada
   "<dia>, D de <mês>" (e o "no próximo"/"na próxima"): a IA escrevia "Sábado, 30 de novembro" num ano em que é segunda.
   Cada post novo = pasta com `dados.json` → `.\scripts\gerar-post.ps1 -Pasta <pasta>` cria `post.html` + `post.png`
   e avisa (código 2) se o texto não couber ou faltar uma imagem. Usar sempre os modelos para posts novos.
-  **Editor no painel** (para a equipa): "+ Criar post" e "Editar" → `PostEditorController`; a imagem é gerada no servidor pelo
+  **Editor no painel** (para a equipa): "+ Criar post" e "Editar" → `PostEditorController` (imagens e "Outra foto" em `PostImagensController`, email aos parceiros em `PostParceirosController`); a imagem é gerada no servidor pelo
   `App\Services\PostRenderer` (chrome-headless-shell em `/opt/chrome-headless-shell`; no Windows usa o Edge). Dados do modelo em `posts.design`,
   imagens em `public/imagens-posts/design/<id>/`.
 - `posts/aviso-fecho/`: aviso "Amanhã estamos fechados" (23 out 2026), 100% em código.
@@ -81,7 +81,7 @@ Sistema que cria posts para as redes sociais da NEXUS de forma autónoma.
   - `php artisan ia:noticias [--pedido]` — **página "Notícias de IA"** (desde 24 nov): o agente lê os feeds RSS/Atom de
     `config/ia.php` `fontes_noticias` (9 fontes: OpenAI, Google AI, NVIDIA, Hugging Face, Microsoft, AWS ML, TechCrunch, The Verge,
     MIT Tech Review; só texto, últimos 10 dias, 15 por fonte, guarda em `noticias_ia` sem repetir o link) e a IA faz o resumo
-    (`PostWriter::resumirNoticias`, JSON: título, introdução, 4–7 destaques com os ids das notícias, "para a NEXUS", ideias de posts;
+    (`Ia\ResumoNoticias::resumir`, JSON: título, introdução, 4–7 destaques com os ids das notícias, "para a NEXUS", ideias de posts;
     guardado em `resumos_ia`). Segunda e quinta às 08:00; "Recolher agora" põe um pedido em cache que o `--pedido` (a cada minuto)
     atende. O texto dos feeds vai à IA como DADOS (nunca instruções) e só se mostra escapado; a IA só pode citar ids da lista.
     Em cada destaque e ideia há "Pedir um post sobre isto" (um pedido à IA, como o "Pedir um post à IA").
@@ -158,7 +158,10 @@ Sistema que cria posts para as redes sociais da NEXUS de forma autónoma.
     No editor: botões "Feed | Stories" na pré-visualização; no cartão, a etiqueta "Stories ↗" abre a versão 9:16.
   - **Biblioteca da NEXUS** (`/biblioteca`, tabela `imagens_biblioteca`, ficheiros em `public/imagens-posts/biblioteca/`): fotos próprias, produtos e logótipos; a IA usa primeiro estas (fotos de fundo e "montra" com produto + parceiro).
   - Fotos de fundo grátis: **Pixabay** (`PIXABAY_CHAVE`; o Pexels suspendeu chaves novas, mas `PEXELS_CHAVE` também funciona e tem prioridade): botão "Procurar imagem" no editor e foto automática nos posts da IA (a IA dá as palavras em inglês).
-  **PT-PT obrigatório e sem falhas**: todos os textos da IA passam por um revisor de português europeu (2.ª chamada) e pela lista fixa `PostWriter::PT_BR_PT`.
+  **PT-PT obrigatório e sem falhas**: todos os textos da IA passam por um revisor de português europeu (2.ª chamada) e pela lista fixa `App\Support\PortuguesPt`.
+  **Peças da IA (25 nov)** em `app/Services/Ia/`: `ClienteIa` (ligação à IA, `configurado()`, revisor de português `rever()`),
+  `InstrucoesIa` (empresa, regras do post, catálogo da biblioteca), `PostWriter` (criar/rever posts e a legenda),
+  `IdeiasCalendario` (temas do calendário), `FotosIa` (escolher foto e pesquisas em inglês) e `ResumoNoticias`.
   Email ao aprovador quando há post para aprovar: Microsoft 365 pela API Graph (`MSGRAPH_*` no `.env`), com botões "Aprovar" e
   "Pedir alteração" (`EmailDecisionController`): links assinados, válidos 7 dias e só para aquela versão do post, que abrem
   uma página de confirmação (o M365 abre os links para os verificar, por isso abrir o link nunca decide nada).

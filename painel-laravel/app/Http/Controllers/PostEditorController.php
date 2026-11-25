@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Post;
 use App\Notifications\PostParaAprovar;
 use App\Services\BancoFotos;
-use App\Services\Pixabay;
-use App\Services\PostWriter;
+use App\Services\Ia\ClienteIa;
+use App\Services\Ia\PostWriter;
 use App\Services\PostRenderer;
 use App\Support\AvisoDatas;
 use Illuminate\Http\JsonResponse;
@@ -20,7 +20,10 @@ use Illuminate\View\View;
 use RuntimeException;
 use Throwable;
 
-/** Criar e editar posts no painel: legenda, data, redes e a imagem feita com os modelos. */
+/**
+ * Criar e editar posts no painel: legenda, data, redes e a imagem feita com os modelos.
+ * As imagens (enviar, banco de fotos, "Outra foto") estão no PostImagensController e o email aos parceiros no PostParceirosController.
+ */
 class PostEditorController extends Controller
 {
     public function create(Request $request): View
@@ -99,7 +102,7 @@ class PostEditorController extends Controller
             'pastaUrl' => PostRenderer::url($post),
             'pexels' => app(BancoFotos::class)->configurado(),
             'banco' => app(BancoFotos::class)->nome(),
-            'ia' => app(PostWriter::class)->configurado(),
+            'ia' => app(ClienteIa::class)->configurado(),
         ]);
     }
 
@@ -178,132 +181,6 @@ class PostEditorController extends Controller
         return redirect()->route('posts.edit', $post)
             ->with('ok', 'Alterações guardadas e imagem gerada.')
             ->with('avisos', $resultado['avisos']);
-    }
-
-    /** Envia uma imagem (fundo, foto do produto ou logótipo do parceiro) para a pasta do post. */
-    public function upload(Request $request, Post $post): JsonResponse
-    {
-        $this->mustBeEditable($post);
-        $request->validate([
-            'ficheiro' => ['required', 'file', 'mimes:png,jpg,jpeg,webp', 'max:20480', ...\App\Services\ImagensSeguras::regrasUpload()],
-        ], [
-            'ficheiro.mimes' => 'Use uma imagem PNG, JPG ou WEBP.',
-            'ficheiro.max' => 'A imagem tem de ter menos de 20 MB.',
-            'ficheiro.dimensions' => 'A imagem é demasiado grande: no máximo '.\App\Services\ImagensSeguras::MAX_LADO.' píxeis de lado.',
-        ]);
-
-        $ficheiro = $request->file('ficheiro');
-        $ext = ['image/png' => 'png', 'image/jpeg' => 'jpg', 'image/webp' => 'webp'][$ficheiro->getMimeType()] ?? 'png';
-        $base = Str::limit(Str::slug(pathinfo($ficheiro->getClientOriginalName(), PATHINFO_FILENAME)), 50, '') ?: 'imagem';
-        if (preg_match('/^(post|pixabay|pexels|bib)-/', $base)) {
-            $base = 'img-'.$base; // nomes reservados: imagens geradas, fotos dos bancos e da biblioteca
-        }
-        // sufixo aleatório: dois uploads com o mesmo nome (ex.: logo.png) não se substituem
-        $nome = $base.'-'.strtolower(Str::random(6)).'.'.$ext;
-        File::ensureDirectoryExists(PostRenderer::pasta($post));
-        $ficheiro->move(PostRenderer::pasta($post), $nome);
-
-        return response()->json(['nome' => $nome]);
-    }
-
-    /** Procurar fotos no banco de fotos (editor: "Procurar imagem"). Em português, a IA traduz primeiro para inglês. */
-    public function searchImages(Request $request, BancoFotos $pexels, PostWriter $escritor): JsonResponse
-    {
-        $data = $request->validate(['q' => ['required', 'string', 'max:100'], 'formato' => ['nullable', 'string']]);
-        $pesquisa = $data['q'];
-        if (Pixabay::parecePortugues($pesquisa) && $escritor->configurado()) {
-            try {
-                $pesquisa = $escritor->pesquisaEmIngles($pesquisa);
-            } catch (\Throwable $e) {
-                report($e); // sem tradução, pesquisa como foi escrita
-            }
-        }
-        try {
-            // As que já estão noutros posts vêm marcadas, para não se repetir sem querer.
-            $emUso = \App\Models\Post::fotosEmUso()['banco'];
-            $fotos = array_map(fn ($f) => $f + ['usada' => in_array($pexels->chave($f['id']), $emUso, true)],
-                $pexels->procurar($pesquisa, $data['formato'] ?? '4:5'));
-
-            return response()->json(['pesquisa' => $pesquisa, 'fotos' => $fotos]);
-        } catch (RuntimeException $e) {
-            return response()->json(['message' => $e->getMessage()], 502);
-        }
-    }
-
-    /** Usar uma foto do Pexels como imagem de fundo do post. */
-    public function useStockImage(Request $request, Post $post, BancoFotos $pexels): JsonResponse
-    {
-        $this->mustBeEditable($post);
-        $data = $request->validate(['id' => ['required', 'integer', 'min:1']]);
-        try {
-            return response()->json($pexels->descarregar($data['id'], $post));
-        } catch (RuntimeException $e) {
-            return response()->json(['message' => $e->getMessage()], 502);
-        }
-    }
-
-    /**
-     * "Outra foto" no cartão do post: procura fotos para o tema, a IA escolhe uma ainda não usada
-     * neste post, e a imagem é refeita. O resto do post não muda.
-     */
-    public function otherPhoto(Request $request, Post $post, BancoFotos $banco, PostWriter $escritor, PostRenderer $renderer): RedirectResponse
-    {
-        $this->mustBeEditable($post);
-        abort_unless($post->design && $banco->configurado(), 409, 'Este post não usa os modelos ou não há banco de fotos.');
-
-        $design = $post->design;
-        $pesquisa = $design['pesquisa'] ?? '';
-        $tema = trim($post->title.' — '.str_replace(['*', "\n"], ['', ' '], (string) ($design['titulo'] ?? '')));
-        try {
-            // Cada "Outra foto" procura outra cena (a IA dá uma pesquisa diferente das anteriores);
-            // fora ficam as fotos já usadas aqui ou noutros posts e as da mesma série (quase iguais).
-            $pesquisas = $design['pesquisas'] ?? array_values(array_filter([$pesquisa]));
-            $usadas = $design['fotos_usadas'] ?? [];
-            $atual = preg_match('/^(?:pixabay|pexels)-(\d+)\.jpg$/', (string) ($design['foto'] ?? ''), $m) ? [(int) $m[1]] : [];
-            $nova = $escritor->configurado() ? $escritor->pesquisaNova($tema, $pesquisas ?: [$post->title]) : '';
-            $candidatas = [];
-            foreach (array_unique(array_filter([$nova, $pesquisa, $post->title])) as $tentativa) {
-                $candidatas = $banco->procurarNovas($tentativa, $design['formato'] ?? '4:5', 24, $post, [...$usadas, ...$atual]);
-                if ($candidatas) {
-                    $pesquisa = $tentativa;
-                    break;
-                }
-            }
-            try {
-                $id = $escritor->configurado() ? $escritor->escolherFoto($tema, array_slice($candidatas, 0, 12)) : ($candidatas[0]['id'] ?? null);
-            } catch (RuntimeException $e) {
-                $id = $candidatas[0]['id'] ?? null; // a IA não respondeu (limite do plano): a mais relevante da pesquisa
-            }
-            if (! $id) {
-                return back()->with('erro', 'Não encontrei outra foto adequada para “'.$post->title.'”. Experimente “Procurar imagem” no Editar.');
-            }
-
-            $foto = $banco->descarregar($id, $post);
-            $anterior = $design['foto'] ?? null;
-            $design['foto'] = $foto['nome'];
-            $design['tom'] = $design['tom'] ?? 'suave';
-            $design['pesquisa'] = $pesquisa;
-            $design['pesquisas'] = array_slice(array_values(array_unique([...$pesquisas, $pesquisa])), -10);
-            $design['fotos_usadas'] = array_values(array_unique([...$usadas, ...$atual, $id]));
-            unset($design['icone'], $design['fundo']);
-            $post->design = PostRenderer::limparDesign($design, $post);
-            $post->save();
-
-            $post->guardarImagens($renderer->render($post));
-            // A foto do banco que saiu já não faz falta.
-            if ($anterior && $anterior !== $foto['nome'] && preg_match('/^(pixabay|pexels)-\d+\.jpg$/', $anterior)) {
-                File::delete(PostRenderer::pasta($post).'/'.$anterior);
-            }
-        } catch (RuntimeException $e) {
-            report($e);
-
-            return back()->with('erro', 'Não foi possível trocar a foto: '.$e->getMessage());
-        }
-
-        $post->reviews()->create(['user_id' => $request->user()->id, 'action' => 'photo_changed',
-            'comment' => 'Foto: '.$foto['fotografo'].' ('.$banco->nome().')']);
-
-        return back()->with('ok', 'Foto trocada em “'.$post->title.'”.');
     }
 
     /** Botões da IA na legenda (editor): devolve a legenda nova; só fica guardada quando se carrega em Guardar. */
@@ -407,61 +284,4 @@ class PostEditorController extends Controller
 
         return $voltar()->with('ok', "“{$post->title}” foi eliminado.");
     }
-
-    /**
-     * "Enviar também aos parceiros" (menu "⋯" do cartão). Só antes de aprovar: o que sai por email
-     * também tem de ser aprovado por uma pessoa. Depois de enviado, já não muda.
-     */
-    public function partners(Request $request, Post $post): RedirectResponse
-    {
-        $this->mustBeEditable($post);
-        abort_if($post->parceiros_enviado_em !== null, 409, 'Este post já foi enviado aos parceiros.');
-        $quer = $request->boolean('enviar');
-        if ($quer !== $post->enviar_parceiros) {
-            $post->update(['enviar_parceiros' => $quer]);
-            $post->reviews()->create(['user_id' => $request->user()->id, 'action' => $quer ? 'partners_on' : 'partners_off']);
-        }
-        $quantos = \App\Models\Parceiro::quantosAtivos();
-
-        return back()->with('ok', $quer
-            ? "“{$post->title}” vai também por email a {$quantos} ".($quantos === 1 ? 'parceiro' : 'parceiros').', à hora da publicação, depois de aprovado.'
-            : "“{$post->title}” já não vai por email aos parceiros.");
-    }
-
-    /** Vertente email: o email aos parceiros tal como sai (as imagens vêm dentro da página). */
-    public function partnersPreview(Request $request, Post $post): \Illuminate\Http\Response
-    {
-        $html = (new \App\Mail\PostParaParceiros($post, null, '[nome do parceiro]'))->render();
-
-        return response($html)->header('X-Robots-Tag', 'noindex')->header('Cache-Control', 'no-store');
-    }
-
-    /** Email de teste para quem está no painel: ver como os parceiros recebem este post, antes de aprovar. */
-    public function partnersTest(Request $request, Post $post): RedirectResponse
-    {
-        if (! config('painel.emails_ligados')) {
-            return back()->with('erro', 'Os emails estão desligados por agora: use “Ver o email” para ver como fica.');
-        }
-        if (! $post->image_path) {
-            return back()->with('erro', 'Gere a imagem do post antes de enviar um teste.');
-        }
-        try {
-            \Illuminate\Support\Facades\Mail::to($request->user()->email, $request->user()->name)
-                ->send(new \App\Mail\PostParaParceiros($post, null, '[nome do parceiro]', teste: true));
-        } catch (Throwable $e) {
-            report($e);
-
-            return back()->with('erro', 'O email de teste não foi enviado: '.$e->getMessage());
-        }
-        $post->reviews()->create(['user_id' => $request->user()->id, 'action' => 'partners_test', 'comment' => $request->user()->email]);
-
-        return back()->with('ok', "Email de teste enviado para {$request->user()->email}.");
-    }
-
-    private function mustBeEditable(Post $post): void
-    {
-        abort_unless($post->isEditable(), 409,
-            'Este post já foi aprovado ou publicado. Desfaça a aprovação para o alterar.');
-    }
-
 }

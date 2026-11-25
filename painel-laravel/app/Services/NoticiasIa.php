@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\NoticiaIa;
 use App\Models\ResumoIa;
+use App\Services\Ia\ResumoNoticias;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
@@ -144,7 +145,7 @@ class NoticiasIa
      *
      * @throws RuntimeException se a IA falhar
      */
-    public function resumir(PostWriter $escritor): ?ResumoIa
+    public function resumir(): ?ResumoIa
     {
         $ultimo = ResumoIa::latest('fim')->first();
         $inicio = $ultimo?->fim ?? now()->subDays(4);
@@ -156,7 +157,7 @@ class NoticiasIa
             return null;
         }
 
-        $conteudo = $escritor->resumirNoticias($noticias->map(fn ($n) => [
+        $conteudo = app(ResumoNoticias::class)->resumir($noticias->map(fn ($n) => [
             'id' => $n->id, 'fonte' => $n->fonte, 'titulo' => $n->titulo, 'descricao' => (string) $n->descricao,
         ])->all(), $inicio, $fim);
 

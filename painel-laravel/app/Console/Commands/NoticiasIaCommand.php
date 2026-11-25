@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Services\NoticiasIa;
-use App\Services\PostWriter;
+use App\Services\Ia\ClienteIa;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -25,7 +25,7 @@ class NoticiasIaCommand extends Command
     /** Enquanto o agente trabalha (a página mostra "a recolher…"). */
     public const A_TRABALHAR = 'noticias-ia:a-trabalhar';
 
-    public function handle(NoticiasIa $agente, PostWriter $escritor): int
+    public function handle(NoticiasIa $agente, ClienteIa $ia): int
     {
         if ($this->option('pedido') && ! Cache::pull(self::PEDIDO)) {
             return self::SUCCESS;
@@ -43,13 +43,13 @@ class NoticiasIaCommand extends Command
             foreach ($r['erros'] as $fonte => $erro) {
                 $this->warn("{$fonte}: {$erro}");
             }
-            if (! $escritor->configurado()) {
+            if (! $ia->configurado()) {
                 $this->line('IA não configurada (IA_CHAVE): notícias guardadas, sem resumo.');
 
                 return self::SUCCESS;
             }
             try {
-                $resumo = $agente->resumir($escritor);
+                $resumo = $agente->resumir();
                 $this->info($resumo ? "Resumo #{$resumo->id}: {$resumo->conteudo['titulo']} ({$resumo->n_noticias} notícias)" : 'Sem notícias novas para resumir.');
             } catch (Throwable $e) {
                 // ex.: limite do plano gratuito: as notícias ficam guardadas e entram no próximo resumo

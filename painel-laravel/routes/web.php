@@ -10,6 +10,8 @@ use App\Http\Controllers\PainelController;
 use App\Http\Controllers\ParceirosController;
 use App\Http\Controllers\PostDecisionController;
 use App\Http\Controllers\PostEditorController;
+use App\Http\Controllers\PostImagensController;
+use App\Http\Controllers\PostParceirosController;
 use App\Http\Controllers\PostRequestController;
 use App\Http\Controllers\UtilizadoresController;
 use Illuminate\Support\Facades\Route;
@@ -69,12 +71,12 @@ Route::middleware(['auth', 'auth.session'])->group(function () {
     Route::get('/posts/{post}/editar', [PostEditorController::class, 'edit'])->name('posts.edit');
     Route::post('/posts/{post}/editar', [PostEditorController::class, 'update'])->name('posts.update');
     Route::post('/posts/{post}/modelo', [PostEditorController::class, 'useTemplate'])->name('posts.template');
-    Route::post('/posts/{post}/imagens', [PostEditorController::class, 'upload'])->name('posts.upload');
+    Route::post('/posts/{post}/imagens', [PostImagensController::class, 'upload'])->name('posts.upload');
     Route::post('/posts/{post}/enviar', [PostEditorController::class, 'submit'])->name('posts.submit');
     Route::post('/posts/{post}/eliminar', [PostEditorController::class, 'destroy'])->name('posts.destroy');
-    Route::post('/posts/{post}/parceiros', [PostEditorController::class, 'partners'])->name('posts.partners');
-    Route::get('/posts/{post}/email-parceiros', [PostEditorController::class, 'partnersPreview'])->name('posts.partnersPreview');
-    Route::post('/posts/{post}/parceiros/teste', [PostEditorController::class, 'partnersTest'])->name('posts.partnersTest')->middleware('throttle:10,1');
+    Route::post('/posts/{post}/parceiros', [PostParceirosController::class, 'partners'])->name('posts.partners');
+    Route::get('/posts/{post}/email-parceiros', [PostParceirosController::class, 'partnersPreview'])->name('posts.partnersPreview');
+    Route::post('/posts/{post}/parceiros/teste', [PostParceirosController::class, 'partnersTest'])->name('posts.partnersTest')->middleware('throttle:10,1');
 
     // Notícias de IA: resumo do agente (segunda e quinta-feira)
     Route::get('/noticias-ia', [NoticiasIaController::class, 'index'])->name('noticias');
@@ -87,10 +89,10 @@ Route::middleware(['auth', 'auth.session'])->group(function () {
     Route::post('/parceiros/{parceiro}/estado', [ParceirosController::class, 'estado'])->name('parceiros.estado');
     Route::post('/parceiros/{parceiro}/remover', [ParceirosController::class, 'destroy'])->name('parceiros.destroy');
     Route::post('/posts/{post}/data', [PostEditorController::class, 'reschedule'])->name('posts.date');
-    Route::get('/imagens/procurar', [PostEditorController::class, 'searchImages'])->name('images.search')->middleware('throttle:60,1');
-    Route::post('/posts/{post}/imagens/pexels', [PostEditorController::class, 'useStockImage'])->name('posts.stock');
+    Route::get('/imagens/procurar', [PostImagensController::class, 'searchImages'])->name('images.search')->middleware('throttle:60,1');
+    Route::post('/posts/{post}/imagens/pexels', [PostImagensController::class, 'useStockImage'])->name('posts.stock');
     Route::post('/posts/{post}/legenda-ia', [PostEditorController::class, 'captionAi'])->name('posts.captionAi')->middleware('throttle:30,1');
-    Route::post('/posts/{post}/outra-foto', [PostEditorController::class, 'otherPhoto'])->name('posts.otherPhoto')->middleware('throttle:20,1');
+    Route::post('/posts/{post}/outra-foto', [PostImagensController::class, 'otherPhoto'])->name('posts.otherPhoto')->middleware('throttle:20,1');
 
     Route::post('/pedidos', [PostRequestController::class, 'store'])->name('requests.store')->middleware('throttle:ia');
     Route::post('/pedidos/{pedido}/repetir', [PostRequestController::class, 'retry'])->name('requests.retry')->middleware('throttle:ia');

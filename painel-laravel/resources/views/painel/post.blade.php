@@ -1,5 +1,5 @@
 @php
-    $iaLigada = app(\App\Services\PostWriter::class)->configurado();
+    $iaLigada = app(\App\Services\Ia\ClienteIa::class)->configurado();
     // O controlador já pergunta isto de uma vez para todos os cartões (withExists); a consulta é só o plano B.
     $iaAFazer = $post->ia_a_fazer ?? $post->pedidos()->whereIn('status', ['new', 'in_progress'])->exists();
     $iaFalhou = $post->ia_falhou ?? $post->pedidos()->where('status', 'failed')->exists();

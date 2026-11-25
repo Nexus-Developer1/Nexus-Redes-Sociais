@@ -3,13 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\PostRequest;
-use App\Services\PostWriter;
+use App\Services\Ia\ClienteIa;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class PostRequestController extends Controller
 {
-    public function store(Request $request, PostWriter $escritor): RedirectResponse
+    public function store(Request $request, ClienteIa $ia): RedirectResponse
     {
         $data = $request->validate([
             'topic' => ['required', 'string', 'max:2000'],
@@ -27,7 +27,7 @@ class PostRequestController extends Controller
             'user_id' => $request->user()->id,
         ]);
 
-        return back()->with('pedido_em_curso', $escritor->configurado() ? $pedido->id : null)->with('ok', $escritor->configurado()
+        return back()->with('pedido_em_curso', $ia->configurado() ? $pedido->id : null)->with('ok', $ia->configurado()
             ? '⏳ Pedido registado. A IA está a preparar o post: quando estiver pronto, esta página abre-o em “Para aprovar” sozinha.'
             : 'Pedido registado. Fica no topo de “Ideias e em criação” até ser tratado (a IA automática ainda não está ligada).');
     }

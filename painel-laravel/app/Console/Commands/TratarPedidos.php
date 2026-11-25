@@ -8,7 +8,9 @@ use App\Models\PostRequest;
 use App\Notifications\PostParaAprovar;
 use App\Services\BancoFotos;
 use App\Services\PostRenderer;
-use App\Services\PostWriter;
+use App\Services\Ia\ClienteIa;
+use App\Services\Ia\FotosIa;
+use App\Services\Ia\PostWriter;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use RuntimeException;
@@ -26,9 +28,9 @@ class TratarPedidos extends Command
 
     protected $description = 'A IA cria os posts pedidos no painel e refaz os que têm alteração pedida';
 
-    public function handle(PostWriter $escritor, PostRenderer $renderer): int
+    public function handle(ClienteIa $ia, PostWriter $escritor, PostRenderer $renderer): int
     {
-        if (! $escritor->configurado()) {
+        if (! $ia->configurado()) {
             $this->line('IA não configurada (IA_CHAVE): nada a fazer.');
 
             return self::SUCCESS;
@@ -221,7 +223,7 @@ class TratarPedidos extends Command
         if ($nossas->isNotEmpty()) {
             try {
                 $temaBib = trim($post->title.' — '.str_replace(['*', "\n"], ['', ' '], (string) ($design['titulo'] ?? '')));
-                $id = app(PostWriter::class)->escolherFoto($temaBib,
+                $id = app(FotosIa::class)->escolher($temaBib,
                     $nossas->map(fn ($i) => ['id' => $i->id, 'alt' => $i->descricao])->all());
                 if ($id && ($img = $nossas->firstWhere('id', $id))) {
                     $design['foto'] = $img->copiarPara($post);
@@ -246,12 +248,12 @@ class TratarPedidos extends Command
             // A IA vê as candidatas e escolhe a que serve. A foto é o centro do post (padrão do feed), por isso:
             // se nenhuma servir, tenta outra pesquisa; se a IA não responder (limite do plano), fica a 1.ª da
             // pesquisa (o banco ordena pela relevância) em vez de o post ficar sem foto.
-            $escritor = app(PostWriter::class);
+            $fotosIa = app(FotosIa::class);
             $tema = trim($post->title.' — '.str_replace(['*', "\n"], ['', ' '], (string) ($design['titulo'] ?? '')));
             $escolhida = null;
             foreach ([$pesquisa, null] as $tentativa) {
                 if ($tentativa === null) {
-                    $tentativa = rescue(fn () => $escritor->pesquisaNova($tema, [$pesquisa]), '', false);
+                    $tentativa = rescue(fn () => $fotosIa->pesquisaNova($tema, [$pesquisa]), '', false);
                     if ($tentativa === '' || $tentativa === $pesquisa) {
                         break;
                     }
@@ -261,7 +263,7 @@ class TratarPedidos extends Command
                     continue;
                 }
                 try {
-                    $escolhida = $escritor->escolherFoto($tema, $fotos);
+                    $escolhida = $fotosIa->escolher($tema, $fotos);
                 } catch (RuntimeException $e) {
                     $escolhida = $fotos[0]['id']; // a IA não respondeu: a mais relevante da pesquisa
                     $this->warn("Post #{$post->id}: {$e->getMessage()} Fica a foto mais relevante de \"{$tentativa}\".");

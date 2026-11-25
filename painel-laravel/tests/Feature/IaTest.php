@@ -391,7 +391,7 @@ precisa de *renovar*', 'pontos' => []]))
     {
         $this->assertSame(
             'A sua Equipa deve detetar o ficheiro no ecrã do telemóvel. Contacte-nos. Eletrónico, económico, género. Eles têm. Guarde o trabalho. #equipe',
-            \App\Services\PostWriter::ptpt('A sua Equipe deve detectar o arquivo na tela do celular. Contate-nos. Eletrônico, econômico, gênero. Eles têm. Salve o trabalho. #equipe')
+            \App\Support\PortuguesPt::corrigir('A sua Equipe deve detectar o arquivo na tela do celular. Contate-nos. Eletrônico, econômico, gênero. Eles têm. Salve o trabalho. #equipe')
         );
     }
 

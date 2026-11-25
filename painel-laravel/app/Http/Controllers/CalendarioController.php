@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Console\Commands\CalendarioIa;
 use App\Models\Post;
-use App\Services\PostWriter;
+use App\Services\Ia\ClienteIa;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -56,14 +56,14 @@ class CalendarioController extends Controller
             'seguinte' => $mes->copy()->addMonth()->format('Y-m'),
             'totalMes' => $doMes,
             'semData' => Post::whereNull('scheduled_at')->whereNotIn('status', [Post::REJECTED, Post::PUBLISHED])->count(),
-            'podeProporIdeias' => app(PostWriter::class)->configurado() && config('ia.ideias_por_semana') > 0,
+            'podeProporIdeias' => app(ClienteIa::class)->configurado() && config('ia.ideias_por_semana') > 0,
         ]);
     }
 
     /** "Propor ideias": a IA (post:calendario-ia, a cada minuto) propõe já as ideias da próxima semana. */
     public function proporIdeias(): RedirectResponse
     {
-        abort_unless(app(PostWriter::class)->configurado() && config('ia.ideias_por_semana') > 0, 404);
+        abort_unless(app(ClienteIa::class)->configurado() && config('ia.ideias_por_semana') > 0, 404);
         Cache::put(CalendarioIa::PEDIDO_PROPOR, 1, now()->addMinutes(10));
         $inicio = now()->startOfWeek()->addWeek();
 

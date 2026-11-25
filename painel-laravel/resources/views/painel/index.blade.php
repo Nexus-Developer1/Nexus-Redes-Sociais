@@ -4,7 +4,7 @@
 
 @section('body')
 @php
-    $diasAntesIa = app(\App\Services\PostWriter::class)->configurado() ? (int) config('ia.ideias_dias_antes') : 0;
+    $diasAntesIa = app(\App\Services\Ia\ClienteIa::class)->configurado() ? (int) config('ia.ideias_dias_antes') : 0;
     $subtitulos = [
         'fila' => 'Nada é publicado sem a sua aprovação.',
         'agendados' => 'Aprovados: saem sozinhos à hora marcada.',

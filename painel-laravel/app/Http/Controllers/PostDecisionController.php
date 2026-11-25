@@ -55,7 +55,7 @@ class PostDecisionController extends Controller
 
         $this->decidir($post, [Post::PENDING], 'change_requested', Post::REVISING, $request, $data['comment']);
 
-        return back()->with('ok', app(\App\Services\PostWriter::class)->configurado() && $post->design
+        return back()->with('ok', app(\App\Services\Ia\ClienteIa::class)->configurado() && $post->design
             ? 'Pedido de alteração enviado: a IA refaz o post dentro de 1 a 2 minutos.'
             : 'Pedido de alteração registado. Este post não é refeito pela IA: faça a alteração em “Editar”.');
     }
@@ -95,7 +95,7 @@ class PostDecisionController extends Controller
 
         $this->decidir($post, [Post::IDEA, Post::CREATING], 'idea_swap', Post::IDEA, $request, $data['comment']);
 
-        return back()->with('ok', app(\App\Services\PostWriter::class)->configurado()
+        return back()->with('ok', app(\App\Services\Ia\ClienteIa::class)->configurado()
             ? 'A IA vai propor outro tema para esta data dentro de 1 a 2 minutos.'
             : 'Pedido de troca registado. A IA não está ligada: descarte a ideia ou faça o post em “Editar”.');
     }
